@@ -70,7 +70,7 @@ def reduce_surface(n_x, n_y, n_z, limiter_x, limiter_y, limiter_z, surface, surf
         for j in range(limiter_y, n_y):
             for k in range(limiter_x, n_x):
                 if np.sum(surface[i][j][k]) != 0:
-                    surface_reduced[a] = np.array([i, j, k], dtype=np.int32)
+                    surface_reduced[a] = np.array([k, j, i], dtype=np.int32)
                     a += 1
     return surface_reduced
 
