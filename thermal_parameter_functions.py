@@ -91,6 +91,6 @@ def lambda_pebble(n, temperature, DX, dx, VFF_agg_base, poisson_ratio_agg, young
 	return lambda_total
 
 @jit
-def lambda_constant(n, lambda_constant):
-	return np.full(n, lambda_constant, dtype=np.float64)
+def lambda_constant(n_x, n_y, n_z, lambda_constant):
+	return np.full((const.n_z, const.n_y, const.n_x, 6), lambda_constant, dtype=np.float64)
 

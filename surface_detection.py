@@ -6,16 +6,16 @@ import settings as sett
 '''This function creates an equidistant mesh of either cylindrical or rectangular shape. 
 The surface is marked as an array of six values, which each correspond to one of the sides, a "1" signaling it being
 an exposed tile, while a "0" denotes a non surface element. 
-Array entries 0 to 5 correspond to "z positve", "z negative", "y positve", "y negative", "x positive" and "x negative"'''
-def create_equidistant_mesh(n_x, n_y, n_z, temperature_ini):
+Array entries 0 to 5 correspond to "z positive", "z negative", "y positve", "y negative", "x positive" and "x negative"'''
+def create_equidistant_mesh(n_x, n_y, n_z, temperature_ini, dx, dy, dz):
     if sett.mesh_form == 1:
         a = n_x//2
         a_rad = (n_x - 2)//2
         b = n_y//2
         b_rad = (n_y - 2) // 2
         x, y = np.ogrid[:n_x, :n_y]
-        mesh = np.zeros((n_z, n_y, n_x))
-        slice = np.zeros((n_y, n_x))
+        mesh = np.zeros((n_z, n_y, n_x), dtype=np.float64)
+        slice = np.zeros((n_y, n_x), dtype=np.float64)
         mask = ((x-a)/a_rad)**2 + ((y-b)/b_rad)**2 <= 1
         slice[mask] = temperature_ini
         for i in range(0, n_z-1):
@@ -25,20 +25,25 @@ def create_equidistant_mesh(n_x, n_y, n_z, temperature_ini):
         mesh = np.full((n_z, n_y, n_x), temperature_ini)
     else:
         raise NotImplementedError
-    return mesh
+    dx_arr = np.full((n_z, n_y, n_x), dx, dtype=np.float64)
+    dy_arr = np.full((n_z, n_y, n_x), dy, dtype=np.float64)
+    dz_arr = np.full((n_z, n_y, n_x), dz, dtype=np.float64)
+    Dr = np.full((n_z, n_y, n_x, 6), np.array([dz, dz, dy, dy, dx, dx]), dtype=np.float64)
+    return mesh, dx_arr, dy_arr, dz_arr, Dr
 
 
 @jit
 def find_surface(n_x, n_y, n_z, limiter_x, limiter_y, limiter_z, mesh, surface):
+    surface_elements = 0
     for i in range(limiter_z, n_z):
         for j in range(limiter_y, n_y):
             for k in range(limiter_x, n_x):
                 if mesh[i][j][k] != 0:
                     #Check if it is a surface in positive z direction
-                    if mesh[i-1][j][k] == 0:
+                    if mesh[i+1][j][k] == 0:
                         surface[i][j][k][0] = 1
                     # Check if it is a surface in negative z direction
-                    if mesh[i+1][j][k] == 0:
+                    if mesh[i-1][j][k] == 0:
                         surface[i][j][k][1] = 1
                     # Check if it is a surface in positive y direction
                     if mesh[i][j+1][k] == 0:
@@ -48,12 +53,26 @@ def find_surface(n_x, n_y, n_z, limiter_x, limiter_y, limiter_z, mesh, surface):
                         surface[i][j][k][3] = 1
                     # Check if it is a surface in positive x direction
                     if mesh[i][j][k+1] == 0:
-                        surface[i][j][k][1] = 1
+                        surface[i][j][k][4] = 1
                     # Check if it is a surface in negative x direction
                     if mesh[i][j][k-1] == 0:
-                        surface[i][j][k][1] = 1
-    return surface
+                        surface[i][j][k][5] = 1
+                    if np.sum(surface[i][j][k]) != 0:
+                        surface_elements += 1
+    surface_reduced = reduce_surface(n_x, n_y, n_z, limiter_x, limiter_y, limiter_z, surface, np.zeros((surface_elements, 3), dtype=np.int32))
+    return surface, surface_reduced
 
+
+@jit
+def reduce_surface(n_x, n_y, n_z, limiter_x, limiter_y, limiter_z, surface, surface_reduced):
+    a = 0
+    for i in range(limiter_z, n_z):
+        for j in range(limiter_y, n_y):
+            for k in range(limiter_x, n_x):
+                if np.sum(surface[i][j][k]) != 0:
+                    surface_reduced[a] = np.array([i, j, k], dtype=np.int32)
+                    a += 1
+    return surface_reduced
 
 #@jit
 def DEBUG_print_3D_arrays(n_x, n_y, n_z, mesh):
