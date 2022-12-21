@@ -46,8 +46,6 @@ def find_surface(n_x, n_y, n_z, limiter_x, limiter_y, limiter_z, mesh, surface, 
                     # Check if it is a surface in negative z direction
                     if mesh[i-1][j][k] == 0:
                         surface[i][j][k][1] = 1
-                        if ((k - a)/a_rad)**2 + ((j - b)/b_rad)**2 <= 1:
-                            surface_elements += 1
                     # Check if it is a surface in positive y direction
                     if mesh[i][j+1][k] == 0:
                         surface[i][j][k][2] = 1
@@ -60,6 +58,8 @@ def find_surface(n_x, n_y, n_z, limiter_x, limiter_y, limiter_z, mesh, surface, 
                     # Check if it is a surface in negative x direction
                     if mesh[i][j][k-1] == 0:
                         surface[i][j][k][5] = 1
+                    if ((k - a) / a_rad) ** 2 + ((j - b) / b_rad) ** 2 <= 1 and sum(surface[i][j][k] != 0):
+                        surface_elements += 1
     surface_reduced = reduce_surface(n_x, n_y, n_z, limiter_x, limiter_y, limiter_z, surface, np.zeros((surface_elements, 3), dtype=np.int32), a, a_rad, b, b_rad)
     return surface, surface_reduced
 
@@ -67,10 +67,11 @@ def find_surface(n_x, n_y, n_z, limiter_x, limiter_y, limiter_z, mesh, surface, 
 @jit
 def reduce_surface(n_x, n_y, n_z, limiter_x, limiter_y, limiter_z, surface, surface_reduced, a, a_rad, b, b_rad):
     a = 0
-    for i in range(limiter_z, n_z):
+    #Nur bis n_z-1 um die Bodenschicht auszusparen
+    for i in range(limiter_z, n_z-1):
         for j in range(limiter_y, n_y):
             for k in range(limiter_x, n_x):
-                if surface[i][j][k][1] != 0 and ((k - a)/a_rad)**2 + ((j - b)/b_rad)**2 <= 1:
+                if sum(surface[i][j][k]) != 0 and ((k - a)/a_rad)**2 + ((j - b)/b_rad)**2 <= 1:
                     surface_reduced[a] = np.array([k, j, i], dtype=np.int32)
                     a += 1
     return surface_reduced
