@@ -74,11 +74,7 @@ def energy_input(r_H, albedo, dt, input_energy, sigma, epsilon, temperature, Lam
 	E_Rad_in_surface = 0
 	delta_T_0 = np.zeros(np.shape(delta_T))
 	E_Lat_in_surface = 0
-	print(input_energy / r_H ** 2 * (1 - albedo) * dt)
 	for each in surface_reduced:
-		print(input_energy / r_H ** 2 * (1 - albedo) * dt)
-		print(dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]])
-		print(surface[each[2]][each[1]][each[0]][1])
 		E_In = input_energy / r_H ** 2 * (1 - albedo) * dt * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * surface[each[2]][each[1]][each[0]][1]
 		#E_In = input_energy * dt
 		E_Rad = - sigma * epsilon * temperature[each[2]][each[1]][each[0]]**4 * dt * (dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][0] + surface[each[2]][each[1]][each[0]][1]) + dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][2] + surface[each[2]][each[1]][each[0]][3]) + dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][4] + surface[each[2]][each[1]][each[0]][5])) # [J/(m^2)]

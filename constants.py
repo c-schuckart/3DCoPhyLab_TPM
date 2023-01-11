@@ -9,7 +9,7 @@ n_x = 51                            # Number of Layers                       [-]
 n_y = 51
 n_z = 51
 n = np.array([n_x, n_y, n_z])
-k = 850000                      # Number of Timesteps                    [-]
+k = 10000                      # Number of Timesteps                    [-]
 total_depth = 0.2                # Total simulated depth                  [m]
 
 #Definition of Physical Parameters

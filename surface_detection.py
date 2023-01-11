@@ -66,14 +66,15 @@ def find_surface(n_x, n_y, n_z, limiter_x, limiter_y, limiter_z, mesh, surface, 
 
 @jit
 def reduce_surface(n_x, n_y, n_z, limiter_x, limiter_y, limiter_z, surface, surface_reduced, a, a_rad, b, b_rad):
-    a = 0
-    #Nur bis n_z-1 um die Bodenschicht auszusparen
-    for i in range(limiter_z, n_z-1):
+    count = 0
+    #z only runs up to n_z-2 to ignore the bottom plus the puffer layer
+    for i in range(limiter_z, n_z-2):
         for j in range(limiter_y, n_y):
             for k in range(limiter_x, n_x):
                 if sum(surface[i][j][k]) != 0 and ((k - a)/a_rad)**2 + ((j - b)/b_rad)**2 <= 1:
-                    surface_reduced[a] = np.array([k, j, i], dtype=np.int32)
-                    a += 1
+                    surface_reduced[count] = np.array([k, j, i], dtype=np.int32)
+                    count += 1
+                    print(surface[i][j][k])
     return surface_reduced
 
 #@jit

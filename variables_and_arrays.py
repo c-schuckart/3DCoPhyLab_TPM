@@ -11,3 +11,8 @@ co2_content_per_layer = np.full((const.n_z, const.n_y, const.n_x), const.min_dx 
 h2o_mass_fraction_per_layer = np.full((const.n_z, const.n_y, const.n_x), (1/(const.co2_h2o_ratio_global + 1)), dtype=np.float64)
 co2_mass_fraction_per_layer = np.full((const.n_z, const.n_y, const.n_x), (const.co2_h2o_ratio_global/(const.co2_h2o_ratio_global + 1)), dtype=np.float64)
 E_conservation = np.zeros(const.k, dtype=np.float64)
+Energy_Increase_Total_per_time_Step_arr = np.zeros(const.k, dtype=np.float64)
+E_Rad_arr = np.zeros(const.k, dtype=np.float64)
+Latent_Heat_per_time_step_arr = np.zeros(const.k, dtype=np.float64)
+E_In_arr = np.zeros(const.k, dtype=np.float64)
+Fourier_number = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
