@@ -62,31 +62,28 @@ Returns:
 def hte_calculate(n_x, n_y, n_z, surface, delta_T_0, temperature, Lambda, Dr, dx, dy, dz, dt, density, heat_capacity, j_leave, j_inward, latent_heat_water, j_leave_co2, j_inward_co2, latent_heat_co2):
     delta_T = np.zeros((n_x, n_y, n_z), dtype=np.float64) + delta_T_0
     Energy_Increase_per_Layer = np.zeros((n_x, n_y, n_z), dtype=np.float64)
-    #Latent_Heat_per_Layer = np.zeros(n_x, n_y, n_z)
+    Latent_Heat_per_Layer = np.zeros((n_x, n_y, n_z), dtype=np.float64)
     #Fourier_number = np.zeros(n_x, n_y, n_z)
-    for i in range(1, n_z):
-        for j in range(1, n_y):
-            for k in range(1, n_x):
+    for i in range(1, n_z-1):
+        for j in range(1, n_y-1):
+            for k in range(1, n_x-1):
                 if np.sum(surface[i][j][k]) == 0:
                     # Standard Thermal Diffusivity Equation 1D explicit
-                    delta_T[i][j][k] = ((((temperature[i][j][k - 1] - temperature[i][j][k]) * Lambda[i][j][k][0] / (Dr[i][j][k][0])) \
-                                   - ((temperature[i][j][k] - temperature[i][j][k + 1]) * Lambda[i][j][k][1] / (Dr[i][j][k][1]))) / dx[i][j][k]) * dt / (
+                    delta_T[i][j][k] = ((((temperature[i][j][k - 1] - temperature[i][j][k]) * Lambda[i][j][k][0] / (Dr[i][j][k][0])) - ((temperature[i][j][k] - temperature[i][j][k + 1]) * Lambda[i][j][k][1] / (Dr[i][j][k][1]))) / dx[i][j][k]) * dt / (
                                              density[i][j][k] * heat_capacity[i][j][k]) + \
-                                       ((((temperature[i][j + 1][k] - temperature[i][j][k]) * Lambda[i][j][k][2] / (
-                                       Dr[i][j][k][2])) \
+                                       ((((temperature[i][j + 1][k] - temperature[i][j][k]) * Lambda[i][j][k][2] / (Dr[i][j][k][2]))
                                          - ((temperature[i][j][k] - temperature[i][j - 1][k]) * Lambda[i][j][k][3] / (
                                                Dr[i][j][k][3]))) / dy[i][j][k]) * dt / (
                                                density[i][j][k] * heat_capacity[i][j][k]) + \
-                                       ((((temperature[i + 1][j][k] - temperature[i][j][k]) * Lambda[i][j][k][4] / (
-                                       Dr[i][j][k][4])) \
+                                       ((((temperature[i + 1][j][k] - temperature[i][j][k]) * Lambda[i][j][k][4] / (Dr[i][j][k][4]))
                                          - ((temperature[i][j][k] - temperature[i - 1][j][k]) * Lambda[i][j][k][5] / (
                                                Dr[i][j][k][5]))) / dz[i][j][k]) * dt / (
                                                density[i][j][k] * heat_capacity[i][j][k])
                     #- (j_leave[i] - j_inward[i]) * latent_heat_water * dt / (density[i] * heat_capacity[i] * dx[i]) - (j_leave_co2[i] - j_inward_co2[i]) * latent_heat_co2 * dt / (density[i] * heat_capacity[i] * dx[i])  # [K]
                     #Fourier_number[i] = Lambda[i] / (density[i] * heat_capacity[i]) * dt / dx[i] ** 2  # [-]
                     #Latent_Heat_per_Layer[i] = - (j_leave[i] - j_inward[i]) * latent_heat_water * dt - (j_leave_co2[i] - j_inward_co2[i]) * latent_heat_co2 * dt
-                    Energy_Increase_per_Layer[i] = heat_capacity[i][j][k] * density[i][j][k] * dx[i][j][k] * dy[i][j][k] * dz[i][j][k] * delta_T[i]  # [J]
-    return delta_T, Energy_Increase_per_Layer
+                    Energy_Increase_per_Layer[i][j][k] = heat_capacity[i][j][k] * density[i][j][k] * dx[i][j][k] * dy[i][j][k] * dz[i][j][k] * delta_T[i][j][k]  # [J]
+    return delta_T, Energy_Increase_per_Layer, Latent_Heat_per_Layer
 
 '''
 Numerical implementation of the heat transfer equation in a finite differences, forward time centered space, explicit scheme.
@@ -166,7 +163,7 @@ Returns:
 		Array containing the ratio of CO2 ice to water ice for each layer of dimension n+1	    
 '''
 @jit
-def update_thermal_arrays(n_x, n_y, n_z, temperature, water_content_per_layer, co2_content_per_layer,  delta_T, Energy_Increase_per_Layer, j_inward, j_leave, j_leave_co2, j_inward_co2, dt, avogadro_constant, molar_mass_water, molar_mass_co2, heat_capacity, heat_capacity_water_ice, heat_capacity_co2_ice, EIpL_0, Latent_Heat_per_Layer, E_Lat_0, E_Rad, E_In):
+def update_thermal_arrays(n_x, n_y, n_z, temperature, water_content_per_layer, co2_content_per_layer,  delta_T, Energy_Increase_per_Layer, j_leave, j_inward, j_leave_co2, j_inward_co2, dt, avogadro_constant, molar_mass_water, molar_mass_co2, heat_capacity, heat_capacity_water_ice, heat_capacity_co2_ice, EIpL_0, Latent_Heat_per_Layer, E_Lat_0, E_Rad, E_In):
     temperature_o = temperature + delta_T
     outgassed_molecules_per_time_step = 0
     outgassed_molecules_per_time_step_co2 = 0
@@ -174,6 +171,8 @@ def update_thermal_arrays(n_x, n_y, n_z, temperature, water_content_per_layer, c
     Latent_Heat_per_Layer[0] = E_Lat_0
     Energy_Increase_Total_per_time_Step = 0
     Latent_Heat_per_time_step = 0
+    dust_ice_ratio_per_layer = 0
+    co2_h2o_ratio_per_layer = 0
     '''for i in range(0, n + 1):
         #temperature_o[i] = temperature[i] + delta_T[i]  # [K]
         #print(temperature[i], delta_T[i], temperature_o[i])

@@ -58,7 +58,7 @@ def find_surface(n_x, n_y, n_z, limiter_x, limiter_y, limiter_z, mesh, surface, 
                     # Check if it is a surface in negative x direction
                     if mesh[i][j][k-1] == 0:
                         surface[i][j][k][5] = 1
-                    if ((k - a) / a_rad) ** 2 + ((j - b) / b_rad) ** 2 <= 1 and sum(surface[i][j][k] != 0):
+                    if ((k - a) / a_rad) ** 2 + ((j - b) / b_rad) ** 2 <= 1 and sum(surface[i][j][k] != 0) and i < n_z - 2:
                         surface_elements += 1
     surface_reduced = reduce_surface(n_x, n_y, n_z, limiter_x, limiter_y, limiter_z, surface, np.zeros((surface_elements, 3), dtype=np.int32), a, a_rad, b, b_rad)
     return surface, surface_reduced
@@ -74,7 +74,6 @@ def reduce_surface(n_x, n_y, n_z, limiter_x, limiter_y, limiter_z, surface, surf
                 if sum(surface[i][j][k]) != 0 and ((k - a)/a_rad)**2 + ((j - b)/b_rad)**2 <= 1:
                     surface_reduced[count] = np.array([k, j, i], dtype=np.int32)
                     count += 1
-                    print(surface[i][j][k])
     return surface_reduced
 
 #@jit
