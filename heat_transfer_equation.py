@@ -67,7 +67,7 @@ def hte_calculate(n_x, n_y, n_z, surface, delta_T_0, temperature, Lambda, Dr, dx
     for i in range(1, n_z-1):
         for j in range(1, n_y-1):
             for k in range(1, n_x-1):
-                if np.sum(surface[i][j][k]) == 0:
+                if np.sum(surface[i][j][k]) == 0 and temperature[i][j][k] > 0:
                     # Standard Thermal Diffusivity Equation 1D explicit
                     delta_T[i][j][k] = ((((temperature[i][j][k - 1] - temperature[i][j][k]) * Lambda[i][j][k][0] / (Dr[i][j][k][0])) - ((temperature[i][j][k] - temperature[i][j][k + 1]) * Lambda[i][j][k][1] / (Dr[i][j][k][1]))) / dx[i][j][k]) * dt / (
                                              density[i][j][k] * heat_capacity[i][j][k]) + \

@@ -17,7 +17,7 @@ def plot_3D(scalars):
 with open('test.json') as json_file:
     data_vis = json.load(json_file)
 
-#sample = plot_3D(np.array(data_vis['Temperature']))
+'''#sample = plot_3D(np.array(data_vis['Temperature']))
 sample_and_surface = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
 surface = np.array(data_vis['Surface'])
 for i in range(0, const.n_z):
@@ -29,5 +29,15 @@ for i in range(0, const.n_z):
 for each in data_vis['RSurface']:
     sample_and_surface[each[2]][each[1]][each[0]] = 70
 
-sample = plot_3D(sample_and_surface)
+sample = plot_3D(sample_and_surface)'''
+
+sample = plot_3D(np.array(data_vis['Temperature'][0]))
+
+@mlab.animate
+def animate():
+    for i in range(len(data_vis['Temperature'])):
+        sample.mlab_source.scalars = np.array(data_vis['Temperature'][i])
+        yield
+
+animate()
 mlab.show()

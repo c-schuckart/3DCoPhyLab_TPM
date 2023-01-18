@@ -28,10 +28,10 @@ def load_from_save():
 
 def data_store(j, temperature, water_content_per_layer, co2_content_per_layer, outgassing_rate, outgassing_rate_co2, temperature_save, water_content_save, co2_content_save, outgassing_save, outgassing_co2_save, data_reduction):
     temperature_save[j//data_reduction] = temperature
-    water_content_save[j//data_reduction] = water_content_per_layer
-    co2_content_save[j//data_reduction] = co2_content_per_layer
-    outgassing_save[j] = outgassing_rate
-    outgassing_co2_save[j] = outgassing_rate_co2
+    #water_content_save[j//data_reduction] = water_content_per_layer
+    #co2_content_save[j//data_reduction] = co2_content_per_layer
+    #outgassing_save[j] = outgassing_rate
+    #outgassing_co2_save[j] = outgassing_rate_co2
     return temperature_save, water_content_save, co2_content_save, outgassing_save, outgassing_co2_save
 
 
