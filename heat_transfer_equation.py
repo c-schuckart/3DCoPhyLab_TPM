@@ -69,15 +69,15 @@ def hte_calculate(n_x, n_y, n_z, surface, delta_T_0, temperature, Lambda, Dr, dx
             for k in range(1, n_x-1):
                 if np.sum(surface[i][j][k]) == 0 and temperature[i][j][k] > 0:
                     # Standard Thermal Diffusivity Equation 1D explicit
-                    delta_T[i][j][k] = ((((temperature[i][j][k - 1] - temperature[i][j][k]) * Lambda[i][j][k][0] / (Dr[i][j][k][0])) - ((temperature[i][j][k] - temperature[i][j][k + 1]) * Lambda[i][j][k][1] / (Dr[i][j][k][1]))) / dx[i][j][k]) * dt / (
+                    delta_T[i][j][k] = ((((temperature[i][j][k + 1] - temperature[i][j][k]) * Lambda[i][j][k][4] / (Dr[i][j][k][4])) - ((temperature[i][j][k] - temperature[i][j][k - 1]) * Lambda[i][j][k][5] / (Dr[i][j][k][5]))) / dx[i][j][k]) * dt / (
                                              density[i][j][k] * heat_capacity[i][j][k]) + \
                                        ((((temperature[i][j + 1][k] - temperature[i][j][k]) * Lambda[i][j][k][2] / (Dr[i][j][k][2]))
                                          - ((temperature[i][j][k] - temperature[i][j - 1][k]) * Lambda[i][j][k][3] / (
                                                Dr[i][j][k][3]))) / dy[i][j][k]) * dt / (
                                                density[i][j][k] * heat_capacity[i][j][k]) + \
-                                       ((((temperature[i + 1][j][k] - temperature[i][j][k]) * Lambda[i][j][k][4] / (Dr[i][j][k][4]))
-                                         - ((temperature[i][j][k] - temperature[i - 1][j][k]) * Lambda[i][j][k][5] / (
-                                               Dr[i][j][k][5]))) / dz[i][j][k]) * dt / (
+                                       ((((temperature[i - 1][j][k] - temperature[i][j][k]) * Lambda[i][j][k][1] / (Dr[i][j][k][1]))
+                                         - ((temperature[i][j][k] - temperature[i + 1][j][k]) * Lambda[i][j][k][0] / (
+                                               Dr[i][j][k][0]))) / dx[i][j][k]) * dt / (
                                                density[i][j][k] * heat_capacity[i][j][k])
                     #- (j_leave[i] - j_inward[i]) * latent_heat_water * dt / (density[i] * heat_capacity[i] * dx[i]) - (j_leave_co2[i] - j_inward_co2[i]) * latent_heat_co2 * dt / (density[i] * heat_capacity[i] * dx[i])  # [K]
                     #Fourier_number[i] = Lambda[i] / (density[i] * heat_capacity[i]) * dt / dx[i] ** 2  # [-]

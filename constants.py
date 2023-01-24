@@ -14,7 +14,8 @@ total_depth = 0.2                # Total simulated depth                  [m]
 
 #Definition of Physical Parameters
 #Material Properties
-lambda_constant = 1E-2            # Thermal Conductivity                   [W/(K m)]
+#lambda_constant = 1E-2            # Thermal Conductivity                   [W/(K m)]
+lambda_constant = 100000            # Thermal Conductivity                   [W/(K m)]
 r_mono = 2.5E-6                     # Radius of Monomeres                    [m]
 e_1 = 1.34                        # Parameter for mean free path           [-]
 VFF_pack_const = 0.2              # Volume Filling Factor of Packing       [-]

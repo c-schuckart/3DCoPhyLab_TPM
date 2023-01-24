@@ -1,12 +1,14 @@
 import numpy as np
 from numba import jit
+
+import constants as const
 import settings as sett
 
 
 '''This function creates an equidistant mesh of either cylindrical or rectangular shape. 
 The surface is marked as an array of six values, which each correspond to one of the sides, a "1" signaling it being
 an exposed tile, while a "0" denotes a non surface element. 
-Array entries 0 to 5 correspond to "z positive", "z negative", "y positve", "y negative", "x positive" and "x negative"'''
+Array entries 0 to 5 correspond to "z positive", "z negative", "y positive", "y negative", "x positive" and "x negative"'''
 def create_equidistant_mesh(n_x, n_y, n_z, temperature_ini, dx, dy, dz):
     if sett.mesh_form == 1:
         a = n_x//2
@@ -84,3 +86,28 @@ def DEBUG_print_3D_arrays(n_x, n_y, n_z, mesh):
             for k in range(0, n_x):
                 print(mesh[i][j][k], end=' ')
             print('\n')
+
+
+def one_d_test(n_x, n_y, n_z, dx, dy,  dz, direction):
+    mesh = np.zeros((n_z, n_y, n_x), dtype=np.float64)
+    dx_arr = np.full((n_z, n_y, n_x), dx, dtype=np.float64)
+    dy_arr = np.full((n_z, n_y, n_x), dy, dtype=np.float64)
+    dz_arr = np.full((n_z, n_y, n_x), dz, dtype=np.float64)
+    Lambda = np.full((n_z, n_y, n_x, 6), 0, dtype=np.float64)
+    if direction == 'z':
+        for i in range(2, n_z-2):
+            mesh[i][n_y//2][n_x//2] = np.sin(np.pi * i * dz_arr[i][n_y//2][n_x//2]/np.sum(dz_arr[1:n_z-1][n_y//2][n_x//2]))
+            Lambda[i][n_y//2][n_x//2][0] = const.lambda_constant
+            Lambda[i][n_y // 2][n_x // 2][1] = const.lambda_constant
+    if direction == 'y':
+        for i in range(2, n_y-2):
+            mesh[n_z//2][i][n_x//2] = np.sin(np.pi * i * dy_arr[n_z//2][i][n_x//2]/np.sum(dy_arr[n_z//2][1:n_y-1][n_x//2]))
+            Lambda[n_z // 2][i][n_x//2][2] = const.lambda_constant
+            Lambda[n_z // 2][i][n_x//2][3] = const.lambda_constant
+    if direction == 'x':
+        for i in range(2, n_x-2):
+            mesh[n_z//2][n_y//2][i] = np.sin(np.pi * i * dx_arr[n_z//2][n_y//2][i]/np.sum(dx_arr[n_z//2][n_y//2][1:n_x-1]))
+            Lambda[n_z // 2][n_y // 2][i][4] = const.lambda_constant
+            Lambda[n_z // 2][n_y // 2][i][5] = const.lambda_constant
+    Dr = np.full((n_z, n_y, n_x, 6), np.array([dz, dz, dy, dy, dx, dx]), dtype=np.float64)
+    return mesh, dx_arr, dy_arr, dz_arr, Dr, Lambda

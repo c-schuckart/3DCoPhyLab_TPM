@@ -1,4 +1,5 @@
 import json
+import time
 import numpy as np
 import constants as const
 from mayavi import mlab
@@ -12,6 +13,18 @@ def plot_3D(scalars):
     #obj = mlab.volume_slice(x, y, z, scalars, plane_orientation='x_axes')
     obj = mlab.points3d(x, y, z, scalars, mode='cube')
     return obj
+
+def slice_3D(scalars):
+    mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(scalars),
+                                     plane_orientation='x_axes',
+                                     slice_index=10,
+                                     )
+    mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(scalars),
+                                     plane_orientation='y_axes',
+                                     slice_index=10,
+                                     )
+    mlab.outline()
+    mlab.show()
 
 
 with open('test.json') as json_file:
@@ -28,16 +41,20 @@ for i in range(0, const.n_z):
 
 for each in data_vis['RSurface']:
     sample_and_surface[each[2]][each[1]][each[0]] = 70
-
-sample = plot_3D(sample_and_surface)'''
+    
+sample = plot_3D(sample_and_surface)
+'''
 
 sample = plot_3D(np.array(data_vis['Temperature'][0]))
 
-@mlab.animate
+@mlab.animate(delay=10)
 def animate():
     for i in range(len(data_vis['Temperature'])):
+        time.sleep(2)
         sample.mlab_source.scalars = np.array(data_vis['Temperature'][i])
         yield
 
-animate()
+#animate()
 mlab.show()
+
+#slice_3D(data_vis['Temperature'][0])

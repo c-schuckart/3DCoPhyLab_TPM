@@ -12,12 +12,15 @@ from save_and_load import data_store
 
 #work arrays and mesh creation + surface detection
 temperature, dx, dy, dz, Dr, a, a_rad, b, b_rad = create_equidistant_mesh(const.n_x, const.n_y, const.n_z, const.temperature_ini, const.min_dx, const.min_dy, const.min_dz)
+#temperature, dx, dy, dz, Dr, Lambda = one_d_test(const.n_x, const.n_y, const.n_z, const.min_dx, const.min_dy, const.min_dz, 'y')
 heat_capacity = var.heat_capacity
 density = var.density
 delta_T = var.delta_T
 print(np.shape(temperature))
 #DEBUG_print_3D_arrays(const.n_x, const.n_y, const.n_z, temperature)
 surface, surface_reduced = find_surface(const.n_x, const.n_y, const.n_z, 0, 0, 0, temperature, var.surface, a, a_rad, b, b_rad)
+#surface = var.surface
+#surface_reduced = np.array([])
 #print(surface[1][1][25])
 j_leave = np.zeros(const.n + 1, dtype=np.float64)
 j_inward = np.zeros(const.n + 1, dtype=np.float64)
