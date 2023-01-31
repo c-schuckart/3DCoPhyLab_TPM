@@ -5,18 +5,22 @@ import variables_and_arrays as var
 
 
 @jit
-def lambda_ice_particles(n, temperature, DX, dx, lambda_water_ice, poisson_ratio_par, young_modulus_par, surface_energy_par, r_mono, f_1, f_2, VFF_pack, sigma, e_1, time, temperature_ini, lambda_water_ice_change):
-	lambda_net = np.zeros(n)
-	lambda_rad = np.zeros(n)
-	for i in range(0, n):
-		T = temperature[i+1] + (temperature[i]-temperature[i+1])/DX[i] * 1/2 * dx[i+1]
-		lambda_net[i] = (lambda_water_ice / T) * (9 * np.pi / 4 * (1 - poisson_ratio_par ** 2) / young_modulus_par * surface_energy_par * r_mono ** 2) ** (1 / 3) * f_1 * np.exp(f_2 * VFF_pack[i]) / r_mono
-		lambda_rad[i] = 16 / 3 * sigma * T ** 3 * e_1 * (1 - VFF_pack[i]) / VFF_pack[i] * r_mono
-		#if time >= (3600 * 12.5):
-			#if T > temperature_ini + 1:
-				#lambda_net[i] = lambda_water_ice_change
-				#lambda_rad[i] = 0
-	lambda_total = (lambda_net + lambda_rad)
+def lambda_granular(n_x, n_y, n_z, temperature, Dr, dx, dy, dz, lambda_water_ice, poisson_ratio_par, young_modulus_par, surface_energy_par, r_mono, f_1, f_2, VFF_pack, sigma, e_1):
+	lambda_total = np.zeros(np.shape(Dr))
+	for i in range(1, n_z-1):
+		for j in range(1, n_y-1):
+			for k in range(1, n_x-1):
+				if temperature[i][j][k] > 0:
+					#Temperature calculated between the layers
+					T_x_pos = temperature[i][j][k + 1] + (temperature[i][j][k] - temperature[i][j][k + 1]) / Dr[i][j][k][4] * 1/2 * dx[i][j][k + 1]
+					T_x_neg = temperature[i][j][k] + (temperature[i][j][k - 1] - temperature[i][j][k]) / Dr[i][j][k][5] * 1 / 2 * dx[i][j][k]
+					T_y_pos = temperature[i][j + 1][k] + (temperature[i][j][k] - temperature[i][j + 1][k]) / Dr[i][j][k][2] * 1 / 2 * dy[i][j + 1][k]
+					T_y_neg = temperature[i][j][k] + (temperature[i][j - 1][k] - temperature[i][j][k]) / Dr[i][j][k][3] * 1 / 2 * dy[i][j][k]
+					T_z_pos = temperature[i][j][k] + (temperature[i - 1][j][k] - temperature[i][j][k]) / Dr[i][j][k][1] * 1 / 2 * dz[i][j][k]
+					T_z_neg = temperature[i + 1][j][k] + (temperature[i][j][k] - temperature[i + 1][j][k]) / Dr[i][j][k][0] * 1 / 2 * dz[i + 1][j][k]
+					temps = np.array([T_z_neg, T_z_pos, T_y_pos, T_y_neg, T_x_pos, T_x_neg])
+					for a in range(len(temps)):
+						lambda_total[i][j][k][a] = (lambda_water_ice / temps[a]) * (9 * np.pi / 4 * (1 - poisson_ratio_par ** 2) / young_modulus_par * surface_energy_par * r_mono ** 2) ** (1 / 3) * f_1 * np.exp(f_2 * VFF_pack[i][j][k]) / r_mono + 16 / 3 * sigma * temps[a] ** 3 * e_1 * (1 - VFF_pack[i][j][k]) / VFF_pack[i][j][k] * r_mono
 	return lambda_total
 
 '''
@@ -73,7 +77,7 @@ Returns:
 	lambda_total : ndarray
 		Array containing the total heat conductivity of each layer of dimension n
 '''
-@jit
+'''@jit
 def lambda_pebble(n, temperature, DX, dx, VFF_agg_base, poisson_ratio_agg, young_modulus_agg, r_agg, lambda_water_ice, poisson_ratio_par, young_modulus_par, surface_energy_par, r_mono, dust_ice_ratio_per_layer, lambda_solid, co2_h2o_ratio_per_layer, lambda_co2_ice, f_1, f_2, VFF_pack, sigma, e_1):
 	lambda_net = np.zeros(n)
 	lambda_rad = np.zeros(n)
@@ -88,9 +92,24 @@ def lambda_pebble(n, temperature, DX, dx, VFF_agg_base, poisson_ratio_agg, young
 		lambda_net[i] = lambda_agg * (9 * np.pi / 4 * (1 - poisson_ratio_agg ** 2) / young_modulus_agg * surface_energy_agg * r_agg ** 2) ** (1 / 3) * f_1 * np.exp(f_2 * VFF_pack[i]) / r_agg
 		lambda_rad[i] = 16 / 3 * sigma * T ** 3 * e_1 * (1 - VFF_pack[i]) / VFF_pack[i] * r_agg
 	lambda_total = lambda_net + lambda_rad
-	return lambda_total
+	return lambda_total'''
 
 @jit
 def lambda_constant(n_x, n_y, n_z, lambda_constant):
-	return np.full((const.n_z, const.n_y, const.n_x, 6), lambda_constant, dtype=np.float64)
+	return np.full((n_z, n_y, n_x, 6), lambda_constant, dtype=np.float64)
+
+
+@jit
+def calculate_heat_capacity(temperature):
+	return (7.5 * temperature + 90) # [J/kg/K]
+
+
+@jit
+def calculate_latent_heat(temperature, b_1, c_1, d_1, R_gas, m_mol):
+	return ((-b_1[0] * np.log(10) + (c_1[0] - 1) * temperature + d_1[0] * np.log(10) * temperature**2) * R_gas / (m_mol[0])) # [J/kg]
+
+
+
+
+
 

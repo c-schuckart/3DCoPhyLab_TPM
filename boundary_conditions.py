@@ -3,7 +3,6 @@ from numba import jit
 import variables_and_arrays as var
 import constants as const
 import settings as sett
-from thermal_parameter_functions import lambda_ice_particles, lambda_pebble
 
 
 '''

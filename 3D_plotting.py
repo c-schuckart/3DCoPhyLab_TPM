@@ -27,7 +27,7 @@ def slice_3D(scalars):
     mlab.show()
 
 
-with open('test.json') as json_file:
+with open('test_gran.json') as json_file:
     data_vis = json.load(json_file)
 
 '''#sample = plot_3D(np.array(data_vis['Temperature']))
@@ -45,7 +45,7 @@ for each in data_vis['RSurface']:
 sample = plot_3D(sample_and_surface)
 '''
 
-sample = plot_3D(np.array(data_vis['Temperature'][0]))
+sample = plot_3D(np.array(data_vis['Temperature'][len(data_vis['Temperature'])-1]))
 
 @mlab.animate(delay=10)
 def animate():

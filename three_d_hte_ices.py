@@ -5,7 +5,7 @@ import settings as sett
 from tqdm import tqdm
 import json
 from surface_detection import create_equidistant_mesh, DEBUG_print_3D_arrays, find_surface
-from thermal_parameter_functions import lambda_constant
+from thermal_parameter_functions import lambda_constant, lambda_granular, calculate_heat_capacity
 from boundary_conditions import energy_input, test
 from heat_transfer_equation import hte_calculate, update_thermal_arrays
 from save_and_load import data_store
@@ -16,6 +16,7 @@ temperature, dx, dy, dz, Dr, a, a_rad, b, b_rad = create_equidistant_mesh(const.
 heat_capacity = var.heat_capacity
 density = var.density
 delta_T = var.delta_T
+uniform_water_masses = density * dx * dy * dz
 print(np.shape(temperature))
 #DEBUG_print_3D_arrays(const.n_x, const.n_y, const.n_z, temperature)
 surface, surface_reduced = find_surface(const.n_x, const.n_y, const.n_z, 0, 0, 0, temperature, var.surface, a, a_rad, b, b_rad)
@@ -45,8 +46,9 @@ temperature_save = np.zeros((const.k//sett.data_reduce, const.n_z, const.n_y, co
 Main Loop of the model. Comment out/Uncomment function calls to disable/enable features
 '''
 for j in tqdm(range(0, const.k)):
-    #Lambda = lambda_ice_particles(const.n, temperature, var.DX, var.dx, const.lambda_water_ice, const.poisson_ratio_par, const.young_modulus_par, const.surface_energy_par, const.r_mono, const.f_1, const.f_2, var.VFF_pack, const.sigma, const.e_1, j * const.dt, const.temperature_ini, const.lambda_water_ice_change)
-    Lambda = lambda_constant(const.n_x, const.n_y, const.n_z, const.lambda_constant)
+    Lambda = lambda_granular(const.n_x, const.n_y, const.n_z, temperature, Dr, dx, dy, dz, const.lambda_water_ice, const.poisson_ratio_par, const.young_modulus_par, const.surface_energy_par, const.r_mono, const.f_1, const.f_2, var.VFF_pack, const.sigma, const.e_1)
+    heat_capacity = calculate_heat_capacity(temperature)
+    #Lambda = lambda_constant(const.n_x, const.n_y, const.n_z, const.lambda_constant)
     #j_leave, j_inward, j_leave_co2, j_inward_co2, var.deeper_diffusion, var.deeper_diffusion_co2 = calculate_molecule_flux(temperature, j_leave, j_leave_co2, const.a_H2O, const.b_H2O, const.m_H2O, const.k_boltzmann, const.b, water_content_per_layer, const.avogadro_constant, const.molar_mass_water, const.dt, var.dx, const.n, co2_content_per_layer, const.a_CO2, const.b_CO2, const.m_CO2, const.molar_mass_co2, var.diffusion_factors, var.deeper_diffusion, var.deeper_diffusion_co2)
     dT_0, EIis_0, E_In, E_Rad, E_Lat_0 = energy_input(const.r_H, const.albedo, const.dt, const.Input_Intensity, const.sigma, const.epsilon, temperature, Lambda, Dr, j_leave, j_inward, const.latent_heat_water, j_leave_co2, j_inward_co2, const.latent_heat_co2, heat_capacity, density, dx, dy, dz, surface, surface_reduced, delta_T)
     delta_T, Energy_Increase_per_Layer, Latent_Heat_per_Layer = hte_calculate(const.n_x, const.n_y, const.n_z, surface, dT_0, temperature, Lambda, Dr, dx, dy, dz, const.dt, density, heat_capacity, j_leave, j_inward, const.latent_heat_water, j_leave_co2, j_inward_co2, const.latent_heat_co2)
@@ -61,7 +63,7 @@ for j in tqdm(range(0, const.k)):
 #save_current_arrays(temperature, water_content_per_layer, co2_content_per_layer, dust_ice_ratio_per_layer, co2_h2o_ratio_per_layer, heat_capacity, highest_pressure, highest_pressure_co2, ejection_times, var.time_passed + const.dt * const.k)
 #data_save(temperature_save, water_content_save, co2_content_save, outgassing_save, outgassing_co2_save, E_conservation, Energy_Increase_Total_per_time_Step_arr, E_Rad_arr, Latent_Heat_per_time_step_arr, E_In_arr, 'base_case')
 data_dict = {'Temperature': temperature_save.tolist(), 'Surface': surface.tolist(), 'RSurface': surface_reduced.tolist()}
-with open('test.json', 'w') as outfile:
+with open('test_gran.json', 'w') as outfile:
     json.dump(data_dict, outfile)
 print('done')
 

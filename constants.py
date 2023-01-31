@@ -9,13 +9,13 @@ n_x = 51                            # Number of Layers                       [-]
 n_y = 51
 n_z = 51
 n = np.array([n_x, n_y, n_z])
-k = 10000                      # Number of Timesteps                    [-]
+k = 50000                      # Number of Timesteps                    [-]
 total_depth = 0.2                # Total simulated depth                  [m]
 
 #Definition of Physical Parameters
 #Material Properties
-#lambda_constant = 1E-2            # Thermal Conductivity                   [W/(K m)]
-lambda_constant = 100000            # Thermal Conductivity                   [W/(K m)]
+lambda_constant = 1E-2            # Thermal Conductivity                   [W/(K m)]
+#lambda_constant = 100000            # Thermal Conductivity                   [W/(K m)]
 r_mono = 2.5E-6                     # Radius of Monomeres                    [m]
 e_1 = 1.34                        # Parameter for mean free path           [-]
 VFF_pack_const = 0.2              # Volume Filling Factor of Packing       [-]
@@ -37,6 +37,11 @@ heat_capacity_water_ice = 1610      # Heat Capacity of water ice             [J/
 heat_capacity_co2_ice = 850       # Heat Capacity of CO2 ice               [J/(kg * K)]
 latent_heat_water = 2.86E6      # Latent heat of water ice               [J/kg]
 latent_heat_co2 = 0.57E6          # Latent heat of CO2 ice                 [J/kg]
+lh_a_1 = np.asarray([4.07023,49.21,53.2167])
+lh_b_1 = np.asarray([-2484.986,-2008.01,-795.104])
+lh_c_1 = np.asarray([3.56654,-16.4542,-22.3452])
+lh_d_1 = np.asarray([-0.00320981,0.0194151,0.0529476])
+m_mol = np.asarray([1.8E-2,4.4E-2,2.8E-2])        #[kg/mol]
 depth_dependent_strength = 3      # Parameter used to calculate the tensile strength [Pa]
 const_tensile_strength = 0.0045       # Tensile strength of the comet material [Pa]
 x_0 = 5E-2                        # Length scaling factor used to calculate the tensile strength [m]
@@ -62,6 +67,7 @@ second_temp_layer_depth = 50
 #Constants
 sigma = 5.67E-8                   # Stefan-Boltzmann Constant              [W/(m^2 K^4)]
 solar_constant = 6500             # Solar Constant                         [W/m^2]
-#solar_constant = 1600             # Solar Constant                         [W/m^2]
+#solar_constant = 1600            # Solar Constant                         [W/m^2]
 k_boltzmann = 1.38E-23            # Boltzmann's Constant                   [m^2 kg / (s^2 K)]
 avogadro_constant = 6.022E23      # Avogadro constant                      [1/mol]
+R = 8.314                         # Gas constant                            [J/(mol * K)]
