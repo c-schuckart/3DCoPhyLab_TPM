@@ -38,6 +38,7 @@ def create_equidistant_mesh(n_x, n_y, n_z, temperature_ini, dx, dy, dz):
 @jit
 def find_surface(n_x, n_y, n_z, limiter_x, limiter_y, limiter_z, mesh, surface, a, a_rad, b, b_rad):
     surface_elements = 0
+    sample_holder = np.zeros((n_z, n_y, n_x), dtype=np.int32)
     for i in range(limiter_z, n_z):
         for j in range(limiter_y, n_y):
             for k in range(limiter_x, n_x):
@@ -62,8 +63,10 @@ def find_surface(n_x, n_y, n_z, limiter_x, limiter_y, limiter_z, mesh, surface, 
                         surface[i][j][k][5] = 1
                     if ((k - a) / a_rad) ** 2 + ((j - b) / b_rad) ** 2 <= 1 and sum(surface[i][j][k] != 0) and i < n_z - 2:
                         surface_elements += 1
+                    if (not (((k - a) / a_rad) ** 2 + ((j - b) / b_rad) ** 2 <= 1) and np.sum(surface[i][j][k]) != 0) or (np.sum(surface[i][j][k]) != 0 and i >= n_z-2):
+                        sample_holder[i][j][k] = 1
     surface_reduced = reduce_surface(n_x, n_y, n_z, limiter_x, limiter_y, limiter_z, surface, np.zeros((surface_elements, 3), dtype=np.int32), a, a_rad, b, b_rad)
-    return surface, surface_reduced
+    return surface, surface_reduced, sample_holder
 
 
 @jit

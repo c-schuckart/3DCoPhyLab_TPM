@@ -19,7 +19,7 @@ delta_T = var.delta_T
 uniform_water_masses = density * dx * dy * dz
 print(np.shape(temperature))
 #DEBUG_print_3D_arrays(const.n_x, const.n_y, const.n_z, temperature)
-surface, surface_reduced = find_surface(const.n_x, const.n_y, const.n_z, 0, 0, 0, temperature, var.surface, a, a_rad, b, b_rad)
+surface, surface_reduced, sample_holder = find_surface(const.n_x, const.n_y, const.n_z, 0, 0, 0, temperature, var.surface, a, a_rad, b, b_rad)
 #surface = var.surface
 #surface_reduced = np.array([])
 #print(surface[1][1][25])
@@ -45,8 +45,8 @@ temperature_save = np.zeros((const.k//sett.data_reduce, const.n_z, const.n_y, co
 '''
 Main Loop of the model. Comment out/Uncomment function calls to disable/enable features
 '''
-for j in tqdm(range(0, const.k)):
-    Lambda = lambda_granular(const.n_x, const.n_y, const.n_z, temperature, Dr, dx, dy, dz, const.lambda_water_ice, const.poisson_ratio_par, const.young_modulus_par, const.surface_energy_par, const.r_mono, const.f_1, const.f_2, var.VFF_pack, const.sigma, const.e_1)
+'''for j in tqdm(range(0, const.k)):
+    Lambda = lambda_granular(const.n_x, const.n_y, const.n_z, temperature, Dr, dx, dy, dz, const.lambda_water_ice, const.poisson_ratio_par, const.young_modulus_par, const.surface_energy_par, const.r_mono, const.f_1, const.f_2, var.VFF_pack, const.sigma, const.e_1, sample_holder, const.lambda_sample_holder)
     heat_capacity = calculate_heat_capacity(temperature)
     #Lambda = lambda_constant(const.n_x, const.n_y, const.n_z, const.lambda_constant)
     #j_leave, j_inward, j_leave_co2, j_inward_co2, var.deeper_diffusion, var.deeper_diffusion_co2 = calculate_molecule_flux(temperature, j_leave, j_leave_co2, const.a_H2O, const.b_H2O, const.m_H2O, const.k_boltzmann, const.b, water_content_per_layer, const.avogadro_constant, const.molar_mass_water, const.dt, var.dx, const.n, co2_content_per_layer, const.a_CO2, const.b_CO2, const.m_CO2, const.molar_mass_co2, var.diffusion_factors, var.deeper_diffusion, var.deeper_diffusion_co2)
@@ -57,12 +57,12 @@ for j in tqdm(range(0, const.k)):
     #temperature, pressure, pressure_co2, water_content_per_layer, co2_content_per_layer, dust_ice_ratio_per_layer, co2_h2o_ratio_per_layer, heat_capacity, total_ejection_events, ejection_times, drained_layers = check_drained_layers(const.n, temperature, pressure, pressure_co2, water_content_per_layer, co2_content_per_layer, dust_ice_ratio_per_layer, co2_h2o_ratio_per_layer, total_ejection_events, var.layer_strength, const.second_temp_layer, var.base_water_particle_number, var.base_co2_particle_number, const.dust_ice_ratio_global, const.co2_h2o_ratio_global, heat_capacity, const.heat_capacity_dust, const.heat_capacity_water_ice, const.heat_capacity_co2_ice, ejection_times, j, drained_layers)
     if j % sett.data_reduce == 0 or j == 0:
         #temperature_save, water_content_save, co2_content_save, outgassing_save, outgassing_co2_save = data_store(j, temperature, water_content_per_layer, co2_content_per_layer, outgassed_molecules_per_time_step/const.dt, outgassed_molecules_per_time_step_co2/const.dt, temperature_save, water_content_save, co2_content_save, outgassing_save, outgassing_co2_save, sett.data_reduction)
-        temperature_save[j//sett.data_reduce] = temperature
-
+        temperature_save[j//sett.data_reduce] = temperature'''
+Lambda = lambda_granular(const.n_x, const.n_y, const.n_z, temperature, Dr, dx, dy, dz, const.lambda_water_ice, const.poisson_ratio_par, const.young_modulus_par, const.surface_energy_par, const.r_mono, const.f_1, const.f_2, var.VFF_pack, const.sigma, const.e_1, sample_holder, const.lambda_sample_holder)
 #Data saving and output
 #save_current_arrays(temperature, water_content_per_layer, co2_content_per_layer, dust_ice_ratio_per_layer, co2_h2o_ratio_per_layer, heat_capacity, highest_pressure, highest_pressure_co2, ejection_times, var.time_passed + const.dt * const.k)
 #data_save(temperature_save, water_content_save, co2_content_save, outgassing_save, outgassing_co2_save, E_conservation, Energy_Increase_Total_per_time_Step_arr, E_Rad_arr, Latent_Heat_per_time_step_arr, E_In_arr, 'base_case')
-data_dict = {'Temperature': temperature_save.tolist(), 'Surface': surface.tolist(), 'RSurface': surface_reduced.tolist()}
+data_dict = {'Temperature': temperature_save.tolist(), 'Surface': surface.tolist(), 'RSurface': surface_reduced.tolist(), 'HC': Lambda.tolist(), 'SH': sample_holder.tolist()}
 with open('test_gran.json', 'w') as outfile:
     json.dump(data_dict, outfile)
 print('done')
