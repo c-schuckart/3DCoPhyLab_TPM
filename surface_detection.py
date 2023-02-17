@@ -65,12 +65,14 @@ def find_surface(n_x, n_y, n_z, limiter_x, limiter_y, limiter_z, mesh, surface, 
                         surface_elements += 1
                     if (not (((k - a) / a_rad) ** 2 + ((j - b) / b_rad) ** 2 <= 1) and np.sum(surface[i][j][k]) != 0) or (np.sum(surface[i][j][k]) != 0 and i >= n_z-2):
                         sample_holder[i][j][k] = 1
-    surface_reduced = reduce_surface(n_x, n_y, n_z, limiter_x, limiter_y, limiter_z, surface, np.zeros((surface_elements, 3), dtype=np.int32), a, a_rad, b, b_rad)
+    sample_holder, misplaced_voxels = fix_rim(n_x, n_y, limiter_x, limiter_y, a, a_rad, b, b_rad, sample_holder)
+    surface_elements += len(misplaced_voxels)
+    surface_reduced = reduce_surface(n_x, n_y, n_z, limiter_x, limiter_y, limiter_z, surface, np.zeros((surface_elements, 3), dtype=np.int32), a, a_rad, b, b_rad, misplaced_voxels)
     return surface, surface_reduced, sample_holder
 
 
 @jit
-def reduce_surface(n_x, n_y, n_z, limiter_x, limiter_y, limiter_z, surface, surface_reduced, a, a_rad, b, b_rad):
+def reduce_surface(n_x, n_y, n_z, limiter_x, limiter_y, limiter_z, surface, surface_reduced, a, a_rad, b, b_rad, misplaced_voxels):
     count = 0
     #z only runs up to n_z-2 to ignore the bottom plus the puffer layer
     for i in range(limiter_z, n_z-2):
@@ -79,7 +81,29 @@ def reduce_surface(n_x, n_y, n_z, limiter_x, limiter_y, limiter_z, surface, surf
                 if sum(surface[i][j][k]) != 0 and ((k - a)/a_rad)**2 + ((j - b)/b_rad)**2 <= 1:
                     surface_reduced[count] = np.array([k, j, i], dtype=np.int32)
                     count += 1
+    for each in misplaced_voxels:
+        surface_reduced[count] = np.array([each[0], each[1], each[2]], dtype=np.int32)
+        count += 1
     return surface_reduced
+
+
+@jit
+def fix_rim(n_x, n_y, limiter_x, limiter_y, a, a_rad, b, b_rad, array):
+    erronous_voxels_nr = 0
+    misplaced_voxels = np.zeros((n_x * n_y, 3), dtype=np.int32)
+    for j in range(limiter_y, n_y):
+        for k in range(limiter_x, n_x):
+            if array[1][j][k] == 1 and max(array[1][j-1][k], array[1][j+1][k]) + max(array[1][j][k-1], array[1][j][k+1]) == 2 and ((k - a) / a_rad) ** 2 + ((j - b) / b_rad) ** 2 <= 1.002:
+                array[1][j][k] = 0
+                misplaced_voxels[erronous_voxels_nr] = np.array([k, j, 1], dtype=np.int32)
+                erronous_voxels_nr += 1
+    correct_len = 0
+    for each in misplaced_voxels:
+        if np.sum(each) > 0:
+            correct_len += 1
+    misplaced_voxels = misplaced_voxels[0:correct_len]
+    return array, misplaced_voxels
+
 
 #@jit
 def DEBUG_print_3D_arrays(n_x, n_y, n_z, mesh):
