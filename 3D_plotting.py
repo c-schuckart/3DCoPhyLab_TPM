@@ -44,8 +44,8 @@ for each in data_vis['RSurface']:
     
 sample = plot_3D(sample_and_surface)'''
 
-
-#sample = plot_3D(np.array(data_vis['Temperature'][len(data_vis['Temperature'])-1]))
+sample = plot_3D(np.array(data_vis['Temperature'][len(data_vis['Temperature'])-1]))
+'''
 Lambda_dat = np.array(data_vis['HC'])
 Lambda = np.zeros((const.n_z, const.n_y, const.n_z))
 for i in range(1, const.n_z - 1):
@@ -54,7 +54,7 @@ for i in range(1, const.n_z - 1):
             Lambda[i][j][k] = np.max(np.abs(Lambda_dat[i][j][k]))
 
 sample = plot_3D(Lambda)
-sample_2 = plot_3D(np.array(data_vis['SH'])*50)
+sample_2 = plot_3D(np.array(data_vis['SH'])*50)'''
 #sample = plot_3D(np.array(data_vis['SH']))
 '''surface = np.zeros((const.n_z, const.n_y, const.n_z))
 for i in range(1, const.n_z - 1):

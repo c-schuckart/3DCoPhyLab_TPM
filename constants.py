@@ -1,15 +1,15 @@
 import numpy as np
 
 #Definition of Simulation Parameters
-min_dx = 0.4E-3                      # Layer Thickness of smallest layer in x direction, Numerical Resolution  [m]
-min_dy = 0.4E-3                      # Layer Thickness of smallest layer in y direction, Numerical Resolution  [m]
-min_dz = 0.4E-3                      # Layer Thickness of smallest layer in z direction, Numerical Resolution  [m]
+min_dx = 10E-3                      # Layer Thickness of smallest layer in x direction, Numerical Resolution  [m]
+min_dy = 10E-3                      # Layer Thickness of smallest layer in y direction, Numerical Resolution  [m]
+min_dz = 10E-3                      # Layer Thickness of smallest layer in z direction, Numerical Resolution  [m]
 dt = 0.085                           # Timestep                               [s]
 n_x = 51                            # Number of Layers                       [-]
 n_y = 51
 n_z = 51
 n = np.array([n_x, n_y, n_z])
-k = 50000                      # Number of Timesteps                    [-]
+k = 10000                      # Number of Timesteps                    [-]
 total_depth = 0.2                # Total simulated depth                  [m]
 
 #Definition of Physical Parameters
@@ -62,10 +62,6 @@ a_CO2 = 1.32E12                   # Sublimation Pressure Coefficient of water [P
 b_CO2 = 3167.8                    # Sublimation Pressure Coefficient of water [K]
 #Illumination Condition/Celestial Mechanics
 r_H = 1                           # Lamp Distance                  		   [m]
-
-lambda_water_ice_change = 0.01
-second_temp_layer = 140
-second_temp_layer_depth = 50
 
 #Constants
 sigma = 5.67E-8                   # Stefan-Boltzmann Constant              [W/(m^2 K^4)]
