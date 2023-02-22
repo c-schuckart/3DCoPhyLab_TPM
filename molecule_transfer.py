@@ -98,36 +98,47 @@ Returns:
 	    Catches CO2 molecules that would diffuse into layers deeper than the modelled scope 
 '''
 @jit
-def calculate_molecule_flux(temperature, j_leave, j_leave_co2, a_H2O, b_H2O, m_H2O, k_boltzmann, b, water_content_per_layer, avogadro_constant, molar_mass_water, dt, dx, n, p_sub, co2_content_per_layer, a_CO2, b_CO2, m_CO2, molar_mass_co2, diffusion_factors, deeper_diffusion, deeper_diffusion_co2, pressure, pressure_co2):
-    j_leave_overshoot = np.zeros((n_z, n_y, n_x))
-    j_leave = p_sub * np.sqrt(m_H2O / (2 * np.pi * k_boltzmann * temperature)) * (1 + (depth_x + depth_y + depth_z) / b) ** (-1) # [kg/(m^2 * s)]
-    check_overshoot = j_leave * dt > (water_content_per_layer / avogadro_constant) * molar_mass_water
-    if check_overshoot.any():
-        for indices, each in check_overshoot:
-            if each:
-                j_leave_overshoot[indices[0] + 1][indices[1]][indices[2]] = j_leave[indices[0]][indices[1]][indices[2]] - water_content_per_layer[indices[0]][indices[1]][indices[2]] / (avogadro_constant * dt) * molar_mass_water
+def calculate_molecule_flux(n_x, n_y, n_z, temperature, pressure, a_1, b_1, c_1, d_1, mol_mass, R_gas, VFF, r_grain, Phi, tortuosity, dx, dy, dz, dt, surface_reduced, avogadro_constant, k_B, sample_holder):
+    p_sub = 10 ** (a_1[0] + b_1[0] / temperature + c_1[0] * np.log10(temperature) + d_1[0] * temperature) + sample_holder
+    sublimated_mass = (p_sub - pressure) * np.sqrt(mol_mass[0]/(2 * np.pi * R_gas * temperature))
+    #Molecules from the
+    outgassed_mass = 0
+    for each in surface_reduced:
+        #Setting p_surface to zero since outgassing can be assumed to always happen towards the vacuum
+        outgassed_mass += sublimated_mass[each[2]][each[1]][each[0]]
+        p_sub[each[2]][each[1]][each[0]] = 0
+    mass_flux = np.array(np.shape(sublimated_mass), dtype=np.float64)
+    for i in range(1, n_z-1):
+        for j in range(1, n_y-1):
+            for k in range(1, n_x-1):
+                if temperature[i][j][k] > 0:
+                    diff_z = np.sqrt(1/(2 * np.pi * mol_mass[0] * R_gas * temperature[i][j][k])) * (p_sub[i-1][j][k] - p_sub[i+1][j][k])/(1 + 3 * (1 - VFF[i][j][k])/(2 * VFF[i][j][k] * r_grain) * Phi * tortuosity * dz[i][j][k] / 4)
+                    diff_y = np.sqrt(1/(2 * np.pi * mol_mass[0] * R_gas * temperature[i][j][k])) * (p_sub[i][j-1][k] - p_sub[i][j+1][k])/(1 + 3 * (1 - VFF[i][j][k])/(2 * VFF[i][j][k] * r_grain) * Phi * tortuosity * dy[i][j][k] / 4)
+                    diff_x = np.sqrt(1/(2 * np.pi * mol_mass[0] * R_gas * temperature[i][j][k])) * (p_sub[i][j][k-1] - p_sub[i][j][k+1])/(1 + 3 * (1 - VFF[i][j][k])/(2 * VFF[i][j][k] * r_grain) * Phi * tortuosity * dx[i][j][k] / 4)
+                    if np.sum(sample_holder[i-1:i+1][j][k] != 0):
+                        diff_z = 0
+                    if np.sum(sample_holder[i][j-1:j+1][k] != 0):
+                        diff_y = 0
+                    if np.sum(sample_holder[i][j][k-1:k+1] != 0):
+                        diff_x = 0
+                    mass_flux[i-1][j][k] -= diff_z
+                    mass_flux[i+1][j][k] += diff_z
+                    mass_flux[i][j-1][k] -= diff_y
+                    mass_flux[i][j+1][k] += diff_y
+                    mass_flux[i][j][k-1] -= diff_x
+                    mass_flux[i][j][k+1] += diff_x
+                    p_sub[i-1][j][k] += mass_flux[i-1][j][k] * dt * mol_mass[0] / avogadro_constant * k_B * temperature[i-1][j][k] / dz[i-1][j][k]
+                    p_sub[i+1][j][k] += mass_flux[i+1][j][k] * dt * mol_mass[0] / avogadro_constant * k_B * temperature[i+1][j][k] / dz[i+1][j][k]
+                    p_sub[i][j-1][k] += mass_flux[i][j-1][k] * dt * mol_mass[0] / avogadro_constant * k_B * temperature[i][j-1][k] / dy[i][j-1][k]
+                    p_sub[i][j+1][k] += mass_flux[i][j+1][k] * dt * mol_mass[0] / avogadro_constant * k_B * temperature[i][j+1][k] / dy[i][j+1][k]
+                    p_sub[i][j][k-1] += mass_flux[i][j][k-1] * dt * mol_mass[0] / avogadro_constant * k_B * temperature[i][j][k-1] / dx[i][j][k-1]
+                    p_sub[i][j][k+1] += mass_flux[i][j][k+1] * dt * mol_mass[0] / avogadro_constant * k_B * temperature[i][j][k+1] / dx[i][j][k+1]
+    for each in surface_reduced:
+        #This should always be >= 1 since p_surface is set to 0
+        outgassed_mass += max(mass_flux[each[2]][each[1]][each[0]], 0)
+        p_sub[each[2]][each[1]][each[0]] = 0
 
-    for i in range(1, n+1):
-        if j_leave_overshoot[i+1] != 0:
-            j_leave_overshoot[i+1] += j_leave_overshoot[i]
-            j_leave_overshoot[i] = 0
-        else:
-            break
+    pressure = p_sub
+    #Resublimation missing
 
-    j_inward = np.zeros(n + 1)
-    j_inward_co2 = np.zeros(n + 1)
-
-    for i in range(0, n + 1): #Diese for Schleife sollte redundant sein
-        for m in range(0, len(diffusion_factors)):
-            if i + len(diffusion_factors) < n:
-                j_inward[i + 1 + m] += (j_leave[i] + j_leave_overshoot[i])/ 2 * diffusion_factors[m]
-                j_inward_co2[i + 1 + m] += (j_leave_co2[i] + j_leave_co2_overshoot[i]) / 2 * diffusion_factors[m]
-            else:
-                if i + m < n:
-                    j_inward[i + 1 + m] += (j_leave[i] + j_leave_overshoot[i]) / 2 * diffusion_factors[m]
-                    j_inward_co2[i + 1 + m] += (j_leave_co2[i] + j_leave_co2_overshoot[i]) / 2 * diffusion_factors[m]
-                else:
-                    deeper_diffusion += (j_leave[i] + j_leave_overshoot[i]) / 2 * diffusion_factors[m]
-                    deeper_diffusion_co2 += (j_leave_co2[i] + j_leave_co2_overshoot[i]) / 2 * diffusion_factors[m]
-
-    return j_leave, j_inward, j_leave_co2, j_inward_co2, deeper_diffusion, deeper_diffusion_co2
+    return sublimated_mass, mass_flux, pressure, outgassed_mass
