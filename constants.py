@@ -21,6 +21,7 @@ e_1 = 1.34                        # Parameter for mean free path           [-]
 VFF_pack_const = 0.2              # Volume Filling Factor of Packing       [-]
 poisson_ratio_par = 0.17          # Poisson`s ratio of Particle            [-]
 young_modulus_par = 5.5E10        # Young`s modulus of Particle            [Pa]
+tortuosity = 1.10                 # Tortuosity factor for monodisperse spherical particles for VFF 0.2
 #surface_energy_par = 0.014          # specific surface energy of Particle    [J/m^2]
 surface_energy_par = 0.2         # specific surface energy of Particle    [J/m^2]
 f_1 = 5.18E-2                     # empirical constant for Packing Structure Factor 1 [-]
