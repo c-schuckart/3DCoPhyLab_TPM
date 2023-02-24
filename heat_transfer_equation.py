@@ -60,10 +60,10 @@ Returns:
 '''
 @jit
 def hte_calculate(n_x, n_y, n_z, surface, delta_T_0, temperature, Lambda, Dr, dx, dy, dz, dt, density, heat_capacity, j_leave, j_inward, latent_heat_water, j_leave_co2, j_inward_co2, latent_heat_co2):
-    delta_T = np.zeros((n_x, n_y, n_z), dtype=np.float64) + delta_T_0
-    Energy_Increase_per_Layer = np.zeros((n_x, n_y, n_z), dtype=np.float64)
-    Latent_Heat_per_Layer = np.zeros((n_x, n_y, n_z), dtype=np.float64)
-    Fourier_number = np.zeros((n_x, n_y, n_z), dtype=np.float64)
+    delta_T = np.zeros((n_z, n_y, n_x), dtype=np.float64) + delta_T_0
+    Energy_Increase_per_Layer = np.zeros((n_z, n_y, n_x), dtype=np.float64)
+    Latent_Heat_per_Layer = np.zeros((n_z, n_y, n_x), dtype=np.float64)
+    Fourier_number = np.zeros((n_z, n_y, n_x), dtype=np.float64)
     for i in range(1, n_z-1):
         for j in range(1, n_y-1):
             for k in range(1, n_x-1):
@@ -83,7 +83,7 @@ def hte_calculate(n_x, n_y, n_z, surface, delta_T_0, temperature, Lambda, Dr, dx
                     Fourier_number[i][j][k] = np.max(Lambda[i][j][k]) / (density[i][j][k] * heat_capacity[i][j][k]) * dt * (1 / dx[i][j][k] ** 2 + 1 / dy[i][j][k] ** 2 + 1 / dz[i][j][k] ** 2)# [-]
                     #Latent_Heat_per_Layer[i] = - (j_leave[i] - j_inward[i]) * latent_heat_water * dt - (j_leave_co2[i] - j_inward_co2[i]) * latent_heat_co2 * dt
                     Energy_Increase_per_Layer[i][j][k] = heat_capacity[i][j][k] * density[i][j][k] * dx[i][j][k] * dy[i][j][k] * dz[i][j][k] * delta_T[i][j][k]  # [J]
-    return delta_T, Energy_Increase_per_Layer, Latent_Heat_per_Layer, Fourier_number
+    return delta_T, Energy_Increase_per_Layer, Latent_Heat_per_Layer, np.max(Fourier_number)
 
 '''
 Numerical implementation of the heat transfer equation in a finite differences, forward time centered space, explicit scheme.

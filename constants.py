@@ -1,16 +1,15 @@
 import numpy as np
 
 #Definition of Simulation Parameters
-min_dx = 10E-3                      # Layer Thickness of smallest layer in x direction, Numerical Resolution  [m]
-min_dy = 10E-3                      # Layer Thickness of smallest layer in y direction, Numerical Resolution  [m]
-min_dz = 10E-3                      # Layer Thickness of smallest layer in z direction, Numerical Resolution  [m]
-dt = 0.085                           # Timestep                               [s]
-n_x = 51                            # Number of Layers                       [-]
-n_y = 51
-n_z = 51
+min_dx = 2E-3                      # Layer Thickness of smallest layer in x direction, Numerical Resolution  [m]
+min_dy = 2E-3                      # Layer Thickness of smallest layer in y direction, Numerical Resolution  [m]
+min_dz = 2E-3                      # Layer Thickness of smallest layer in z direction, Numerical Resolution  [m]
+dt = 0.1                           # Timestep                               [s]
+n_x = 37                            # Number of Layers                       [-]
+n_y = 37
+n_z = 53
 n = np.array([n_x, n_y, n_z])
-k = 10000                      # Number of Timesteps                    [-]
-total_depth = 0.2                # Total simulated depth                  [m]
+k = 36000                       # Number of Timesteps                    [-]
 
 #Definition of Physical Parameters
 #Material Properties
@@ -32,11 +31,13 @@ b = 1 * (2 * r_mono)                          # Permeability Coefficient        
 co2_h2o_ratio_global = 0      # Percentage of CO2 ice content of total ice content [-]
 density_water_ice = 810           # Density if water ice at around 90K     [kg/m^3]
 density_co2_ice = 1600
+density_sand = 1500
 density_sample_holder = 2698.9  # Density of aluminium, the sample holder material  [kg/m^3]
 molar_mass_water = 18.015E-3    # Molar mass of water                    [kg/mol]
 molar_mass_co2 = 44.010E-3
 heat_capacity_water_ice = 1610      # Heat Capacity of water ice             [J/(kg * K)]
 heat_capacity_co2_ice = 850       # Heat Capacity of CO2 ice               [J/(kg * K)]
+heat_capacity_sand = 830
 heat_capacity_sample_holder = 900   #Heat capacity of aluminium, the sample holder material [J/(kg*K)]
 latent_heat_water = 2.86E6      # Latent heat of water ice               [J/kg]
 latent_heat_co2 = 0.57E6          # Latent heat of CO2 ice                 [J/kg]
@@ -57,6 +58,7 @@ albedo = 0.05                  # Albedo                                 [-]
 lambda_water_ice = 651            # thermal conductivity of water ice      [W/(m * T)], depending on T!
 lambda_co2_ice = 0.02             # thermal conductivity of water ice      [W/(m * K)], depending on T!
 lambda_sample_holder = 210        # thermal conductivity of aluminium, the sample holder material   [W/(m*K)]
+lambda_sand = 0.25
 a_H2O = 3.23E12                   # Sublimation Pressure Coefficient of water [Pa]
 b_H2O = 6134.6                     # Sublimation Pressure Coefficient of water [K]
 a_CO2 = 1.32E12                   # Sublimation Pressure Coefficient of water [Pa]

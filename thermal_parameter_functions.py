@@ -113,6 +113,20 @@ def calculate_heat_capacity(temperature):
 def calculate_latent_heat(temperature, b_1, c_1, d_1, R_gas, m_mol):
 	return ((-b_1[0] * np.log(10) + (c_1[0] - 1) * temperature + d_1[0] * np.log(10) * temperature**2) * R_gas / (m_mol[0])) # [J/kg]
 
+@jit
+def lambda_sand(n_x, n_y, n_z, temperature, Dr, lambda_sand, sample_holder, lambda_sample_holder):
+	lambda_total = np.zeros(np.shape(Dr), dtype=np.float64)
+	lambda_s = np.zeros(6, dtype=np.float64)
+	for i in range(1, n_z-1):
+		for j in range(1, n_y-1):
+			for k in range(1, n_x-1):
+				if temperature[i][j][k] > 0:
+					lambda_s = np.full(6, lambda_sand, dtype=np.float64)
+					for a in range(0, len(lambda_s)):
+						if sample_holder[i + var.n_z_lr[a]][j + var.n_y_lr[a]][k + var.n_x_lr[a]] == 1:
+							lambda_total[a] = (lambda_s[a] / (Dr[i][j][k][a] / 2) * lambda_sample_holder / (Dr[i][j][k][a] / 2) / (lambda_s[a] / (Dr[i][j][k][a] / 2) + lambda_sample_holder / (Dr[i][j][k][a] / 2))) * Dr[i][j][k][a]
+	return lambda_total
+
 
 
 

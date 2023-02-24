@@ -102,3 +102,43 @@ def test(r_H, albedo, dt, input_energy, dx, dy, surface, surface_reduced):
 		print(input_energy / r_H ** 2 * (1 - albedo) * dt)
 		print(dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]])
 		print(surface[each[2]][each[1]][each[0]])
+
+
+@jit
+def energy_input_data(dt, input_temperature, sigma, epsilon, temperature, Lambda, Dr, n_x, n_y, n_z, heat_capacity, density, dx, dy, dz, surface, surface_reduced, delta_T):
+	Energy_Increase_in_surface = 0
+	E_In_in_surface = 0
+	E_Rad_in_surface = 0
+	delta_T_0 = np.zeros(np.shape(delta_T))
+	E_Lat_in_surface = 0
+	for each in surface_reduced:
+		#input energy durch input_energy[each[2]][each[1]][each[0]] ersetzen, sobald genaue Abstrahlcharakteristik der Lampe berechnet
+		#E_In = input_energy * dt
+		E_Rad = - sigma * epsilon * temperature[each[2]][each[1]][each[0]]**4 * dt * (dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][0] + surface[each[2]][each[1]][each[0]][1]) + dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][2] + surface[each[2]][each[1]][each[0]][3]) + dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][4] + surface[each[2]][each[1]][each[0]][5])) # [J/(m^2)]
+		E_Cond_z_pos = Lambda[each[2]][each[1]][each[0]][0] * (temperature[each[2] + 1][each[1]][each[0]] - temperature[each[2]][each[1]][each[0]]) / Dr[each[2]][each[1]][each[0]][0] * dt * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * (1 - surface[each[2]][each[1]][each[0]][0])
+		E_Cond_z_neg = Lambda[each[2]][each[1]][each[0]][1] * (temperature[each[2] - 1][each[1]][each[0]] - temperature[each[2]][each[1]][each[0]]) / Dr[each[2]][each[1]][each[0]][1] * dt * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * (1 - surface[each[2]][each[1]][each[0]][1])
+		E_Cond_y_pos = Lambda[each[2]][each[1]][each[0]][2] * (temperature[each[2]][each[1] + 1][each[0]] - temperature[each[2]][each[1]][each[0]]) / Dr[each[2]][each[1]][each[0]][2] * dt * dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (1 - surface[each[2]][each[1]][each[0]][2])
+		E_Cond_y_neg = Lambda[each[2]][each[1]][each[0]][3] * (temperature[each[2]][each[1] - 1][each[0]] - temperature[each[2]][each[1]][each[0]]) / Dr[each[2]][each[1]][each[0]][3] * dt * dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (1 - surface[each[2]][each[1]][each[0]][3])
+		E_Cond_x_pos = Lambda[each[2]][each[1]][each[0]][4] * (temperature[each[2]][each[1]][each[0] + 1] - temperature[each[2]][each[1]][each[0]]) / Dr[each[2]][each[1]][each[0]][4] * dt * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (1 - surface[each[2]][each[1]][each[0]][4])
+		E_Cond_x_neg = Lambda[each[2]][each[1]][each[0]][5] * (temperature[each[2]][each[1]][each[0] - 1] - temperature[each[2]][each[1]][each[0]]) / Dr[each[2]][each[1]][each[0]][5] * dt * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (1 - surface[each[2]][each[1]][each[0]][5])
+		#E_Lat = - (j_leave[0] - j_inward[0]) * latent_heat_water * dt - (j_leave_co2[0] - j_inward_co2[0]) * latent_heat_co2 * dt
+		E_Lat = 0
+		E_Energy_Increase = 0 + E_Rad + E_Cond_z_pos + E_Cond_z_neg + E_Cond_y_pos + E_Cond_y_neg + E_Cond_x_pos + E_Cond_x_neg + E_Lat
+		delta_T_0[each[2]][each[1]][each[0]] = E_Energy_Increase / (heat_capacity[each[2]][each[1]][each[0]] * density[each[2]][each[1]][each[0]] * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]])
+		if each[2] == n_z//2 and each[1] == n_y//2 and each[0] == n_x//2:
+			delta_T_0[each[2]][each[1]][each[0]] = input_temperature
+		Energy_Increase_in_surface += E_Energy_Increase
+		E_In_in_surface += 0
+		E_Rad_in_surface += E_Rad
+		E_Lat_in_surface += E_Lat
+	return delta_T_0, Energy_Increase_in_surface, E_In_in_surface, E_Rad_in_surface, E_Lat_in_surface
+
+
+@jit
+def sample_holder_data(n_x, n_y, n_z, sample_holder, temperature, temp_sample_holder):
+	for i in range(0, n_z):
+		for j in range(0, n_y):
+			for k in range(0, n_x):
+				if sample_holder[i][j][k] != 0:
+					temperature[i][j][k] = temp_sample_holder
+	return temperature

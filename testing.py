@@ -2,6 +2,7 @@ import json
 import numpy as np
 import matplotlib.pyplot as plt
 import constants as const
+from data_input import read_temperature_data, getPath
 
 '''with open('test.json') as json_file:
     data_vis = json.load(json_file)'''
@@ -30,8 +31,18 @@ plt.plot(z, temp_end)
 plt.scatter(z, temp_end_analytical)
 plt.show()'''
 
-a = np.array([1, 2, 3, 4, 5])
-b = np.full(5, 3)
-if a > b:
-    print('test')
+surface_temp = np.genfromtxt('D:/Masterarbeit_data/surface_temp.csv', delimiter=',')
+sample_holder_temp = np.genfromtxt('D:/Masterarbeit_data/sample_holder_temp.csv', delimiter=',')
 
+time_deltas_data_surface, surface_temp_data = read_temperature_data(getPath(), '2023-02-15 16:45:00', '2023-02-15 17:45:02', [1], [])
+time_deltas_data_interior, sample_holder_temp_data = read_temperature_data(getPath(), '2023-02-15 16:45:00', '2023-02-15 17:45:01', [5], [])
+
+time_surface = [np.sum(time_deltas_data_surface[0:i]) for i in range(len(time_deltas_data_surface))]
+time_interior = [np.sum(time_deltas_data_interior[0:i]) for i in range(len(time_deltas_data_interior))]
+
+#plt.plot([const.dt * i for i in range(0, const.k)], surface_temp)
+#plt.scatter(time_surface, surface_temp_data, color='red', s=4)
+plt.plot([const.dt * i for i in range(0, const.k)], sample_holder_temp)
+plt.scatter(time_interior, sample_holder_temp_data, color='green')
+plt.xlim(-50, 1000)
+plt.show()
