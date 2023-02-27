@@ -40,7 +40,7 @@ def data_store_sensors(j, n_x, n_y, n_z, temperature, sensor_10mm, sensor_20mm, 
     sensor_20mm[j] = (temperature[9][n_y//2][n_x//2] + temperature[10][n_y//2][n_x//2])/2
     sensor_35mm[j] = temperature[17][n_y//2][n_x//2]
     sensor_55mm[j] = temperature[27][n_y//2][n_x//2]
-    sensor_90mm[j] = (temperature[45][n_y//2][n_x//2] + temperature[45][n_y//2][n_x//2])/2
+    sensor_90mm[j] = (temperature[44][n_y//2][n_x//2] + temperature[45][n_y//2][n_x//2])/2
     temperature_save[j // data_reduction] = temperature
     return sensor_10mm, sensor_20mm, sensor_35mm, sensor_55mm, sensor_90mm, temperature_save
 
@@ -51,8 +51,8 @@ def data_save(temperature_save, water_content_save, co2_content_save, outgassing
         json.dump(dict, outfile)
 
 
-def data_save_sensors(temperature_save, sensor_10mm, sensor_20mm, sensor_35mm, sensor_55mm, sensor_90mm, path):
+def data_save_sensors(temperature_save, sensor_10mm, sensor_20mm, sensor_35mm, sensor_55mm, sensor_90mm, path, path_2):
     dict = {'Temperature': temperature_save.tolist()}
     with open(path + '.json', 'w') as outfile:
         json.dump(dict, outfile)
-    np.savetxt("D:/Masterarbeit_data/sensor_temp_sand.csv", np.array([sensor_10mm, sensor_20mm, sensor_35mm, sensor_55mm, sensor_90mm]), delimiter=",")
+    np.savetxt(path_2 + '.csv', np.array([sensor_10mm, sensor_20mm, sensor_35mm, sensor_55mm, sensor_90mm]), delimiter=",")

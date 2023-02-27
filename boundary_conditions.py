@@ -111,6 +111,10 @@ def energy_input_data(dt, input_temperature, sigma, epsilon, temperature, Lambda
 	E_Rad_in_surface = 0
 	delta_T_0 = np.zeros(np.shape(delta_T))
 	E_Lat_in_surface = 0
+	a = n_x // 2
+	a_rad = (n_x - 22) // 2
+	b = n_y // 2
+	b_rad = (n_y - 22) // 2
 	for each in surface_reduced:
 		#input energy durch input_energy[each[2]][each[1]][each[0]] ersetzen, sobald genaue Abstrahlcharakteristik der Lampe berechnet
 		#E_In = input_energy * dt
@@ -125,12 +129,13 @@ def energy_input_data(dt, input_temperature, sigma, epsilon, temperature, Lambda
 		E_Lat = 0
 		E_Energy_Increase = 0 + E_Rad + E_Cond_z_pos + E_Cond_z_neg + E_Cond_y_pos + E_Cond_y_neg + E_Cond_x_pos + E_Cond_x_neg + E_Lat
 		delta_T_0[each[2]][each[1]][each[0]] = E_Energy_Increase / (heat_capacity[each[2]][each[1]][each[0]] * density[each[2]][each[1]][each[0]] * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]])
-		if each[2] == n_z//2 and each[1] == n_y//2 and each[0] == n_x//2:
-			delta_T_0[each[2]][each[1]][each[0]] = input_temperature
+		if each[2] == 1 and (((each[0] - a) / a_rad) ** 2 + ((each[1] - b) / b_rad) ** 2 <= 1):
+			delta_T_0[each[2]][each[1]][each[0]] = input_temperature - temperature[each[2]][each[1]][each[0]]
 		Energy_Increase_in_surface += E_Energy_Increase
 		E_In_in_surface += 0
 		E_Rad_in_surface += E_Rad
 		E_Lat_in_surface += E_Lat
+		#delta_T_0[each[2]][each[1]][each[0]] = input_temperature - temperature[each[2]][each[1]][each[0]]
 	return delta_T_0, Energy_Increase_in_surface, E_In_in_surface, E_Rad_in_surface, E_Lat_in_surface
 
 

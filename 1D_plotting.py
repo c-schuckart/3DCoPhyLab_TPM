@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import (AutoLocator, AutoMinorLocator)
 import matplotlib.lines as mlines
 import constants as const
+from data_input import read_temperature_data,getPath
 
 '''file_name = 'Check_Knudsen_regime'
 path = 'C:/Users/Christian Schuckart/Documents/Masterarbeit/Plots/' + file_name + '.png'
@@ -58,7 +59,7 @@ plt.title('Knudsen number')
 #plt.savefig('Constant_lambda_test_sand_' + str(const.lambda_sand) + '.png', dpi=600)
 plt.savefig(path, dpi=600)'''
 
-file_name = 'Diffusion_velocity'
+'''file_name = 'Diffusion_velocity'
 path = 'C:/Users/Christian Schuckart/Documents/Masterarbeit/Plots/' + file_name + '.png'
 
 def Diffsuion_coefficient(T):
@@ -68,6 +69,7 @@ L = 2/3 * (1 -const.VFF_pack_const) / (1 - (1 - const.VFF_pack_const)) * 2 * con
 
 temperature = np.linspace(120, 270, 300)
 D = Diffsuion_coefficient(temperature)
+print(D * (1 - const.VFF_pack_const) / (const.R * temperature))
 v = D/L
 
 fig, ax = plt.subplots()
@@ -79,7 +81,37 @@ ax.plot(temperature, v)
 
 plt.title('Diffusion velocity')
 #plt.legend()
-#plt.show()
+plt.show()
 #plt.savefig('Constant_lambda_test_sand_' + str(const.lambda_sand) + '.png', dpi=600)
-plt.savefig(path, dpi=600)
+#plt.savefig(path, dpi=600)
+'''
 
+data = np.genfromtxt("D:/Masterarbeit_data/sensor_temp_sand_bigger_dot.csv", delimiter=",")
+time_sim = [const.dt * i for i in range(0, 35940)]
+
+time_deltas_data_interior, temp_10mm, temp_20mm, temp_35mm, temp_55mm, temp_90mm = read_temperature_data(getPath(), '2023-02-15 16:45:00', '2023-02-15 17:45:01', [1, 2, 3, 4, 5], [], [], [], [], [])
+time_data = [np.sum(time_deltas_data_interior[0:i+1]).astype(int) for i in range(len(time_deltas_data_interior)-1)]
+
+print(len(time_data), len(temp_10mm))
+plt.xlabel('Time (s)')
+plt.ylabel('Temperature (K)')
+plt.tick_params(axis='x', which='both', direction='in', top=True, labeltop=False)
+plt.tick_params(axis='y', which='both', direction='in', right=True, labelright=False)
+plt.scatter(time_data, temp_10mm[:-1], label='10mm sensor', s=1, color='black')
+plt.scatter(time_data, temp_20mm[:-1], label='20mm sensor', s=1, color='black', marker='x')
+plt.scatter(time_data, temp_35mm[:-1], label='35mm sensor', s=1, color='black', marker='d')
+plt.scatter(time_data, temp_55mm[:-1], label='55mm sensor', s=1, color='black', marker='+')
+plt.scatter(time_data, temp_90mm[:-1], label='90mm sensor', s=1, color='black', marker='1')
+plt.plot(time_sim, data[0], label='10mm simulation')
+plt.plot(time_sim, data[1], label='20mm simulation')
+plt.plot(time_sim, data[2], label='35mm simulation')
+plt.plot(time_sim, data[3], label='55mm simulation')
+plt.plot(time_sim, data[4], label='90mm simulation')
+#plt.xlim(6000, 6200)
+#plt.title('Lambda linear ' + str(const.lambda_a) + '*T + ' + str(const.lambda_b))
+#plt.title('Lambda constant = ' + str(const.lambda_constant) + r', $b_{\eta}$ = ' + str(const.b)
+plt.title('Lambda constant = ' + str(const.lambda_sand))
+plt.legend()
+plt.show()
+#plt.savefig('Constant_lambda_test_sand_' + str(const.lambda_sand) + '.png', dpi=600)
+#plt.savefig('linear_lambda_test_sand_' + str(const.lambda_a) + 'T + ' + str(const.lambda_b) + '.png', dpi=600)

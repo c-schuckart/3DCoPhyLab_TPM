@@ -5,7 +5,8 @@ import constants as const
 from mayavi import mlab
 
 def plot_3D(scalars):
-    x, y, z = np.mgrid[-5:5:51j, -5:5:51j, -5:5:51j]
+    x, y, z = np.mgrid[-5:5:53j, -5:5:37j, -5:5:37j]
+    #x, y, z = np.mgrid[-5:5:53j, -5:5:1j, -5:5:1j]
 
     print(x.shape, y.shape, z.shape, scalars.shape)
 
@@ -27,7 +28,7 @@ def slice_3D(scalars):
     mlab.show()
 
 
-with open('test_gran.json') as json_file:
+with open('D:/Masterarbeit_data/3D_temps_sand_bigger_dot.json') as json_file:
     data_vis = json.load(json_file)
 
 '''#sample = plot_3D(np.array(data_vis['Temperature']))
