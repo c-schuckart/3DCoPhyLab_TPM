@@ -34,7 +34,7 @@ def read_temperature_data(path, timestamp_start, timestamp_end, positions, *args
 
 def transform_temperature_data(k, dt, time_deltas, *args):
     div = (len(args)) // 2
-    max_k = 0
+    max_k = k
     counter = 0
     for i in range(0, k):
         for j in range(0, div):

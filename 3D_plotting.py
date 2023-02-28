@@ -28,7 +28,7 @@ def slice_3D(scalars):
     mlab.show()
 
 
-with open('D:/Masterarbeit_data/3D_temps_sand_bigger_dot.json') as json_file:
+with open('D:/Masterarbeit_data/3D_temps_sand_dot.json') as json_file:
     data_vis = json.load(json_file)
 
 '''#sample = plot_3D(np.array(data_vis['Temperature']))

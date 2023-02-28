@@ -42,6 +42,8 @@ E_In_arr = var.E_In_arr
 
 #print(temperature)
 #temperature, water_content_per_layer, co2_content_per_layer, dust_ice_ratio_per_layer, co2_h2o_ratio_per_layer, heat_capacity, highest_pressure, highest_pressure_co2, time_passed = load_from_save()
+#2023-02-15 17:45:01 2023-02-15 17:45:02
+#2023-02-15 20:45:41
 time_deltas_data_surface, surface_temp = read_temperature_data(getPath(), '2023-02-15 16:45:00', '2023-02-15 17:45:02', [1], [])
 max_k, surface_temp = transform_temperature_data(const.k, const.dt, np.array(time_deltas_data_surface), [], surface_temp)
 time_deltas_data_interior, sample_holder_temp = read_temperature_data(getPath(), '2023-02-15 16:45:00', '2023-02-15 17:45:01', [6], [])

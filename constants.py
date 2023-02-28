@@ -9,7 +9,7 @@ n_x = 37                            # Number of Layers                       [-]
 n_y = 37
 n_z = 53
 n = np.array([n_x, n_y, n_z])
-k = 36000                      # Number of Timesteps                    [-]
+k = 36000 * 4                      # Number of Timesteps                    [-]
 
 #Definition of Physical Parameters
 #Material Properties
@@ -51,7 +51,7 @@ const_tensile_strength = 0.0045       # Tensile strength of the comet material [
 x_0 = 5E-2                        # Length scaling factor used to calculate the tensile strength [m]
 gravitational_pressure = 0        #Placeholder! [Pa]
 #Thermal Properties
-temperature_ini = 284             # Start Temperature                      [K]
+temperature_ini = 285.5             # Start Temperature                      [K]
 Input_Intensity = 6500             # Intensity of the Light Source (Sun)    [W/m^2]
 epsilon = 1                       # Emissivity                             [-]
 albedo = 0.05                  # Albedo                                 [-]
