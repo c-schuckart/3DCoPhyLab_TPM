@@ -100,7 +100,7 @@ plt.show()
 #plt.savefig(path, dpi=600)
 '''
 
-data = np.genfromtxt("D:/Masterarbeit_data/sensor_temp_sand_bigger_dot.csv", delimiter=",")
+data = np.genfromtxt("D:/Masterarbeit_data/sensor_temp_sand_1D_TPM.csv", delimiter=",")
 time_sim = [const.dt * i for i in range(0, 35940)]
 
 time_deltas_data_interior, temp_10mm, temp_20mm, temp_35mm, temp_55mm, temp_90mm = read_temperature_data(getPath(), '2023-02-15 16:45:00', '2023-02-15 17:45:01', [1, 2, 3, 4, 5], [], [], [], [], [])
@@ -128,5 +128,5 @@ plt.title('Lambda constant = ' + str(const.lambda_sand))
 plt.legend()
 #plt.show()
 #plt.savefig('Constant_lambda_test_sand_' + str(const.lambda_sand) + '.png', dpi=600)
-plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Plots/Sand_surface_bigger_dot_r_20mm (1).png', dpi=600)
+plt.savefig('C:/Users/Christian Schuckart/Documents/Masterarbeit/Plots/Sand_surface_1D_TPM.png', dpi=600)
 #plt.savefig('linear_lambda_test_sand_' + str(const.lambda_a) + 'T + ' + str(const.lambda_b) + '.png', dpi=600)

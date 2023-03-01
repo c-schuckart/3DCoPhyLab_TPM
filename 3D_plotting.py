@@ -5,7 +5,7 @@ import constants as const
 from mayavi import mlab
 
 def plot_3D(scalars):
-    x, y, z = np.mgrid[-5:5:53j, -5:5:37j, -5:5:37j]
+    x, y, z = np.mgrid[-5:5:53j, -5:5:38j, -5:5:38j]
     #x, y, z = np.mgrid[-5:5:53j, -5:5:1j, -5:5:1j]
 
     print(x.shape, y.shape, z.shape, scalars.shape)
@@ -28,7 +28,7 @@ def slice_3D(scalars):
     mlab.show()
 
 
-with open('D:/Masterarbeit_data/3D_temps_sand_dot.json') as json_file:
+with open('test_gran.json') as json_file:
     data_vis = json.load(json_file)
 
 '''#sample = plot_3D(np.array(data_vis['Temperature']))
@@ -45,17 +45,17 @@ for each in data_vis['RSurface']:
     
 sample = plot_3D(sample_and_surface)'''
 
-sample = plot_3D(np.array(data_vis['Temperature'][len(data_vis['Temperature'])-1]))
-'''
+#sample = plot_3D(np.array(data_vis['Temperature'][len(data_vis['Temperature'])-1]))
+
 Lambda_dat = np.array(data_vis['HC'])
-Lambda = np.zeros((const.n_z, const.n_y, const.n_z))
+Lambda = np.zeros((const.n_z, const.n_y, const.n_x))
 for i in range(1, const.n_z - 1):
     for j in range(1, const.n_y - 1):
         for k in range(1, const.n_x - 1):
             Lambda[i][j][k] = np.max(np.abs(Lambda_dat[i][j][k]))
 
 sample = plot_3D(Lambda)
-sample_2 = plot_3D(np.array(data_vis['SH'])*50)'''
+sample_2 = plot_3D(np.array(data_vis['SH'])*50)
 #sample = plot_3D(np.array(data_vis['SH']))
 '''surface = np.zeros((const.n_z, const.n_y, const.n_z))
 for i in range(1, const.n_z - 1):
