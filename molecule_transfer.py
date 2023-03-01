@@ -100,7 +100,7 @@ Returns:
 @jit
 def calculate_molecule_flux(n_x, n_y, n_z, temperature, pressure, a_1, b_1, c_1, d_1, mol_mass, R_gas, VFF, r_grain, Phi, tortuosity, dx, dy, dz, dt, surface_reduced, avogadro_constant, k_B, sample_holder):
     p_sub = 10 ** (a_1[0] + b_1[0] / temperature + c_1[0] * np.log10(temperature) + d_1[0] * temperature)
-    sublimated_mass = (p_sub - pressure) * np.sqrt(mol_mass[0]/(2 * np.pi * R_gas * temperature))
+    sublimated_mass = (p_sub - pressure) * np.sqrt(mol_mass[0]/(2 * np.pi * R_gas * temperature)) * (2 * dx * dy + 2 * dx * dz + 2 * dy * dz)
     #Molecules from the
     outgassed_mass = 0
     for each in surface_reduced:
@@ -112,9 +112,9 @@ def calculate_molecule_flux(n_x, n_y, n_z, temperature, pressure, a_1, b_1, c_1,
         for j in range(1, n_y-1):
             for k in range(1, n_x-1):
                 if temperature[i][j][k] > 0:
-                    diff_z = np.sqrt(1/(2 * np.pi * mol_mass[0] * R_gas * temperature[i][j][k])) * (p_sub[i-1][j][k] - p_sub[i+1][j][k])/(1 + 3 * (1 - VFF[i][j][k])/(2 * VFF[i][j][k] * r_grain) * Phi * tortuosity * dz[i][j][k] / 4)
-                    diff_y = np.sqrt(1/(2 * np.pi * mol_mass[0] * R_gas * temperature[i][j][k])) * (p_sub[i][j-1][k] - p_sub[i][j+1][k])/(1 + 3 * (1 - VFF[i][j][k])/(2 * VFF[i][j][k] * r_grain) * Phi * tortuosity * dy[i][j][k] / 4)
-                    diff_x = np.sqrt(1/(2 * np.pi * mol_mass[0] * R_gas * temperature[i][j][k])) * (p_sub[i][j][k-1] - p_sub[i][j][k+1])/(1 + 3 * (1 - VFF[i][j][k])/(2 * VFF[i][j][k] * r_grain) * Phi * tortuosity * dx[i][j][k] / 4)
+                    diff_z = (1 - VFF[i][j][k]) * np.sqrt(1/(2 * np.pi * mol_mass[0] * R_gas * temperature[i][j][k])) * (p_sub[i-1][j][k] - p_sub[i+1][j][k])/(1 + 3 * (1 - (1 - VFF[i][j][k]))/(2 * (1 - VFF[i][j][k]) * r_grain) * Phi * tortuosity * dz[i][j][k] / 4)
+                    diff_y = (1 - VFF[i][j][k]) * np.sqrt(1/(2 * np.pi * mol_mass[0] * R_gas * temperature[i][j][k])) * (p_sub[i][j-1][k] - p_sub[i][j+1][k])/(1 + 3 * (1 - (1 - VFF[i][j][k]))/(2 * (1 - VFF[i][j][k]) * r_grain) * Phi * tortuosity * dy[i][j][k] / 4)
+                    diff_x = (1 - VFF[i][j][k]) * np.sqrt(1/(2 * np.pi * mol_mass[0] * R_gas * temperature[i][j][k])) * (p_sub[i][j][k-1] - p_sub[i][j][k+1])/(1 + 3 * (1 - (1 - VFF[i][j][k]))/(2 * (1 - VFF[i][j][k]) * r_grain) * Phi * tortuosity * dx[i][j][k] / 4)
                     if np.sum(sample_holder[i-1:i+1][j][k] != 0):
                         diff_z = 0
                     if np.sum(sample_holder[i][j-1:j+1][k] != 0):
