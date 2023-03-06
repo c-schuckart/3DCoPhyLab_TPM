@@ -1,14 +1,14 @@
 import numpy as np
-from numba import jit
+from numba import jit, njit, prange
 import constants as const
 import variables_and_arrays as var
 
 
-@jit
+@njit(parallel=True)
 def lambda_granular(n_x, n_y, n_z, temperature, Dr, dx, dy, dz, lambda_water_ice, poisson_ratio_par, young_modulus_par, surface_energy_par, r_mono, f_1, f_2, VFF_pack, sigma, e_1, sample_holder, lambda_sample_holder):
-	lambda_total = np.zeros(np.shape(Dr), dtype=np.float64)
+	lambda_total = np.zeros((n_z, n_y, n_x, 6), dtype=np.float64)
 	lambda_cond = np.zeros(6, dtype=np.float64)
-	for i in range(1, n_z-1):
+	for i in prange(1, n_z-1):
 		for j in range(1, n_y-1):
 			for k in range(1, n_x-1):
 				if temperature[i][j][k] > 0:
@@ -113,11 +113,11 @@ def calculate_heat_capacity(temperature):
 def calculate_latent_heat(temperature, b_1, c_1, d_1, R_gas, m_mol):
 	return ((-b_1[0] * np.log(10) + (c_1[0] - 1) * temperature + d_1[0] * np.log(10) * temperature**2) * R_gas / (m_mol[0])) # [J/kg]
 
-@jit
+@njit(parallel=True)
 def lambda_sand(n_x, n_y, n_z, temperature, Dr, lambda_sand, sample_holder, lambda_sample_holder):
-	lambda_total = np.zeros(np.shape(Dr), dtype=np.float64)
+	lambda_total = np.zeros((n_z, n_y, n_x, 6), dtype=np.float64)
 	lambda_s = np.full(6, lambda_sand, dtype=np.float64)
-	for i in range(1, n_z-1):
+	for i in prange(1, n_z-1):
 		for j in range(1, n_y-1):
 			for k in range(1, n_x-1):
 				if temperature[i][j][k] > 0:

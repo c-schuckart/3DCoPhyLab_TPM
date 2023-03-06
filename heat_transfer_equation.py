@@ -1,5 +1,5 @@
 import numpy as np
-from numba import jit
+from numba import jit, njit, prange
 import variables_and_arrays as var
 import constants as const
 
@@ -58,13 +58,15 @@ Returns:
 	surface_temperature : float
 	    Surface temperature of the previous timestep   
 '''
-@jit
+
+
+@njit(parallel=True)
 def hte_calculate(n_x, n_y, n_z, surface, delta_T_0, temperature, Lambda, Dr, dx, dy, dz, dt, density, heat_capacity, j_leave, j_inward, latent_heat_water, j_leave_co2, j_inward_co2, latent_heat_co2):
     delta_T = np.zeros((n_z, n_y, n_x), dtype=np.float64) + delta_T_0
     Energy_Increase_per_Layer = np.zeros((n_z, n_y, n_x), dtype=np.float64)
     Latent_Heat_per_Layer = np.zeros((n_z, n_y, n_x), dtype=np.float64)
     Fourier_number = np.zeros((n_z, n_y, n_x), dtype=np.float64)
-    for i in range(1, n_z-1):
+    for i in prange(1, n_z-1):
         for j in range(1, n_y-1):
             for k in range(1, n_x-1):
                 if np.sum(surface[i][j][k]) == 0 and temperature[i][j][k] > 0:
@@ -162,7 +164,7 @@ Returns:
 	co2_h2o_ratio_per_layer : ndarray
 		Array containing the ratio of CO2 ice to water ice for each layer of dimension n+1	    
 '''
-@jit
+@njit(parallel=True)
 def update_thermal_arrays(n_x, n_y, n_z, temperature, water_content_per_layer, co2_content_per_layer,  delta_T, Energy_Increase_per_Layer, j_leave, j_inward, j_leave_co2, j_inward_co2, dt, avogadro_constant, molar_mass_water, molar_mass_co2, heat_capacity, heat_capacity_water_ice, heat_capacity_co2_ice, EIpL_0, Latent_Heat_per_Layer, E_Lat_0, E_Rad, E_In):
     temperature_o = temperature + delta_T
     outgassed_molecules_per_time_step = 0

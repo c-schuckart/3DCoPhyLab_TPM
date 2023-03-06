@@ -1,5 +1,5 @@
 import numpy as np
-from numba import jit
+from numba import jit, njit, prange
 import variables_and_arrays as var
 import constants as const
 import settings as sett
@@ -104,12 +104,13 @@ def test(r_H, albedo, dt, input_energy, dx, dy, surface, surface_reduced):
 		print(surface[each[2]][each[1]][each[0]])
 
 
-@jit
+@njit(parallel=False)
 def energy_input_data(dt, input_temperature, sigma, epsilon, temperature, Lambda, Dr, n_x, n_y, n_z, heat_capacity, density, dx, dy, dz, surface, surface_reduced, delta_T):
 	Energy_Increase_in_surface = 0
 	E_In_in_surface = 0
 	E_Rad_in_surface = 0
-	delta_T_0 = np.zeros(np.shape(delta_T))
+	#delta_T_0 = np.zeros(np.shape(delta_T))
+	delta_T_0 = np.zeros((n_z, n_y, n_x))
 	E_Lat_in_surface = 0
 	a = n_x // 2
 	a_rad = (n_x - 16) // 2
@@ -140,9 +141,9 @@ def energy_input_data(dt, input_temperature, sigma, epsilon, temperature, Lambda
 	return delta_T_0, Energy_Increase_in_surface, E_In_in_surface, E_Rad_in_surface, E_Lat_in_surface
 
 
-@jit
+@njit(parallel=False)
 def sample_holder_data(n_x, n_y, n_z, sample_holder, temperature, temp_sample_holder):
-	for i in range(0, n_z):
+	for i in prange(0, n_z):
 		for j in range(0, n_y):
 			for k in range(0, n_x):
 				if sample_holder[i][j][k] != 0:

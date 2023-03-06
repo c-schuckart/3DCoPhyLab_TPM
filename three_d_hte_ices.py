@@ -93,7 +93,7 @@ for j in tqdm(range(0, min(const.k, max_k, max_k_2))):
 #save_current_arrays(temperature, water_content_per_layer, co2_content_per_layer, dust_ice_ratio_per_layer, co2_h2o_ratio_per_layer, heat_capacity, highest_pressure, highest_pressure_co2, ejection_times, var.time_passed + const.dt * const.k)
 #data_save(temperature_save, water_content_save, co2_content_save, outgassing_save, outgassing_co2_save, E_conservation, Energy_Increase_Total_per_time_Step_arr, E_Rad_arr, Latent_Heat_per_time_step_arr, E_In_arr, 'base_case')
 #print(sensor_10mm[1000:1100])
-data_save_sensors(temperature_save, sensor_10mm, sensor_20mm, sensor_35mm, sensor_55mm, sensor_90mm, 'D:/Masterarbeit_data/3D_temps_sand_bigger_dot', 'D:/Masterarbeit_data/sensor_temp_sand_bigger_dot')
+data_save_sensors(temperature_save, sensor_10mm, sensor_20mm, sensor_35mm, sensor_55mm, sensor_90mm, 'D:/Masterarbeit_data/3D_temps_sand_bigger_dot_p', 'D:/Masterarbeit_data/sensor_temp_sand_bigger_dot_p')
 data_dict = {'Temperature': temperature_save.tolist(), 'Surface': surface.tolist(), 'RSurface': surface_reduced.tolist(), 'HC': Lambda.tolist(), 'SH': sample_holder.tolist()}
 with open('test_gran.json', 'w') as outfile:
     json.dump(data_dict, outfile)
