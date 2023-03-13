@@ -1,37 +1,8 @@
 import numpy as np
-from numba import jit
+from numba import jit, njit, prange
 #import main
 import constants as const
 import variables_and_arrays as var
-
-'''
-Subroutine within calculate_molecule_flux to calcute the sublimating molecule within one layer of the system.
-
-Input parameters:
-	sub_coeff_a : float
-		Empirical coefficient for the sublimation pressure calculation
-	sub_coeff_b : float
-		Empirical coefficient for the sublimation pressure calculation
-	mass : float
-	    Particle mass of the sublimating volatile
-	T : float
-	    Temperature of layer
-	i : float
-	    Number of the current numerical layer
-	dx : float
-	    Thickness of the numerical layer
-	k_boltzmann : float
-	    Boltzmann constant
-	b : float
-	    Coefficient used in calculating the efficiency function in Gundlach et al. (2020) equating to 4 times the diffusion scale length
-	
-Returns:
-    Sublimating molecules of a volatile within one numerical layer dictated by the input parameters
-'''
-@jit
-def j_leave_calculation(p_sub, mass, T, i, dx, k_boltzmann, b, reduction):
-    return p_sub * np.sqrt(
-                mass / (2 * np.pi * k_boltzmann * T)) * (1 + (i * dx) / b) ** (-1) * reduction # [kg/(m^2 * s)]
 
 
 '''
@@ -97,10 +68,11 @@ Returns:
 	deeper_diffusion_co2 : float
 	    Catches CO2 molecules that would diffuse into layers deeper than the modelled scope 
 '''
-@jit
+@njit(parallel=True)
 def calculate_molecule_flux(n_x, n_y, n_z, temperature, pressure, a_1, b_1, c_1, d_1, mol_mass, R_gas, VFF, r_grain, Phi, tortuosity, dx, dy, dz, dt, surface_reduced, avogadro_constant, k_B, sample_holder):
     p_sub = 10 ** (a_1[0] + b_1[0] / temperature + c_1[0] * np.log10(temperature) + d_1[0] * temperature)
-    sublimated_mass = (p_sub - pressure) * np.sqrt(mol_mass[0]/(2 * np.pi * R_gas * temperature)) * (2 * dx * dy + 2 * dx * dz + 2 * dy * dz)
+    sublimated_mass = (p_sub - pressure) * np.sqrt(mol_mass[0]/(2 * np.pi * R_gas * temperature)) * (3 * VFF / r_grain * dx * dy * dz)
+    resublimated_mass = np.zeros((n_z, n_y, n_x), dtype=np.float64)
     #Molecules from the
     outgassed_mass = 0
     for each in surface_reduced:
@@ -127,6 +99,24 @@ def calculate_molecule_flux(n_x, n_y, n_z, temperature, pressure, a_1, b_1, c_1,
                     mass_flux[i][j+1][k] += diff_y
                     mass_flux[i][j][k-1] -= diff_x
                     mass_flux[i][j][k+1] += diff_x
+                    if temperature[i-1][j][k] > temperature[i][j][k] and diff_z > 0:
+                        resublimated_mass[i][j][k] += diff_z
+                        mass_flux[i-1][j][k] = 0
+                    elif temperature[i+1][j][k] > temperature[i][j][k] and diff_z < 0:
+                        resublimated_mass[i][j][k] -= diff_z
+                        mass_flux[i+1][j][k] = 0
+                    if temperature[i][j-1][k] > temperature[i][j][k] and diff_y > 0:
+                        resublimated_mass[i][j][k] += diff_y
+                        mass_flux[i][j-1][k] = 0
+                    elif temperature[i][j+1][k] > temperature[i][j][k] and diff_y < 0:
+                        resublimated_mass[i][j][k] -= diff_y
+                        mass_flux[i][j+1][k] = 0
+                    if temperature[i][j][k-1] > temperature[i][j][k] and diff_x > 0:
+                        resublimated_mass[i][j][k] += diff_x
+                        mass_flux[i][j][k-1] = 0
+                    elif temperature[i][j][k+1] > temperature[i][j][k] and diff_x < 0:
+                        resublimated_mass[i][j][k] -= diff_x
+                        mass_flux[i][j][k+1] = 0
                     p_sub[i-1][j][k] += mass_flux[i-1][j][k] * dt * mol_mass[0] / avogadro_constant * k_B * temperature[i-1][j][k] / dz[i-1][j][k]
                     p_sub[i+1][j][k] += mass_flux[i+1][j][k] * dt * mol_mass[0] / avogadro_constant * k_B * temperature[i+1][j][k] / dz[i+1][j][k]
                     p_sub[i][j-1][k] += mass_flux[i][j-1][k] * dt * mol_mass[0] / avogadro_constant * k_B * temperature[i][j-1][k] / dy[i][j-1][k]
