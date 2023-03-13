@@ -1,15 +1,15 @@
 import numpy as np
 
 #Definition of Simulation Parameters
-min_dx = 2E-3                      # Layer Thickness of smallest layer in x direction, Numerical Resolution  [m]
-min_dy = 2E-3                      # Layer Thickness of smallest layer in y direction, Numerical Resolution  [m]
-min_dz = 2E-3                      # Layer Thickness of smallest layer in z direction, Numerical Resolution  [m]
-dt = 0.1                           # Timestep                               [s]
-n_x = 38                            # Number of Layers                       [-]
-n_y = 38
-n_z = 53
+min_dx = 2.5E-6                      # Layer Thickness of smallest layer in x direction, Numerical Resolution  [m]
+min_dy = 2.5E-6                      # Layer Thickness of smallest layer in y direction, Numerical Resolution  [m]
+min_dz = 2.5E-6                      # Layer Thickness of smallest layer in z direction, Numerical Resolution  [m]
+dt = 0.00005                           # Timestep                               [s]
+n_x = 10                            # Number of Layers                       [-]
+n_y = 10
+n_z = 25
 n = np.array([n_x, n_y, n_z])
-k = 36000 * 4                      # Number of Timesteps                    [-]
+k = 360000 * 4                      # Number of Timesteps                    [-]
 
 #Definition of Physical Parameters
 #Material Properties

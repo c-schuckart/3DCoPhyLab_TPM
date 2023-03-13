@@ -1,5 +1,5 @@
 import numpy as np
-from numba import jit
+from numba import jit, njit, prange
 
 import constants as const
 import settings as sett
@@ -103,6 +103,23 @@ def fix_rim(n_x, n_y, limiter_x, limiter_y, a, a_rad, b, b_rad, array):
             correct_len += 1
     misplaced_voxels = misplaced_voxels[0:correct_len]
     return array, misplaced_voxels
+
+
+@njit
+def surrounding_checker(array, surface, n_x_lr, n_y_lr, n_z_lr):
+    surrounding_surface = np.zeros((len(array) * 9, 3), dtype=np.float64)
+    count = 0
+    for each in array:
+        for i in range(0, 6):
+            if np.sum(surface[each[2] + n_z_lr[i]][each[1] + n_y_lr[i]][each[0] + n_x_lr[i]]) == 0:
+                surrounding_surface[count] = np.array([each[0] + n_x_lr[i], each[1] + n_y_lr[i], each[2] + n_z_lr[i]], dtype=np.float64)
+                count += 1
+    for i in range(len(surrounding_surface)):
+        for j in range(i+1-len(surrounding_surface)):
+            if surrounding_surface[i][0] == surrounding_surface[j][0] and surrounding_surface[i][1] == surrounding_surface[j][1] and surrounding_surface[i][2] == surrounding_surface[j][2]:
+                np.delete(surrounding_surface, j)
+    return surrounding_surface[0:count]
+
 
 
 #@jit
