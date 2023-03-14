@@ -5,7 +5,8 @@ import constants as const
 from mayavi import mlab
 
 def plot_3D(scalars):
-    x, y, z = np.mgrid[-5:5:53j, -5:5:38j, -5:5:38j]
+    nx, ny, nz = const.n_x * 1j, const.n_y * 1j, const.n_z * 1j
+    x, y, z = np.mgrid[-5:5:nz, -5:5:ny, -5:5:nx]
     #x, y, z = np.mgrid[-5:5:53j, -5:5:1j, -5:5:1j]
 
     print(x.shape, y.shape, z.shape, scalars.shape)
@@ -28,26 +29,29 @@ def slice_3D(scalars):
     mlab.show()
 
 
-with open('test_gran.json') as json_file:
+with open('test.json') as json_file:
     data_vis = json.load(json_file)
 
-'''#sample = plot_3D(np.array(data_vis['Temperature']))
+#sample = plot_3D(np.array(data_vis['Temperature']))
 sample_and_surface = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
-surface = np.array(data_vis['SH'])
-for i in range(0, const.n_z):
+#surface = np.array(data_vis['Surface'])
+'''for i in range(0, const.n_z):
     for j in range(0, const.n_y):
         for k in range(0, const.n_x):
             if surface[i][j][k] > 0:
-                sample_and_surface[i][j][k] = 50
-
+                sample_and_surface[i][j][k] = 50'''
+for each in data_vis['SuS']:
+    sample_and_surface[each[2]][each[1]][each[0]] = 50
 for each in data_vis['RSurface']:
-    sample_and_surface[each[2]][each[1]][each[0]] = 70
+    sample_and_surface[each[2]][each[1]][each[0]] = 100
+
+sample_and_surface += np.array(data_vis['SH']) * 20
     
-sample = plot_3D(sample_and_surface)'''
+sample = plot_3D(sample_and_surface)
 
 #sample = plot_3D(np.array(data_vis['Temperature'][len(data_vis['Temperature'])-1]))
 
-Lambda_dat = np.array(data_vis['HC'])
+'''Lambda_dat = np.array(data_vis['HC'])
 Lambda = np.zeros((const.n_z, const.n_y, const.n_x))
 for i in range(1, const.n_z - 1):
     for j in range(1, const.n_y - 1):
@@ -55,7 +59,7 @@ for i in range(1, const.n_z - 1):
             Lambda[i][j][k] = np.max(np.abs(Lambda_dat[i][j][k]))
 
 sample = plot_3D(Lambda)
-sample_2 = plot_3D(np.array(data_vis['SH'])*50)
+sample_2 = plot_3D(np.array(data_vis['SH'])*50)'''
 #sample = plot_3D(np.array(data_vis['SH']))
 '''surface = np.zeros((const.n_z, const.n_y, const.n_z))
 for i in range(1, const.n_z - 1):

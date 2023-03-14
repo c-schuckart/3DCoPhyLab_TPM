@@ -69,18 +69,18 @@ Returns:
 	    Catches CO2 molecules that would diffuse into layers deeper than the modelled scope 
 '''
 @njit(parallel=True)
-def calculate_molecule_flux(n_x, n_y, n_z, temperature, pressure, a_1, b_1, c_1, d_1, mol_mass, R_gas, VFF, r_grain, Phi, tortuosity, dx, dy, dz, dt, surface_reduced, avogadro_constant, k_B, sample_holder):
+def calculate_molecule_flux(n_x, n_y, n_z, temperature, pressure, a_1, b_1, c_1, d_1, mol_mass, R_gas, VFF, r_grain, Phi, tortuosity, dx, dy, dz, dt, surface_reduced, avogadro_constant, k_B, sample_holder, surrounding_surface):
     p_sub = 10 ** (a_1[0] + b_1[0] / temperature + c_1[0] * np.log10(temperature) + d_1[0] * temperature)
     sublimated_mass = (p_sub - pressure) * np.sqrt(mol_mass[0]/(2 * np.pi * R_gas * temperature)) * (3 * VFF / r_grain * dx * dy * dz)
     resublimated_mass = np.zeros((n_z, n_y, n_x), dtype=np.float64)
-    #Molecules from the
+    #Placeholder
     outgassed_mass = 0
     for each in surface_reduced:
         #Setting p_surface to zero since outgassing can be assumed to always happen towards the vacuum
         outgassed_mass += sublimated_mass[each[2]][each[1]][each[0]]
         p_sub[each[2]][each[1]][each[0]] = 0
     mass_flux = np.array(np.shape(sublimated_mass), dtype=np.float64)
-    for i in range(1, n_z-1):
+    for i in prange(1, n_z-1):
         for j in range(1, n_y-1):
             for k in range(1, n_x-1):
                 if temperature[i][j][k] > 0:
@@ -123,7 +123,7 @@ def calculate_molecule_flux(n_x, n_y, n_z, temperature, pressure, a_1, b_1, c_1,
                     p_sub[i][j+1][k] += mass_flux[i][j+1][k] * dt * mol_mass[0] / avogadro_constant * k_B * temperature[i][j+1][k] / dy[i][j+1][k]
                     p_sub[i][j][k-1] += mass_flux[i][j][k-1] * dt * mol_mass[0] / avogadro_constant * k_B * temperature[i][j][k-1] / dx[i][j][k-1]
                     p_sub[i][j][k+1] += mass_flux[i][j][k+1] * dt * mol_mass[0] / avogadro_constant * k_B * temperature[i][j][k+1] / dx[i][j][k+1]
-    for each in surface_reduced:
+    for each in surrounding_surface:
         #This should always be >= 1 since p_surface is set to 0
         outgassed_mass += max(mass_flux[each[2]][each[1]][each[0]], 0)
         p_sub[each[2]][each[1]][each[0]] = 0
@@ -131,4 +131,4 @@ def calculate_molecule_flux(n_x, n_y, n_z, temperature, pressure, a_1, b_1, c_1,
     pressure = p_sub
     #Resublimation missing
 
-    return sublimated_mass, mass_flux, pressure, outgassed_mass
+    return sublimated_mass, resublimated_mass, pressure, outgassed_mass/dt

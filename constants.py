@@ -51,7 +51,7 @@ const_tensile_strength = 0.0045       # Tensile strength of the comet material [
 x_0 = 5E-2                        # Length scaling factor used to calculate the tensile strength [m]
 gravitational_pressure = 0        #Placeholder! [Pa]
 #Thermal Properties
-temperature_ini = 285.5             # Start Temperature                      [K]
+temperature_ini = 140             # Start Temperature                      [K]
 Input_Intensity = 6500             # Intensity of the Light Source (Sun)    [W/m^2]
 epsilon = 1                       # Emissivity                             [-]
 albedo = 0.05                  # Albedo                                 [-]
@@ -73,3 +73,4 @@ solar_constant = 6500             # Solar Constant                         [W/m^
 k_boltzmann = 1.38E-23            # Boltzmann's Constant                   [m^2 kg / (s^2 K)]
 avogadro_constant = 6.022E23      # Avogadro constant                      [1/mol]
 R = 8.314                         # Gas constant                            [J/(mol * K)]
+Phi = 2.18                        # Geometrical constant factor from Asaeda et al. 1973

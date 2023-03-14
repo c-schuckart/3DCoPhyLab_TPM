@@ -106,13 +106,13 @@ def fix_rim(n_x, n_y, limiter_x, limiter_y, a, a_rad, b, b_rad, array):
 
 
 @njit
-def surrounding_checker(array, surface, n_x_lr, n_y_lr, n_z_lr):
-    surrounding_surface = np.zeros((len(array) * 9, 3), dtype=np.float64)
+def surrounding_checker(array, surface, n_x_lr, n_y_lr, n_z_lr, temperature):
+    surrounding_surface = np.zeros((len(array) * 9, 3), dtype=np.int32)
     count = 0
     for each in array:
         for i in range(0, 6):
-            if np.sum(surface[each[2] + n_z_lr[i]][each[1] + n_y_lr[i]][each[0] + n_x_lr[i]]) == 0:
-                surrounding_surface[count] = np.array([each[0] + n_x_lr[i], each[1] + n_y_lr[i], each[2] + n_z_lr[i]], dtype=np.float64)
+            if np.sum(surface[each[2] + n_z_lr[i]][each[1] + n_y_lr[i]][each[0] + n_x_lr[i]]) == 0 and temperature[each[2] + n_z_lr[i]][each[1] + n_y_lr[i]][each[0] + n_x_lr[i]] == 0:
+                surrounding_surface[count] = np.array([each[0] + n_x_lr[i], each[1] + n_y_lr[i], each[2] + n_z_lr[i]], dtype=np.float32)
                 count += 1
     for i in range(len(surrounding_surface)):
         for j in range(i+1-len(surrounding_surface)):
