@@ -71,7 +71,13 @@ def find_surface(n_x, n_y, n_z, limiter_x_start, limiter_y_start, limiter_z_star
     else:
         misplaced_voxels = np.empty((0, 0), dtype=np.int32)
     surface_elements += len(misplaced_voxels)
-    surface_reduced = reduce_surface(n_x, n_y, n_z, limiter_x_start, limiter_y_start, limiter_z_start, limiter_x_end, limiter_y_end, limiter_z_end, surface, np.zeros((surface_elements, 3), dtype=np.int32), a, a_rad, b, b_rad, misplaced_voxels)
+    if initiation:
+        surface_reduced = reduce_surface(n_x, n_y, n_z, limiter_x_start, limiter_y_start, limiter_z_start, limiter_x_end, limiter_y_end, limiter_z_end, surface, np.zeros((surface_elements, 3), dtype=np.int32), a, a_rad, b, b_rad, misplaced_voxels)
+    else:
+        surface_reduced = reduce_surface(n_x, n_y, n_z, limiter_x_start, limiter_y_start, limiter_z_start,
+                                         limiter_x_end, limiter_y_end, limiter_z_end+2, surface,
+                                         np.zeros((surface_elements, 3), dtype=np.int32), a, a_rad, b, b_rad,
+                                         misplaced_voxels)
     return surface, surface_reduced, sample_holder
 
 
@@ -128,23 +134,45 @@ def surrounding_checker(array, surface, n_x_lr, n_y_lr, n_z_lr, temperature):
     return surrounding_surface[0:count]
 
 
-#@njit
+@njit
 def update_surface_arrays(voxels_to_delete, surface, reduced_surface, temperature, n_x, n_y, n_z, a, a_rad, b, b_rad):
+    #print(voxels_to_delete)
     for each in voxels_to_delete:
+        print(each)
         temperature[each[2]][each[1]][each[0]] = 0
-        print(reduced_surface)
-        surface, new_reduced_surface_elements = find_surface(n_x, n_y, n_z, each[0]-1, each[1]-1, each[2]-1, each[0]+2, each[1]+2, each[2]+2+2, temperature, surface, a, a_rad, b, b_rad, False)[0:2]
-        print(reduced_surface)
+        #print(reduced_surface)
+        surface, new_reduced_surface_elements = find_surface(n_x, n_y, n_z, each[0]-1, each[1]-1, each[2]-1, each[0]+2, each[1]+2, each[2]+2, temperature, surface, a, a_rad, b, b_rad, False)[0:2]
         #new_surrounding_surface = surrounding_checker(np.append(new_reduced_surface_elements, ), surface, n_x_lr, n_y_lr, n_z_lr)
         #doubled_elements = np.empty((0, 0), dtype=np.int32)
         #print(new_reduced_surface_elements)
         #print(reduced_surface)
-        for count, each in enumerate(new_reduced_surface_elements):
-            for elements in reduced_surface:
-                if each[0] == elements[0] and each[1] == elements[1] and each[2] == elements[2]:
-                    new_reduced_surface_elements = np.delete(new_reduced_surface_elements, count)
+        non_duplicate_indicies = np.empty(0, dtype=np.int32)
+        mask = np.arange(len(reduced_surface))
+        empty_voxel_counted = np.nan
+        #delete_indicies = np.array([])
+        for count, red_elements in enumerate(new_reduced_surface_elements):
+            is_in = False
+            for count_el, elements in enumerate(reduced_surface):
+                if red_elements[0] == elements[0] and red_elements[1] == elements[1] and red_elements[2] == elements[2]:
+                    is_in = True
                     break
-        reduced_surface = np.append(reduced_surface, new_reduced_surface_elements)
+                if elements[0] == each[0] and elements[1] == each[1] and elements[2] == each[2]:
+                    empty_voxel_counted = count_el
+            if not is_in:
+                non_duplicate_indicies = np.append(non_duplicate_indicies, np.int32(count))
+        if empty_voxel_counted != np.nan:
+            mask = np.delete(mask, int(empty_voxel_counted))
+            reduced_surface  = reduced_surface[mask]
+        new_r_temp = np.zeros((len(reduced_surface) + len(non_duplicate_indicies), 3), dtype=np.int32)
+        new_r_temp[0:len(reduced_surface)] = reduced_surface
+        count_2 = len(reduced_surface)
+        for i in non_duplicate_indicies:
+            new_r_temp[count_2] = new_reduced_surface_elements[i]
+        #print(new_reduced_surface_elements)
+        #new_reduced_surface_elements = np.delete(new_reduced_surface_elements, delete_indicies, axis=0)
+        #print(new_reduced_surface_elements)
+        #reduced_surface = np.append(reduced_surface, new_reduced_surface_elements, axis=0)
+        reduced_surface = new_r_temp
     return surface, reduced_surface
 
 #@jit
