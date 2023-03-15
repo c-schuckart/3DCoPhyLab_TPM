@@ -35,13 +35,14 @@ def create_equidistant_mesh(n_x, n_y, n_z, temperature_ini, dx, dy, dz):
     return mesh, dx_arr, dy_arr, dz_arr, Dr, a, (a_rad-1), b, (b_rad-1)
 
 
-@jit
+@njit
 def find_surface(n_x, n_y, n_z, limiter_x_start, limiter_y_start, limiter_z_start, limiter_x_end, limiter_y_end, limiter_z_end, mesh, surface, a, a_rad, b, b_rad, initiation):
     surface_elements = 0
     sample_holder = np.zeros((n_z, n_y, n_x), dtype=np.int32)
     for i in range(limiter_z_start, limiter_z_end):
         for j in range(limiter_y_start, limiter_y_end):
             for k in range(limiter_x_start, limiter_x_end):
+                surface[i][j][k] = np.zeros(6, dtype=np.int32)
                 if mesh[i][j][k] != 0:
                     #Check if it is a surface in positive z direction
                     if mesh[i+1][j][k] == 0:
@@ -68,7 +69,7 @@ def find_surface(n_x, n_y, n_z, limiter_x_start, limiter_y_start, limiter_z_star
     if initiation:
         sample_holder, misplaced_voxels = fix_rim(n_x, n_y, limiter_x_start, limiter_y_start, a, a_rad, b, b_rad, sample_holder)
     else:
-        misplaced_voxels = np.empty(0)
+        misplaced_voxels = np.empty((0, 0), dtype=np.int32)
     surface_elements += len(misplaced_voxels)
     surface_reduced = reduce_surface(n_x, n_y, n_z, limiter_x_start, limiter_y_start, limiter_z_start, limiter_x_end, limiter_y_end, limiter_z_end, surface, np.zeros((surface_elements, 3), dtype=np.int32), a, a_rad, b, b_rad, misplaced_voxels)
     return surface, surface_reduced, sample_holder
@@ -127,21 +128,24 @@ def surrounding_checker(array, surface, n_x_lr, n_y_lr, n_z_lr, temperature):
     return surrounding_surface[0:count]
 
 
-@njit
+#@njit
 def update_surface_arrays(voxels_to_delete, surface, reduced_surface, temperature, n_x, n_y, n_z, a, a_rad, b, b_rad):
     for each in voxels_to_delete:
         temperature[each[2]][each[1]][each[0]] = 0
-        new_surface, new_reduced_surface_elements = find_surface(n_x, n_y, n_z, each[0]-1, each[1]-1, each[2]-1, each[0]+2, each[1]+2, each[2]+2+2, temperature, surface, a, a_rad, b, b_rad, False)
+        print(reduced_surface)
+        surface, new_reduced_surface_elements = find_surface(n_x, n_y, n_z, each[0]-1, each[1]-1, each[2]-1, each[0]+2, each[1]+2, each[2]+2+2, temperature, surface, a, a_rad, b, b_rad, False)[0:2]
+        print(reduced_surface)
         #new_surrounding_surface = surrounding_checker(np.append(new_reduced_surface_elements, ), surface, n_x_lr, n_y_lr, n_z_lr)
-        surface[each[2]-1:each[2]+2, each[1]-1:each[1]+2, each[0]-1:each[0]+2] = new_surface
-        doubled_elements = np.empty(0, dtype=np.int32)
+        #doubled_elements = np.empty((0, 0), dtype=np.int32)
+        #print(new_reduced_surface_elements)
+        #print(reduced_surface)
         for count, each in enumerate(new_reduced_surface_elements):
             for elements in reduced_surface:
                 if each[0] == elements[0] and each[1] == elements[1] and each[2] == elements[2]:
                     new_reduced_surface_elements = np.delete(new_reduced_surface_elements, count)
                     break
         reduced_surface = np.append(reduced_surface, new_reduced_surface_elements)
-
+    return surface, reduced_surface
 
 #@jit
 def DEBUG_print_3D_arrays(n_x, n_y, n_z, mesh):
