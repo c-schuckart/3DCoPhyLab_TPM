@@ -139,6 +139,6 @@ def calculate_molecule_flux(n_x, n_y, n_z, temperature, pressure, a_1, b_1, c_1,
         p_sub[each[2]][each[1]][each[0]] = 0'''
 
     pressure = p_sub
-    #Resublimation missing
+    #Non 100% resublimation missing
 
     return sublimated_mass, resublimated_mass, pressure, outgassed_mass/dt, empty_voxels

@@ -136,9 +136,7 @@ def surrounding_checker(array, surface, n_x_lr, n_y_lr, n_z_lr, temperature):
 
 @njit
 def update_surface_arrays(voxels_to_delete, surface, reduced_surface, temperature, n_x, n_y, n_z, a, a_rad, b, b_rad):
-    #print(voxels_to_delete)
     for each in voxels_to_delete:
-        print(each)
         temperature[each[2]][each[1]][each[0]] = 0
         #print(reduced_surface)
         surface, new_reduced_surface_elements = find_surface(n_x, n_y, n_z, each[0]-1, each[1]-1, each[2]-1, each[0]+2, each[1]+2, each[2]+2, temperature, surface, a, a_rad, b, b_rad, False)[0:2]
@@ -168,6 +166,7 @@ def update_surface_arrays(voxels_to_delete, surface, reduced_surface, temperatur
         count_2 = len(reduced_surface)
         for i in non_duplicate_indicies:
             new_r_temp[count_2] = new_reduced_surface_elements[i]
+            count_2 += 1
         #print(new_reduced_surface_elements)
         #new_reduced_surface_elements = np.delete(new_reduced_surface_elements, delete_indicies, axis=0)
         #print(new_reduced_surface_elements)
