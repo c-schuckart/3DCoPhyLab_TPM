@@ -68,8 +68,8 @@ Returns:
 	deeper_diffusion_co2 : float
 	    Catches CO2 molecules that would diffuse into layers deeper than the modelled scope 
 '''
-@njit(parallel=True)
-def calculate_molecule_flux(n_x, n_y, n_z, temperature, pressure, a_1, b_1, c_1, d_1, mol_mass, R_gas, VFF, r_grain, Phi, tortuosity, dx, dy, dz, dt, surface_reduced, avogadro_constant, k_B, sample_holder, surrounding_surface, water_mass_per_layer, n_x_lr, n_y_lr, n_z_lr, Dr):
+#@njit(parallel=True)
+def calculate_molecule_flux(n_x, n_y, n_z, temperature, pressure, a_1, b_1, c_1, d_1, mol_mass, R_gas, VFF, r_grain, Phi, tortuosity, dx, dy, dz, dt, surface_reduced, avogadro_constant, k_B, sample_holder,  water_mass_per_layer, n_x_lr, n_y_lr, n_z_lr, Dr):
     p_sub = 10 ** (a_1[0] + b_1[0] / temperature + c_1[0] * np.log10(temperature) + d_1[0] * temperature)
     sublimated_mass = (p_sub - pressure) * np.sqrt(mol_mass[0]/(2 * np.pi * R_gas * temperature)) * (3 * VFF / r_grain * dx * dy * dz)
     resublimated_mass = np.zeros((n_z, n_y, n_x), dtype=np.float64)
@@ -80,7 +80,7 @@ def calculate_molecule_flux(n_x, n_y, n_z, temperature, pressure, a_1, b_1, c_1,
         #Setting p_surface to zero since outgassing can be assumed to always happen towards the vacuum
         outgassed_mass += sublimated_mass[each[2]][each[1]][each[0]]
         p_sub[each[2]][each[1]][each[0]] = 0
-    mass_flux = np.array(np.shape(sublimated_mass), dtype=np.float64)
+    mass_flux = np.zeros(np.shape(sublimated_mass), dtype=np.float64)
     for i in prange(1, n_z-1):
         for j in range(1, n_y-1):
             for k in range(1, n_x-1):
@@ -93,11 +93,15 @@ def calculate_molecule_flux(n_x, n_y, n_z, temperature, pressure, a_1, b_1, c_1,
                     diff_z = (1 - VFF[i][j][k]) * np.sqrt(1/(2 * np.pi * mol_mass[0] * R_gas * temperature[i][j][k])) * (p_sub[i-1][j][k] - p_sub[i+1][j][k])/(1 + 3 * (1 - (1 - VFF[i][j][k]))/(2 * (1 - VFF[i][j][k]) * r_grain) * Phi * tortuosity * dz[i][j][k] / 4)
                     diff_y = (1 - VFF[i][j][k]) * np.sqrt(1/(2 * np.pi * mol_mass[0] * R_gas * temperature[i][j][k])) * (p_sub[i][j-1][k] - p_sub[i][j+1][k])/(1 + 3 * (1 - (1 - VFF[i][j][k]))/(2 * (1 - VFF[i][j][k]) * r_grain) * Phi * tortuosity * dy[i][j][k] / 4)
                     diff_x = (1 - VFF[i][j][k]) * np.sqrt(1/(2 * np.pi * mol_mass[0] * R_gas * temperature[i][j][k])) * (p_sub[i][j][k-1] - p_sub[i][j][k+1])/(1 + 3 * (1 - (1 - VFF[i][j][k]))/(2 * (1 - VFF[i][j][k]) * r_grain) * Phi * tortuosity * dx[i][j][k] / 4)
-                    if np.sum(sample_holder[i-1:i+1][j][k] != 0):
+                    #print(i, j, k)
+                    #print(sample_holder[i-1:i+2][j][k])
+                    #print(sample_holder[i][j][k], sample_holder[i][j-1][k], sample_holder[i][j+1][k])
+                    #print(sample_holder[1][j-1:j+2][:])
+                    if np.sum(np.array([sample_holder[i-1][j][k], sample_holder[i][j][k], sample_holder[i+1][j][k]])) != 0:
                         diff_z = 0
-                    if np.sum(sample_holder[i][j-1:j+1][k] != 0):
+                    if np.sum(np.array([sample_holder[i][j-1][k], sample_holder[i][j][k], sample_holder[i][j+1][k]])) != 0:
                         diff_y = 0
-                    if np.sum(sample_holder[i][j][k-1:k+1] != 0):
+                    if np.sum(np.array([sample_holder[i][j][k-1], sample_holder[i][j][k], sample_holder[i][j][k+1]])) != 0:
                         diff_x = 0
                     mass_flux[i-1][j][k] -= diff_z
                     mass_flux[i+1][j][k] += diff_z
@@ -141,4 +145,4 @@ def calculate_molecule_flux(n_x, n_y, n_z, temperature, pressure, a_1, b_1, c_1,
     pressure = p_sub
     #Non 100% resublimation missing
 
-    return sublimated_mass, resublimated_mass, pressure, outgassed_mass/dt, empty_voxels
+    return sublimated_mass, resublimated_mass, pressure, outgassed_mass/dt, empty_voxels, mass_flux
