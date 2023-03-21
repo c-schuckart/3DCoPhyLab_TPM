@@ -29,7 +29,7 @@ def slice_3D(scalars):
     mlab.show()
 
 
-with open('test_1.json') as json_file:
+with open('test_ev.json') as json_file:
     data_vis = json.load(json_file)
 
 #sample = plot_3D(np.array(data_vis['Temperature']))
@@ -46,10 +46,10 @@ for i in range(0, const.n_z):
 #for each in data_vis['RSurface']:
     #sample_and_surface[each[2]][each[1]][each[0]] = 100
 
-#sample_and_surface += np.array(data_vis['SH']) * 20
+
+#sample_and_surface += np.array(data_vis['SH']) * 200
     
 sample = plot_3D(sample_and_surface)
-
 #sample = plot_3D(np.array(data_vis['Temperature'][len(data_vis['Temperature'])-1]))
 
 '''Lambda_dat = np.array(data_vis['HC'])
