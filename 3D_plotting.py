@@ -29,17 +29,17 @@ def slice_3D(scalars):
     mlab.show()
 
 
-with open('test_ev.json') as json_file:
+with open('test_impl.json') as json_file:
     data_vis = json.load(json_file)
 
 #sample = plot_3D(np.array(data_vis['Temperature']))
-sample_and_surface = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
+'''sample_and_surface = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
 surface = np.array(data_vis['Surface'])
 for i in range(0, const.n_z):
     for j in range(0, const.n_y):
         for k in range(0, const.n_x):
             if np.sum(surface[i][j][k]) > 0:
-                sample_and_surface[i][j][k] = 50
+                sample_and_surface[i][j][k] = 50'''
 '''for each in data_vis['SuS']:
     sample_and_surface[each[2]][each[1]][each[0]] = 50'''
 #print(data_vis['RSurface'])
@@ -47,8 +47,13 @@ for i in range(0, const.n_z):
     #sample_and_surface[each[2]][each[1]][each[0]] = 100
 
 
-#sample_and_surface += np.array(data_vis['SH']) * 200
-    
+sample_and_surface = np.array(data_vis['temp_exp']) - np.array(data_vis['MSI_30'])
+print(np.array(data_vis['MSI_30'][2][5][2]))
+print(np.array(data_vis['temp_exp'][2][5][2]))
+#sample_and_surface = np.array(data_vis['MSI_30'])
+#sample_and_surface = np.array(data_vis['temp_exp'])
+print(np.array(data_vis['MSI_input'][2][5][2]))
+#sample_and_surface = np.array(data_vis['MSI_input'])
 sample = plot_3D(sample_and_surface)
 #sample = plot_3D(np.array(data_vis['Temperature'][len(data_vis['Temperature'])-1]))
 

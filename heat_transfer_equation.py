@@ -61,7 +61,7 @@ Returns:
 
 
 @njit(parallel=True)
-def hte_calculate(n_x, n_y, n_z, surface, delta_T_0, temperature, Lambda, Dr, dx, dy, dz, dt, density, heat_capacity, sublimated_mass, resublimated_mass, latent_heat_water, j_leave_co2, j_inward_co2, latent_heat_co2):
+def hte_calculate(n_x, n_y, n_z, surface, delta_T_0, temperature, Lambda, Dr, dx, dy, dz, dt, density, heat_capacity, sublimated_mass, resublimated_mass, latent_heat_water):
     delta_T = np.zeros((n_z, n_y, n_x), dtype=np.float64) + delta_T_0
     Energy_Increase_per_Layer = np.zeros((n_z, n_y, n_x), dtype=np.float64)
     Latent_Heat_per_Layer = np.zeros((n_z, n_y, n_x), dtype=np.float64)
@@ -164,7 +164,7 @@ Returns:
 		Array containing the ratio of CO2 ice to water ice for each layer of dimension n+1	    
 '''
 @njit(parallel=True)
-def update_thermal_arrays(n_x, n_y, n_z, temperature, water_content_per_layer, co2_content_per_layer,  delta_T, Energy_Increase_per_Layer, j_leave, j_inward, j_leave_co2, j_inward_co2, dt, avogadro_constant, molar_mass_water, molar_mass_co2, heat_capacity, heat_capacity_water_ice, heat_capacity_co2_ice, EIpL_0, Latent_Heat_per_Layer, E_Lat_0, E_Rad, E_In):
+def update_thermal_arrays(n_x, n_y, n_z, temperature, water_content_per_layer, co2_content_per_layer,  delta_T, Energy_Increase_per_Layer, sublimated_mass, resublimated_mass, dt, avogadro_constant, molar_mass_water, molar_mass_co2, heat_capacity, heat_capacity_water_ice, heat_capacity_co2_ice, EIpL_0, Latent_Heat_per_Layer, E_Lat_0, E_Rad, E_In):
     temperature_o = temperature + delta_T
     Energy_Increase_per_Layer[0] = EIpL_0
     Latent_Heat_per_Layer[0] = E_Lat_0

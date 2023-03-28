@@ -117,7 +117,7 @@ def energy_input_data(dt, input_temperature, sigma, epsilon, temperature, Lambda
 	b = n_y // 2
 	b_rad = (n_y - 16) // 2
 	for each in surface_reduced:
-		#input energy durch input_energy[each[2]][each[1]][each[0]] ersetzen, sobald genaue Abstrahlcharakteristik der Lampe berechnet
+		'''#input energy durch input_energy[each[2]][each[1]][each[0]] ersetzen, sobald genaue Abstrahlcharakteristik der Lampe berechnet
 		#E_In = input_energy * dt
 		E_Rad = - sigma * epsilon * temperature[each[2]][each[1]][each[0]]**4 * dt * (dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][0] + surface[each[2]][each[1]][each[0]][1]) + dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][2] + surface[each[2]][each[1]][each[0]][3]) + dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][4] + surface[each[2]][each[1]][each[0]][5])) # [J/(m^2)]
 		E_Cond_z_pos = Lambda[each[2]][each[1]][each[0]][0] * (temperature[each[2] + 1][each[1]][each[0]] - temperature[each[2]][each[1]][each[0]]) / Dr[each[2]][each[1]][each[0]][0] * dt * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * (1 - surface[each[2]][each[1]][each[0]][0])
@@ -136,8 +136,8 @@ def energy_input_data(dt, input_temperature, sigma, epsilon, temperature, Lambda
 		Energy_Increase_in_surface += E_Energy_Increase
 		E_In_in_surface += 0
 		E_Rad_in_surface += E_Rad
-		E_Lat_in_surface += E_Lat
-		#delta_T_0[each[2]][each[1]][each[0]] = input_temperature - temperature[each[2]][each[1]][each[0]]
+		E_Lat_in_surface += E_Lat'''
+		delta_T_0[each[2]][each[1]][each[0]] = input_temperature - temperature[each[2]][each[1]][each[0]]
 	return delta_T_0, Energy_Increase_in_surface, E_In_in_surface, E_Rad_in_surface, E_Lat_in_surface
 
 
