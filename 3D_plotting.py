@@ -47,13 +47,14 @@ for i in range(0, const.n_z):
     #sample_and_surface[each[2]][each[1]][each[0]] = 100
 
 
-sample_and_surface = np.abs(np.array(data_vis['temp_exp']) - np.array(data_vis['MSI_30']))
+#sample_and_surface = np.abs(np.array(data_vis['temp_exp']) - np.array(data_vis['MSI_30']))
 print(np.array(data_vis['MSI_30'][2][5][2]))
 print(np.array(data_vis['temp_exp'][2][5][2]))
 #sample_and_surface = np.array(data_vis['MSI_30'])
 #sample_and_surface = np.array(data_vis['temp_exp'])
+print(np.array(data_vis['MSI_input'][10]))
 print(np.array(data_vis['MSI_input'][2][5][2]))
-#sample_and_surface = np.array(data_vis['MSI_input'])
+sample_and_surface = np.array(data_vis['MSI_input'])
 sample = plot_3D(sample_and_surface)
 #sample = plot_3D(np.array(data_vis['Temperature'][len(data_vis['Temperature'])-1]))
 

@@ -154,73 +154,77 @@ def set_inner_matrices(n_x, n_y, n_z, dx, dy, dz, Dr, Lambda, dt, density, heat_
     return L, U, q, A
 
 
-@njit(parallel=True)
+#@njit(parallel=True)
 def set_inner_matrices_constant(n_x, n_y, n_z, dx, dy, dz, Dr, Lambda, dt, density, heat_capacity, Q_const, Q_lin, temperature, surface_reduced, sample_holder, input_energy, albedo, sigma, epsilon, alpha):
-    A_bottom = np.zeros((n_z, n_y, n_x), dtype=np.float64)
-    A_top = np.zeros((n_z, n_y, n_x), dtype=np.float64)
-    A_south = np.zeros((n_z, n_y, n_x), dtype=np.float64)
-    A_north = np.zeros((n_z, n_y, n_x), dtype=np.float64)
-    A_west = np.zeros((n_z, n_y, n_x), dtype=np.float64)
-    A_east = np.zeros((n_z, n_y, n_x), dtype=np.float64)
-    A_point = np.zeros((n_z, n_y, n_x), dtype=np.float64)
-    q = np.zeros((n_z, n_y, n_x), dtype=np.float64)
-    a = np.zeros((n_z, n_y, n_x), dtype=np.float64)
-    b = np.zeros((n_z, n_y, n_x), dtype=np.float64)
-    c = np.zeros((n_z, n_y, n_x), dtype=np.float64)
-    d = np.zeros((n_z, n_y, n_x), dtype=np.float64)
-    e = np.zeros((n_z, n_y, n_x), dtype=np.float64)
-    f = np.zeros((n_z, n_y, n_x), dtype=np.float64)
-    phi_1 = np.zeros((n_z, n_y, n_x), dtype=np.float64)
-    phi_2 = np.zeros((n_z, n_y, n_x), dtype=np.float64)
-    phi_3 = np.zeros((n_z, n_y, n_x), dtype=np.float64)
-    phi_4 = np.zeros((n_z, n_y, n_x), dtype=np.float64)
-    phi_5 = np.zeros((n_z, n_y, n_x), dtype=np.float64)
-    phi_6 = np.zeros((n_z, n_y, n_x), dtype=np.float64)
-    phi_7 = np.zeros((n_z, n_y, n_x), dtype=np.float64)
-    phi_8 = np.zeros((n_z, n_y, n_x), dtype=np.float64)
-    phi_9 = np.zeros((n_z, n_y, n_x), dtype=np.float64)
-    phi_10 = np.zeros((n_z, n_y, n_x), dtype=np.float64)
-    phi_11 = np.zeros((n_z, n_y, n_x), dtype=np.float64)
-    phi_12 = np.zeros((n_z, n_y, n_x), dtype=np.float64)
-    g = np.zeros((n_z, n_y, n_x), dtype=np.float64)
-    h = np.zeros((n_z, n_y, n_x), dtype=np.float64)
-    p = np.zeros((n_z, n_y, n_x), dtype=np.float64)
-    r = np.zeros((n_z, n_y, n_x), dtype=np.float64)
-    s = np.zeros((n_z, n_y, n_x), dtype=np.float64)
-    u = np.zeros((n_z, n_y, n_x), dtype=np.float64)
-    v = np.zeros((n_z, n_y, n_x), dtype=np.float64)
-    for i in prange(0, n_z):
-        for j in range(0, n_y):
-            for k in range(0, n_x):
-                if temperature[i][j][k] != 160:
+    A_bottom = np.zeros((n_z+2, n_y+2, n_x+2), dtype=np.float64)
+    A_top = np.zeros((n_z+2, n_y+2, n_x+2), dtype=np.float64)
+    A_south = np.zeros((n_z+2, n_y+2, n_x+2), dtype=np.float64)
+    A_north = np.zeros((n_z+2, n_y+2, n_x+2), dtype=np.float64)
+    A_west = np.zeros((n_z+2, n_y+2, n_x+2), dtype=np.float64)
+    A_east = np.zeros((n_z+2, n_y+2, n_x+2), dtype=np.float64)
+    A_point = np.zeros((n_z+2, n_y+2, n_x+2), dtype=np.float64)
+    q = np.zeros((n_z+2, n_y+2, n_x+2), dtype=np.float64)
+    a = np.zeros((n_z+2, n_y+2, n_x+2), dtype=np.float64)
+    b = np.zeros((n_z+2, n_y+2, n_x+2), dtype=np.float64)
+    c = np.zeros((n_z+2, n_y+2, n_x+2), dtype=np.float64)
+    d = np.zeros((n_z+2, n_y+2, n_x+2), dtype=np.float64)
+    e = np.zeros((n_z+2, n_y+2, n_x+2), dtype=np.float64)
+    f = np.zeros((n_z+2, n_y+2, n_x+2), dtype=np.float64)
+    phi_1 = np.zeros((n_z+2, n_y+2, n_x+2), dtype=np.float64)
+    phi_2 = np.zeros((n_z+2, n_y+2, n_x+2), dtype=np.float64)
+    phi_3 = np.zeros((n_z+2, n_y+2, n_x+2), dtype=np.float64)
+    phi_4 = np.zeros((n_z+2, n_y+2, n_x+2), dtype=np.float64)
+    phi_5 = np.zeros((n_z+2, n_y+2, n_x+2), dtype=np.float64)
+    phi_6 = np.zeros((n_z+2, n_y+2, n_x+2), dtype=np.float64)
+    phi_7 = np.zeros((n_z+2, n_y+2, n_x+2), dtype=np.float64)
+    phi_8 = np.zeros((n_z+2, n_y+2, n_x+2), dtype=np.float64)
+    phi_9 = np.zeros((n_z+2, n_y+2, n_x+2), dtype=np.float64)
+    phi_10 = np.zeros((n_z+2, n_y+2, n_x+2), dtype=np.float64)
+    phi_11 = np.zeros((n_z+2, n_y+2, n_x+2), dtype=np.float64)
+    phi_12 = np.zeros((n_z+2, n_y+2, n_x+2), dtype=np.float64)
+    g = np.zeros((n_z+2, n_y+2, n_x+2), dtype=np.float64)
+    h = np.zeros((n_z+2, n_y+2, n_x+2), dtype=np.float64)
+    p = np.zeros((n_z+2, n_y+2, n_x+2), dtype=np.float64)
+    r = np.zeros((n_z+2, n_y+2, n_x+2), dtype=np.float64)
+    s = np.zeros((n_z+2, n_y+2, n_x+2), dtype=np.float64)
+    u = np.zeros((n_z+2, n_y+2, n_x+2), dtype=np.float64)
+    v = np.zeros((n_z+2, n_y+2, n_x+2), dtype=np.float64)
+    for i in prange(0, n_z+1):
+        for j in range(0, n_y+1):
+            for k in range(0, n_x+1):
+                if i < n_z and j < n_y and k < n_x and temperature[i][j][k] != 160:
                 #if 1 == 1:
-                    A_bottom[i][j][k] = - Lambda[i][j][k][0] * dx[i][j][k] * dy[i][j][k] / Dr[i][j][k][0]
-                    A_top[i][j][k] = - Lambda[i][j][k][1] * dx[i][j][k] * dy[i][j][k] / Dr[i][j][k][1]
-                    A_south[i][j][k] = - Lambda[i][j][k][2] * dx[i][j][k] * dz[i][j][k] / Dr[i][j][k][2]
-                    A_north[i][j][k] = - Lambda[i][j][k][3] * dx[i][j][k] * dz[i][j][k] / Dr[i][j][k][3]
-                    A_west[i][j][k] = - Lambda[i][j][k][4] * dy[i][j][k] * dz[i][j][k] / Dr[i][j][k][4]
-                    A_east[i][j][k] = - Lambda[i][j][k][5] * dy[i][j][k] * dz[i][j][k] / Dr[i][j][k][5]
-                    A_point[i][j][k] = - A_bottom[i][j][k] - A_top[i][j][k] - A_south[i][j][k] - A_north[i][j][k] - A_west[i][j][k] - A_east[i][j][k] + density[i][j][k] * heat_capacity[i][j][k] * dx[i][j][k] * dy[i][j][k] * dz[i][j][k] / dt - Q_lin * dx[i][j][k] * dy[i][j][k] * dz[i][j][k]
-                    q[i][j][k] = Q_const * dx[i][j][k] * dy[i][j][k] * dz[i][j][k] + density[i][j][k] * heat_capacity[i][j][k] * dx[i][j][k] * dy[i][j][k] * dz[i][j][k] / dt * temperature[i][j][k]
+                    A_bottom[i+1][j+1][k+1] = - Lambda[i][j][k][0] * dx[i][j][k] * dy[i][j][k] / Dr[i][j][k][0]
+                    A_top[i+1][j+1][k+1] = - Lambda[i][j][k][1] * dx[i][j][k] * dy[i][j][k] / Dr[i][j][k][1]
+                    A_south[i+1][j+1][k+1] = - Lambda[i][j][k][2] * dx[i][j][k] * dz[i][j][k] / Dr[i][j][k][2]
+                    A_north[i+1][j+1][k+1] = - Lambda[i][j][k][3] * dx[i][j][k] * dz[i][j][k] / Dr[i][j][k][3]
+                    A_west[i+1][j+1][k+1] = - Lambda[i][j][k][4] * dy[i][j][k] * dz[i][j][k] / Dr[i][j][k][4]
+                    A_east[i+1][j+1][k+1] = - Lambda[i][j][k][5] * dy[i][j][k] * dz[i][j][k] / Dr[i][j][k][5]
+                    A_point[i+1][j+1][k+1] = - A_bottom[i][j][k] - A_top[i][j][k] - A_south[i][j][k] - A_north[i][j][k] - A_west[i][j][k] - A_east[i][j][k] + density[i][j][k] * heat_capacity[i][j][k] * dx[i][j][k] * dy[i][j][k] * dz[i][j][k] / dt - Q_lin * dx[i][j][k] * dy[i][j][k] * dz[i][j][k]
+                    q[i+1][j+1][k+1] = Q_const * dx[i][j][k] * dy[i][j][k] * dz[i][j][k] + density[i][j][k] * heat_capacity[i][j][k] * dx[i][j][k] * dy[i][j][k] * dz[i][j][k] / dt * temperature[i][j][k]
                 else: #sample_holder[i][j][k] == 1:
-                    A_point[i][j][k] = 1
-                    q[i][j][k] = temperature[i][j][k]
+                    if i < n_z and j < n_y and k < n_x:
+                        A_point[i+1][j+1][k+1] = 1
+                        q[i+1][j+1][k+1] = temperature[i][j][k]
+                    else:
+                        A_point[i + 1][j + 1][k + 1] = 1
+                        q[i + 1][j + 1][k + 1] = 0
     #Right now the volume at the surface is not a half volume. I'm not sure if this is effecting anything and it will have to be tested. It would then always require the adaptive mesh algorithm that slices the z-blocks.
     for each in surface_reduced:
-        A_bottom[each[2]][each[1]][each[0]] = 0
-        A_top[each[2]][each[1]][each[0]] = 0
-        A_south[each[2]][each[1]][each[0]] = 0
-        A_north[each[2]][each[1]][each[0]] = 0
-        A_west[each[2]][each[1]][each[0]] = 0
-        A_east[each[2]][each[1]][each[0]] = 0
-        A_point[each[2]][each[1]][each[0]] = 1
-        q[each[2]][each[1]][each[0]] = temperature[each[2]][each[1]][each[0]]
+        A_bottom[each[2]+1][each[1]+1][each[0]+1] = 0
+        A_top[each[2]+1][each[1]+1][each[0]+1] = 0
+        A_south[each[2]+1][each[1]+1][each[0]+1] = 0
+        A_north[each[2]+1][each[1]+1][each[0]+1] = 0
+        A_west[each[2]+1][each[1]+1][each[0]+1] = 0
+        A_east[each[2]+1][each[1]+1][each[0]+1] = 0
+        A_point[each[2]+1][each[1]+1][each[0]+1] = 1
+        q[each[2]+1][each[1]+1][each[0]+1] = temperature[each[2]+1][each[1]+1][each[0]+1]
         #q[each[2]][each[1]][each[0]] = 0
-    for i in prange(1, n_z-1):
-        for j in range(1, n_y-1):
-            for k in range(1, n_x-1):
-                if temperature[i][j][k] != 160: #and temperature[i][j][k] != 250) and sample_holder[i][j][k] != 1:
-                #if 1 == 1:
+    for i in prange(1, n_z+1):
+        for j in range(1, n_y+1):
+            for k in range(1, n_x+1):
+                #if temperature[i][j][k] != 160: #and temperature[i][j][k] != 250) and sample_holder[i][j][k] != 1:
+                if 1 == 1:
                     a[i][j][k] = A_bottom[i][j][k] / (1 + alpha * (p[i-1][j][k] - h[i-1][j][k] * (h[i-1][j][k+1] + r[i-1][j][k+1]) - (r[i-1][j][k] - p[i-1][j][k+1] * h[i-1][j][k]) * (h[i-1][j+1][k] + p[i-1][j+1][k] + r[i-1][j+1][k])))
                     b[i][j][k] = - a[i][j][k] * h[i-1][j][k]
                     c[i][j][k] = - a[i][j][k] * r[i-1][j][k] - b[i][j][k] * p[i-1][j][k+1]
@@ -250,27 +254,28 @@ def set_inner_matrices_constant(n_x, n_y, n_z, dx, dy, dz, Dr, Lambda, dt, densi
                         s[i][j][k] = (- d[i][j][k] * v[i][j-1][k] - e[i][j][k] * u[i][j-1][k+1])/g[i][j][k]
                         u[i][j][k] = (- f[i][j][k] * v[i][j][k-1])/g[i][j][k]
                         v[i][j][k] = (A_top[i][j][k] - alpha * (phi_8[i][j][k] + phi_9[i][j][k] + phi_10[i][j][k] + phi_11[i][j][k] + phi_12[i][j][k]))/g[i][j][k]
-    A_bottom = A_bottom.flatten()
-    A_top = A_top.flatten()
-    A_south = A_south.flatten()
-    A_north = A_north.flatten()
-    A_west = A_west.flatten()
-    A_east = A_east.flatten()
-    A_point = A_point.flatten()
-    q = q.flatten()
-    a = a.flatten()
-    b = b.flatten()
-    c = c.flatten()
-    d = d.flatten()
-    e = e.flatten()
-    f = f.flatten()
-    g = g.flatten()
-    h = h.flatten()
-    p = p.flatten()
-    r = r.flatten()
-    s = s.flatten()
-    u = u.flatten()
-    v = v.flatten()
+    A_bottom = np.delete(np.delete(np.delete(np.delete(np.delete(np.delete(A_bottom, 0, 1), n_y-1-1, 1), 0, 2), n_x-1-1, 2), 0, 0), n_z-1-1, 0).flatten()
+    A_top = np.delete(np.delete(np.delete(np.delete(np.delete(np.delete(A_top, 0, 1), n_y-1-1, 1), 0, 2), n_x-1-1, 2), 0, 0), n_z-1-1, 0).flatten()
+    A_south = np.delete(np.delete(np.delete(np.delete(np.delete(np.delete(A_south, 0, 1), n_y-1-1, 1), 0, 2), n_x-1-1, 2), 0, 0), n_z-1-1, 0).flatten()
+    A_north = np.delete(np.delete(np.delete(np.delete(np.delete(np.delete(A_north, 0, 1), n_y-1-1, 1), 0, 2), n_x-1-1, 2), 0, 0), n_z-1-1, 0).flatten()
+    A_west = np.delete(np.delete(np.delete(np.delete(np.delete(np.delete(A_west, 0, 1), n_y-1-1, 1), 0, 2), n_x-1-1, 2), 0, 0), n_z-1-1, 0).flatten()
+    A_east = np.delete(np.delete(np.delete(np.delete(np.delete(np.delete(A_east, 0, 1), n_y-1-1, 1), 0, 2), n_x-1-1, 2), 0, 0), n_z-1-1, 0).flatten()
+    A_point = np.delete(np.delete(np.delete(np.delete(np.delete(np.delete(A_point, 0, 1), n_y-1-1, 1), 0, 2), n_x-1-1, 2), 0, 0), n_z-1-1, 0).flatten()
+    q = np.delete(np.delete(np.delete(np.delete(np.delete(np.delete(q, 0, 1), n_y-1-1, 1), 0, 2), n_x-1-1, 2), 0, 0), n_z-1-1, 0).flatten()
+    #q = np.delete(np.delete(np.delete(np.delete(q, 0, 1), n_y-1-1, 1), 0, 2), n_x-1-1, 2).flatten()
+    a = np.delete(np.delete(np.delete(np.delete(np.delete(np.delete(a, 0, 1), n_y-1-1, 1), 0, 2), n_x-1-1, 2), 0, 0), n_z-1-1, 0).flatten()
+    b = np.delete(np.delete(np.delete(np.delete(np.delete(np.delete(b, 0, 1), n_y-1-1, 1), 0, 2), n_x-1-1, 2), 0, 0), n_z-1-1, 0).flatten()
+    c = np.delete(np.delete(np.delete(np.delete(np.delete(np.delete(c, 0, 1), n_y-1-1, 1), 0, 2), n_x-1-1, 2), 0, 0), n_z-1-1, 0).flatten()
+    d = np.delete(np.delete(np.delete(np.delete(np.delete(np.delete(d, 0, 1), n_y-1-1, 1), 0, 2), n_x-1-1, 2), 0, 0), n_z-1-1, 0).flatten()
+    e = np.delete(np.delete(np.delete(np.delete(np.delete(np.delete(e, 0, 1), n_y-1-1, 1), 0, 2), n_x-1-1, 2), 0, 0), n_z-1-1, 0).flatten()
+    f = np.delete(np.delete(np.delete(np.delete(np.delete(np.delete(f, 0, 1), n_y-1-1, 1), 0, 2), n_x-1-1, 2), 0, 0), n_z-1-1, 0).flatten()
+    g = np.delete(np.delete(np.delete(np.delete(np.delete(np.delete(g, 0, 1), n_y-1-1, 1), 0, 2), n_x-1-1, 2), 0, 0), n_z-1-1, 0).flatten()
+    h = np.delete(np.delete(np.delete(np.delete(np.delete(np.delete(h, 0, 1), n_y-1-1, 1), 0, 2), n_x-1-1, 2), 0, 0), n_z-1-1, 0).flatten()
+    p = np.delete(np.delete(np.delete(np.delete(np.delete(np.delete(p, 0, 1), n_y-1-1, 1), 0, 2), n_x-1-1, 2), 0, 0), n_z-1-1, 0).flatten()
+    r = np.delete(np.delete(np.delete(np.delete(np.delete(np.delete(r, 0, 1), n_y-1-1, 1), 0, 2), n_x-1-1, 2), 0, 0), n_z-1-1, 0).flatten()
+    s = np.delete(np.delete(np.delete(np.delete(np.delete(np.delete(s, 0, 1), n_y-1-1, 1), 0, 2), n_x-1-1, 2), 0, 0), n_z-1-1, 0).flatten()
+    u = np.delete(np.delete(np.delete(np.delete(np.delete(np.delete(u, 0, 1), n_y-1-1, 1), 0, 2), n_x-1-1, 2), 0, 0), n_z-1-1, 0).flatten()
+    v = np.delete(np.delete(np.delete(np.delete(np.delete(np.delete(v, 0, 1), n_y-1-1, 1), 0, 2), n_x-1-1, 2), 0, 0), n_z-1-1, 0).flatten()
     L = np.zeros((n_x*n_y*n_z, n_x*n_y*n_z), dtype=np.float64)
     U = np.zeros((n_x*n_y*n_z, n_x*n_y*n_z), dtype=np.float64)
     A = np.zeros((n_x*n_y*n_z, n_x*n_y*n_z), dtype=np.float64)
