@@ -71,7 +71,7 @@ def set_inner_matrices(n_x, n_y, n_z, dx, dy, dz, Dr, Lambda, dt, density, heat_
                     c[i][j][k] = - a[i][j][k] * r[i-1][j][k] - b[i][j][k] * p[i-1][j][k+1]
                     d[i][j][k] = (A_south[i][j][k] - a[i][j][k] * s[i-1][j][k] + alpha * ((h[i][j-1][k+1] + 2 * s[i][j-1][k+1] + v[i][j-1][k+1]) * b[i][j][k] * s[i-1][j][k+1] - s[i][j][k-1] * (A_west[i][j][k] - a[i][j][k] * u[i-1][j][k])))/(1 + alpha * (2 * s[i][j-1][k] + u[i][j-1][k] - s[i][j][k-1] * p[i][j-1][k] - h[i][j-1][k] * (h[i][j-1][k+1] + 2 * s[i][j-1][k+1] + v[i][j-1][k+1])))
                     e[i][j][k] = - b[i][j][k] * s[i-1][j][k+1] - d[i][j][k] * h[i][j-1][k]
-                    h[i][j][k] = (A_west[i][j][k] - a[i][j][k] * u[i-1][j][k] - d[i][j][k] * p[i][j-1][k] - alpha * (a[i][j][k] * p[i-1][j][k] + c[i][j][k] * p[i-1][j+1][k] + d[i][j][k] * u[i][j-1][k]))/(1 + alpha * (2 * p[i][j][k-1] + s[i][j][k-1] + 2 * u[i][j][k-1]))
+                    f[i][j][k] = (A_west[i][j][k] - a[i][j][k] * u[i-1][j][k] - d[i][j][k] * p[i][j-1][k] - alpha * (a[i][j][k] * p[i-1][j][k] + c[i][j][k] * p[i-1][j+1][k] + d[i][j][k] * u[i][j-1][k]))/(1 + alpha * (2 * p[i][j][k-1] + s[i][j][k-1] + 2 * u[i][j][k-1]))
                     phi_1[i][j][k] = b[i][j][k] * h[i-1][j][k+1]
                     phi_2[i][j][k] = a[i][j][k] * p[i-1][j][k]
                     phi_3[i][j][k] = b[i][j][k] * r[i-1][j][k+1] + c[i][j][k] * h[i-1][j+1][k]
@@ -88,7 +88,7 @@ def set_inner_matrices(n_x, n_y, n_z, dx, dy, dz, Dr, Lambda, dt, density, heat_
                     h[i][j][k] = (A_east[i][j][k] - b[i][j][k] * v[i-1][j][k+1] - e[i][j][k] * r[i][j-1][k+1] - alpha * (2 * phi_1[i][j][k] + phi_3[i][j][k] + 2 * phi_6[i][j][k] + phi_9[i][j][k] + phi_11[i][j][k]))/g[i][j][k]
                     p[i][j][k] = (- c[i][j][k] * u[i-1][j+1][k] - f[i][j][k] * r[i][j][k-1])/g[i][j][k]
                     r[i][j][k] = (A_north[i][j][k] - c[i][j][k] * v[i-1][j+1][k] - alpha * (phi_2[i][j][k] + phi_3[i][j][k] + 2 * phi_4[i][j][k] + 2 * phi_5[i][j][k] + phi_7[i][j][k]))/(g[i][j][k])
-                    s[i][j][k] = (- d[i][j][k] * v[i][j-1][k] - e[i][j][k] * u[i][j-1][k])/g[i][j][k]
+                    s[i][j][k] = (- d[i][j][k] * v[i][j-1][k] - e[i][j][k] * u[i][j-1][k+1])/g[i][j][k]
                     u[i][j][k] = (- f[i][j][k] * v[i][j][k-1])/g[i][j][k]
                     v[i][j][k] = (A_top[i][j][k] - alpha * (phi_8[i][j][k] + phi_9[i][j][k] + phi_10[i][j][k] + phi_11[i][j][k] + phi_12[i][j][k]))/g[i][j][k]
     A_bottom = A_bottom.flatten()
@@ -189,10 +189,11 @@ def set_inner_matrices_constant(n_x, n_y, n_z, dx, dy, dz, Dr, Lambda, dt, densi
     s = np.zeros((n_z, n_y, n_x), dtype=np.float64)
     u = np.zeros((n_z, n_y, n_x), dtype=np.float64)
     v = np.zeros((n_z, n_y, n_x), dtype=np.float64)
-    for i in prange(1, n_z-1):
-        for j in range(1, n_y-1):
-            for k in range(1, n_x-1):
-                if temperature[i][j][k] > 0 and sample_holder[i][j][k] != 1:
+    for i in prange(0, n_z):
+        for j in range(0, n_y):
+            for k in range(0, n_x):
+                if temperature[i][j][k] != 160:
+                #if 1 == 1:
                     A_bottom[i][j][k] = - Lambda[i][j][k][0] * dx[i][j][k] * dy[i][j][k] / Dr[i][j][k][0]
                     A_top[i][j][k] = - Lambda[i][j][k][1] * dx[i][j][k] * dy[i][j][k] / Dr[i][j][k][1]
                     A_south[i][j][k] = - Lambda[i][j][k][2] * dx[i][j][k] * dz[i][j][k] / Dr[i][j][k][2]
@@ -201,8 +202,9 @@ def set_inner_matrices_constant(n_x, n_y, n_z, dx, dy, dz, Dr, Lambda, dt, densi
                     A_east[i][j][k] = - Lambda[i][j][k][5] * dy[i][j][k] * dz[i][j][k] / Dr[i][j][k][5]
                     A_point[i][j][k] = - A_bottom[i][j][k] - A_top[i][j][k] - A_south[i][j][k] - A_north[i][j][k] - A_west[i][j][k] - A_east[i][j][k] + density[i][j][k] * heat_capacity[i][j][k] * dx[i][j][k] * dy[i][j][k] * dz[i][j][k] / dt - Q_lin * dx[i][j][k] * dy[i][j][k] * dz[i][j][k]
                     q[i][j][k] = Q_const * dx[i][j][k] * dy[i][j][k] * dz[i][j][k] + density[i][j][k] * heat_capacity[i][j][k] * dx[i][j][k] * dy[i][j][k] * dz[i][j][k] / dt * temperature[i][j][k]
-                if sample_holder[i][j][k] == 1:
-                    A_point[i][j][k] = 0
+                else: #sample_holder[i][j][k] == 1:
+                    A_point[i][j][k] = 1
+                    q[i][j][k] = temperature[i][j][k]
     #Right now the volume at the surface is not a half volume. I'm not sure if this is effecting anything and it will have to be tested. It would then always require the adaptive mesh algorithm that slices the z-blocks.
     for each in surface_reduced:
         A_bottom[each[2]][each[1]][each[0]] = 0
@@ -211,12 +213,14 @@ def set_inner_matrices_constant(n_x, n_y, n_z, dx, dy, dz, Dr, Lambda, dt, densi
         A_north[each[2]][each[1]][each[0]] = 0
         A_west[each[2]][each[1]][each[0]] = 0
         A_east[each[2]][each[1]][each[0]] = 0
-        A_point[each[2]][each[1]][each[0]] = 0
-        q[each[2]][each[1]][each[0]] = 0
+        A_point[each[2]][each[1]][each[0]] = 1
+        q[each[2]][each[1]][each[0]] = temperature[each[2]][each[1]][each[0]]
+        #q[each[2]][each[1]][each[0]] = 0
     for i in prange(1, n_z-1):
         for j in range(1, n_y-1):
             for k in range(1, n_x-1):
-                if temperature[i][j][k] > 0 and sample_holder[i][j][k] != 1:
+                if temperature[i][j][k] != 160: #and temperature[i][j][k] != 250) and sample_holder[i][j][k] != 1:
+                #if 1 == 1:
                     a[i][j][k] = A_bottom[i][j][k] / (1 + alpha * (p[i-1][j][k] - h[i-1][j][k] * (h[i-1][j][k+1] + r[i-1][j][k+1]) - (r[i-1][j][k] - p[i-1][j][k+1] * h[i-1][j][k]) * (h[i-1][j+1][k] + p[i-1][j+1][k] + r[i-1][j+1][k])))
                     b[i][j][k] = - a[i][j][k] * h[i-1][j][k]
                     c[i][j][k] = - a[i][j][k] * r[i-1][j][k] - b[i][j][k] * p[i-1][j][k+1]
@@ -236,6 +240,7 @@ def set_inner_matrices_constant(n_x, n_y, n_z, dx, dy, dz, Dr, Lambda, dt, densi
                     phi_11[i][j][k] = e[i][j][k] * v[i][j-1][k+1]
                     phi_12[i][j][k] = f[i][j][k] * u[i][j][k-1]
                     g[i][j][k] = A_point[i][j][k] - a[i][j][k] * v[i-1][j][k] - b[i][j][k] * u[i-1][j][k+1] - c[i][j][k] * s[i-1][j+1][k] - d[i][j][k] * r[i][j-1][k] - e[i][j][k] * p[i][j-1][k+1] - f[i][j][k] * h[i][j][k-1] + alpha * (2 * (phi_1[i][j][k] + phi_2[i][j][k] + phi_3[i][j][k]) + 3 * phi_4[i][j][k] + 2 * (phi_5[i][j][k] + phi_6[i][j][k] + phi_7[i][j][k] + phi_8[i][j][k]) + 3 * phi_9[i][j][k] + 2 * (phi_10[i][j][k] + phi_11[i][j][k] + phi_12[i][j][k]))
+                    #print(g[i][j][k], A_point[i][j][k])
                     if g[i][j][k] == 0:
                         h[i][j][k], p[i][j][k], r[i][j][k], s[i][j][k], u[i][j][k], v[i][j][k] = 0, 0, 0, 0, 0, 0
                     else:
@@ -270,8 +275,8 @@ def set_inner_matrices_constant(n_x, n_y, n_z, dx, dy, dz, Dr, Lambda, dt, densi
     U = np.zeros((n_x*n_y*n_z, n_x*n_y*n_z), dtype=np.float64)
     A = np.zeros((n_x*n_y*n_z, n_x*n_y*n_z), dtype=np.float64)
     #print('a: ', np.max(a), np.min(a))
-    #print('A_point: ', np.max(A_point), np.min(A_point))
-    #print('g: ', np.max(g), np.min(g))
+    print('A_point: ', np.max(A_point), np.min(A_point))
+    print('g: ', np.max(g), np.min(g))
     for i in prange(0, n_x*n_y*n_z):
         for j in range(0, n_x*n_y*n_z):
             if i == j:
