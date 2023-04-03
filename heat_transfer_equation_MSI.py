@@ -189,9 +189,9 @@ def set_inner_matrices_constant(n_x, n_y, n_z, dx, dy, dz, Dr, Lambda, dt, densi
     s = np.zeros((n_z+2, n_y+2, n_x+2), dtype=np.float64)
     u = np.zeros((n_z+2, n_y+2, n_x+2), dtype=np.float64)
     v = np.zeros((n_z+2, n_y+2, n_x+2), dtype=np.float64)
-    for i in prange(0, n_z+1):
-        for j in range(0, n_y+1):
-            for k in range(0, n_x+1):
+    for i in prange(0, n_z+2):
+        for j in range(0, n_y+2):
+            for k in range(0, n_x+2):
                 #if i < n_z and j < n_y and k < n_x and temperature[i][j][k] == 250:
                     #print(i, j, k)
                 if i < n_z and j < n_y and k < n_x and temperature[i][j][k] != 160 and temperature[i][j][k] != 0: #and temperature[i][j][k] != 250:
