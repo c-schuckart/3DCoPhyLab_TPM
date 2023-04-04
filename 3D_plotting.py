@@ -3,6 +3,7 @@ import time
 import numpy as np
 import constants as const
 from mayavi import mlab
+from boundary_conditions import twoD_gaussian
 
 def plot_3D(scalars):
     nx, ny, nz = const.n_x * 1j, const.n_y * 1j, const.n_z * 1j
@@ -29,10 +30,22 @@ def slice_3D(scalars):
     mlab.show()
 
 
-with open('test_impl.json') as json_file:
+def bar_chart_2D(dx, dy, scalars):
+    x_positions = np.zeros((const.n_y, const.n_x), dtype=np.float64)
+    y_positions = np.zeros((const.n_y, const.n_x), dtype=np.float64)
+    for j in range(0, const.n_y):
+        for k in range(0, const.n_x):
+            x_positions[j][k] = np.sum([dx[1][j][val] for val in range(0, k)])/2
+            y_positions[j][k] = np.sum([dx[1][val][k] for val in range(0, j)])/2
+    obj = mlab.barchart(x_positions, y_positions, scalars[1])
+    return obj
+
+
+with open('test_gran.json') as json_file:
     data_vis = json.load(json_file)
 
-#sample = plot_3D(np.array(data_vis['Temperature']))
+#sample = plot_3D(np.array(data_vis['Temperature'][len(data_vis['Temperature'])-1]))
+sample = plot_3D(np.array(data_vis['Temperature'][0]))
 '''sample_and_surface = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
 surface = np.array(data_vis['Surface'])
 for i in range(0, const.n_z):
@@ -45,9 +58,13 @@ for i in range(0, const.n_z):
 #print(data_vis['RSurface'])
 #for each in data_vis['RSurface']:
     #sample_and_surface[each[2]][each[1]][each[0]] = 100
-
-
-sample_and_surface = np.abs(np.array(data_vis['temp_exp']) - np.array(data_vis['MSI_30']))
+#sample = bar_chart_2D(data_vis['dx'], data_vis['dy'], data_vis['Lamp Power'])
+#sample, x, y = bar_chart_2D(data_vis['dx'], data_vis['dy'], data_vis['Lamp Power'])
+#sample = mlab.barchart(data_vis['Lamp Power'][1])
+#nx, ny, nz = const.n_x * 1j, const.n_y * 1j, const.n_z * 1j
+#x, y = np.mgrid[-5:5:ny, -5:5:nx]
+#sample_2 = mlab.surf(y, x, twoD_gaussian(y, x, const.var_lamp_profile, 23610.30767673443), warp_scale=1000)
+'''sample_and_surface = np.abs(np.array(data_vis['temp_exp']) - np.array(data_vis['MSI_30']))
 print(np.array(data_vis['MSI_30'][2][5][2]))
 print(np.array(data_vis['temp_exp'][2][5][2]))
 #sample_and_surface = np.array(data_vis['MSI_30'])
@@ -56,7 +73,7 @@ print(np.array(data_vis['temp_exp'][2][5][2]))
 print(np.array(data_vis['MSI_input'][2][5][2]))
 #sample_and_surface = np.array(data_vis['MSI_input'])
 sample = plot_3D(sample_and_surface)
-#sample = plot_3D(np.array(data_vis['Temperature'][len(data_vis['Temperature'])-1]))
+#sample = plot_3D(np.array(data_vis['Temperature'][len(data_vis['Temperature'])-1]))'''
 
 '''Lambda_dat = np.array(data_vis['HC'])
 Lambda = np.zeros((const.n_z, const.n_y, const.n_x))
@@ -82,7 +99,14 @@ def animate():
         sample.mlab_source.scalars = np.array(data_vis['Temperature'][i])
         yield
 
-#animate()
+
+@mlab.animate(delay=10)
+def animate_rotate():
+    while True:
+        #time.sleep(0.1)
+        mlab.pitch(1)
+        yield
+#animate_rotate()
 mlab.show()
 
 #slice_3D(data_vis['Temperature'][0])

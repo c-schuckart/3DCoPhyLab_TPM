@@ -45,8 +45,8 @@ def data_store_sensors(j, n_x, n_y, n_z, temperature, sensor_10mm, sensor_20mm, 
     return sensor_10mm, sensor_20mm, sensor_35mm, sensor_55mm, sensor_90mm, temperature_save
 
 
-def data_save(temperature_save, water_content_save, co2_content_save, outgassing_save, outgassing_co2_save, E_conservation, Energy_Increase_Total_per_time_Step, E_Rad, Latent_Heat_per_time_step, E_In, filename):
-    dict = {'Temperature': temperature_save.tolist(), 'Water content': water_content_save.tolist(), 'CO2 content': co2_content_save.tolist(), 'Outgassing rate': outgassing_save.tolist(), 'Outgassing rate CO2': outgassing_co2_save.tolist(), 'Energy conservation': E_conservation.tolist(), 'E total': Energy_Increase_Total_per_time_Step.tolist(), 'E rad': E_Rad.tolist(), 'E lat': Latent_Heat_per_time_step.tolist(), 'E in': E_In.tolist()}
+def data_save(temperature_save, water_content_save, outgassing_save, filename):
+    dict = {'Temperature': temperature_save.tolist(), 'Water content': water_content_save.tolist(), 'Outgassing rate': outgassing_save.tolist()}
     with open(filename + '.json', 'w') as outfile:
         json.dump(dict, outfile)
 

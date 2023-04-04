@@ -1,15 +1,22 @@
 import numpy as np
 
 #Definition of Simulation Parameters
-min_dx = 2.5E-6                      # Layer Thickness of smallest layer in x direction, Numerical Resolution  [m]
-min_dy = 2.5E-6                      # Layer Thickness of smallest layer in y direction, Numerical Resolution  [m]
-min_dz = 2.5E-6                      # Layer Thickness of smallest layer in z direction, Numerical Resolution  [m]
-dt = 0.00005                           # Timestep                               [s]
-n_x = 11                            # Number of Layers                       [-]
-n_y = 11
-n_z = 25
+#min_dx = 2.5E-6                      # Layer Thickness of smallest layer in x direction, Numerical Resolution  [m]
+#min_dy = 2.5E-6                      # Layer Thickness of smallest layer in y direction, Numerical Resolution  [m]
+#min_dz = 2.5E-6                      # Layer Thickness of smallest layer in z direction, Numerical Resolution  [m]
+#dt = 0.00005                           # Timestep                               [s]
+#n_x = 11                            # Number of Layers                       [-]
+#n_y = 11
+#n_z = 25
+min_dx = 0.5E-3                      # Layer Thickness of smallest layer in x direction, Numerical Resolution  [m]
+min_dy = 0.5E-3                      # Layer Thickness of smallest layer in y direction, Numerical Resolution  [m]
+min_dz = 0.5E-3                      # Layer Thickness of smallest layer in z direction, Numerical Resolution  [m]
+dt = 0.1                           # Timestep                               [s]
+n_x = 63                            # Number of Layers                       [-]
+n_y = 63
+n_z = 43
 n = np.array([n_x, n_y, n_z])
-k = 360000 * 4                      # Number of Timesteps                    [-]
+k = 36000 * 1                      # Number of Timesteps                    [-]
 
 #Definition of Physical Parameters
 #Material Properties
@@ -17,7 +24,8 @@ lambda_constant = 1E-2            # Thermal Conductivity                   [W/(K
 #lambda_constant = 100000            # Thermal Conductivity                   [W/(K m)]
 r_mono = 2.5E-6                     # Radius of Monomeres                    [m]
 e_1 = 1.34                        # Parameter for mean free path           [-]
-VFF_pack_const = 0.2              # Volume Filling Factor of Packing       [-]
+#VFF_pack_const = 0.2              # Volume Filling Factor of Packing       [-]
+VFF_pack_const = 0.62              # Volume Filling Factor of Packing       [-]
 poisson_ratio_par = 0.17          # Poisson`s ratio of Particle            [-]
 young_modulus_par = 5.5E10        # Young`s modulus of Particle            [Pa]
 tortuosity = 1.10                 # Tortuosity factor for monodisperse spherical particles for VFF 0.2
@@ -68,9 +76,10 @@ r_H = 1                           # Lamp Distance                  		   [m]
 
 #Constants
 sigma = 5.67E-8                   # Stefan-Boltzmann Constant              [W/(m^2 K^4)]
-solar_constant = 6500             # Solar Constant                         [W/m^2]
+solar_constant = 1361             # Solar Constant                         [W/m^2]
 #solar_constant = 1600            # Solar Constant                         [W/m^2]
 k_boltzmann = 1.38E-23            # Boltzmann's Constant                   [m^2 kg / (s^2 K)]
 avogadro_constant = 6.022E23      # Avogadro constant                      [1/mol]
 R = 8.314                         # Gas constant                            [J/(mol * K)]
 Phi = 2.18                        # Geometrical constant factor from Asaeda et al. 1973
+var_lamp_profile = 9/4 * 1E-3            # Variance of the gaussian distribution of the lamp profile   [m]
