@@ -76,7 +76,8 @@ def energy_input(r_H, albedo, dt, input_energy, sigma, epsilon, temperature, Lam
 	E_Lat_in_surface = 0
 	for each in surface_reduced:
 		#input energy durch input_energy[each[2]][each[1]][each[0]] ersetzen, sobald genaue Abstrahlcharakteristik der Lampe berechnet
-		E_In = input_energy[each[2]][each[1]][each[0]] / r_H ** 2 * (1 - albedo) * dt * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * surface[each[2]][each[1]][each[0]][1]
+		#E_In = input_energy[each[2]][each[1]][each[0]] / r_H ** 2 * (1 - albedo) * dt * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * surface[each[2]][each[1]][each[0]][1]
+		E_In = input_energy[each[2]][each[1]][each[0]] / r_H ** 2 * (1 - albedo) * dt * surface[each[2]][each[1]][each[0]][1]
 		#E_In = input_energy * dt
 		E_Rad = - sigma * epsilon * temperature[each[2]][each[1]][each[0]]**4 * dt * (dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][0] + surface[each[2]][each[1]][each[0]][1]) + dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][2] + surface[each[2]][each[1]][each[0]][3]) + dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][4] + surface[each[2]][each[1]][each[0]][5])) # [J/(m^2)]
 		E_Cond_z_pos = Lambda[each[2]][each[1]][each[0]][0] * (temperature[each[2] + 1][each[1]][each[0]] - temperature[each[2]][each[1]][each[0]]) / Dr[each[2]][each[1]][each[0]][0] * dt * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * (1 - surface[each[2]][each[1]][each[0]][0])
@@ -165,22 +166,33 @@ def twoD_gaussian_polar_int(x):
 
 def amplitude_lamp(solar_constant):
 	factor = integrate.quad(twoD_gaussian_polar_int, 0, 4.5E-3)[0]
-	amplitude = 15 * solar_constant / factor
+	amplitude = 15 * solar_constant * (4.5E-3)**2 * np.pi / factor
 	return amplitude
 
 
 @njit
 def twoD_gaussian(y, x, sigma, amplitude):
 	return amplitude * 1/(2*np.pi*sigma**2) * np.exp(-1/2 * (x**2 + y**2)/sigma**2)
+	'''gaussian = np.zeros((len(y), len(x)), dtype=np.float64)
+	for j in range(0, len(y)):
+		for k in range(0, len(x)):
+			gaussian[j][k] = amplitude * 1/(2*np.pi*sigma**2) * np.exp(-1/2 * (x[k]**2 + y[j]**2)/sigma**2)
+	return gaussian'''
 
 
-
-def get_energy_input_lamp(n_x, n_y, n_z, dx, dy, amplitude, temperature, a, b):
+def get_energy_input_lamp(n_x, n_y, n_z, dx, dy, amplitude, sigma, temperature, a, b):
 	lamp_power = np.zeros((n_z, n_y, n_x), dtype=np.float64)
 	for i in range(0, n_z):
 		for j in range(0, n_y):
 			for k in range(0, n_x):
 				if temperature[i][j][k] != 0:
+					'''y = np.linspace(j*dy[i][j][k] - (np.sum([dy[i][val][k] for val in range(0, b)]) + dy[i][b][k]/2), (j+1)*dy[i][j][k] - (np.sum([dy[i][val][k] for val in range(0, b)]) + dy[i][b][k]/2), 20)
+					x = np.linspace(k*dx[i][j][k] - (np.sum(dx[i][j][0:a]) + dx[i][j][a]/2), (k+1)*dx[i][j][k] - (np.sum(dx[i][j][0:a]) + dx[i][j][a]/2), 20)
+					if i == 1 and j == n_y//2 and k == n_x//2:
+						print(y, x)
+						print(twoD_gaussian(y, x, sigma, amplitude))'''
 					lamp_power[i][j][k] = integrate.dblquad(twoD_gaussian, k*dx[i][j][k] - (np.sum(dx[i][j][0:a]) + dx[i][j][a]/2), (k+1)*dx[i][j][k] - (np.sum(dx[i][j][0:a]) + dx[i][j][a]/2), j*dy[i][j][k] - (np.sum([dy[i][val][k] for val in range(0, b)]) + dy[i][b][k]/2), (j+1)*dy[i][j][k] - (np.sum([dy[i][val][k] for val in range(0, b)]) + dy[i][b][k]/2), args=(const.var_lamp_profile, amplitude))[0]
+					#lamp_power[i][j][k] = np.average(twoD_gaussian(y, x, sigma, amplitude))
+
 	return lamp_power
 

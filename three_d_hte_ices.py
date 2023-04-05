@@ -5,7 +5,7 @@ import settings as sett
 from tqdm import tqdm
 import json
 from surface_detection import create_equidistant_mesh, DEBUG_print_3D_arrays, find_surface, surrounding_checker, update_surface_arrays
-from thermal_parameter_functions import lambda_test, lambda_granular, calculate_heat_capacity, lambda_sand, calculate_latent_heat
+from thermal_parameter_functions import lambda_test, lambda_granular, calculate_heat_capacity, lambda_sand, calculate_latent_heat, calculate_density, thermal_functions
 from boundary_conditions import energy_input, test, energy_input_data, sample_holder_data, amplitude_lamp, get_energy_input_lamp
 from heat_transfer_equation import hte_calculate, update_thermal_arrays
 from molecule_transfer import calculate_molecule_flux, calculate_molecule_surface
@@ -16,7 +16,7 @@ from save_and_load import data_store, data_store_sensors, data_save_sensors, dat
 temperature, dx, dy, dz, Dr, a, a_rad, b, b_rad = create_equidistant_mesh(const.n_x, const.n_y, const.n_z, const.temperature_ini, const.min_dx, const.min_dy, const.min_dz)
 #temperature, dx, dy, dz, Dr, Lambda = one_d_test(const.n_x, const.n_y, const.n_z, const.min_dx, const.min_dy, const.min_dz, 'y')
 heat_capacity = var.heat_capacity
-density = var.density
+density = var.density * const.VFF_pack_const
 delta_T = var.delta_T
 print(np.shape(temperature))
 #DEBUG_print_3D_arrays(const.n_x, const.n_y, const.n_z, temperature)
@@ -65,6 +65,7 @@ sensor_90mm = np.zeros(min(const.k, max_k, max_k_2), dtype=np.float64)'''
 max_k, max_k_2 = const.k, const.k
 temperature_save = np.zeros((min(const.k, max_k, max_k_2)//sett.data_reduce + 1, const.n_z, const.n_y, const.n_x))
 water_content_save = np.zeros((min(const.k, max_k, max_k_2)//sett.data_reduce + 1, const.n_z, const.n_y, const.n_x))
+sublimated_mass_save = np.zeros((min(const.k, max_k, max_k_2)//sett.data_reduce + 1, const.n_z, const.n_y, const.n_x))
 Max_Fourier_number = np.zeros(min(const.k, max_k, max_k_2), dtype=np.float64)
 surface_temp = np.full(const.k, 200, dtype=np.float64)
 sample_holder_temp = np.full(const.k, 140, dtype=np.float64)
@@ -82,14 +83,17 @@ Main Loop of the model. Comment out/Uncomment function calls to disable/enable f
 '''sample_holder = np.zeros((const.n_z, const.n_y, const.n_x))
 sample_holder[const.n_z-1][0][0] = 1
 surface = np.zeros((const.n_z, const.n_y, const.n_x, 6))'''
+temperature = sample_holder_data(const.n_x, const.n_y, const.n_z, sample_holder, temperature, const.sample_holder_starting_temp)
 #Lambda = lambda_sand(const.n_x, const.n_y, const.n_z, temperature, Dr, const.lambda_sand, sample_holder, const.lambda_sample_holder)
 #Lambda = lambda_granular(const.n_x, const.n_y, const.n_z, temperature, Dr, dx, dy, dz, const.lambda_water_ice, const.poisson_ratio_par, const.young_modulus_par, const.surface_energy_par, const.r_mono, const.f_1, const.f_2, var.VFF_pack, const.sigma, const.e_1, sample_holder, const.lambda_sample_holder)
 #print(Lambda[15][0][0])
 for j in tqdm(range(0, min(const.k, max_k, max_k_2))):
     Lambda = lambda_granular(const.n_x, const.n_y, const.n_z, temperature, Dr, dx, dy, dz, const.lambda_water_ice, const.poisson_ratio_par, const.young_modulus_par, const.surface_energy_par, const.r_mono, const.f_1, const.f_2, var.VFF_pack, const.sigma, const.e_1, sample_holder, const.lambda_sample_holder)
     #Lambda = lambda_sand(const.n_x, const.n_y, const.n_z, temperature, Dr, const.lambda_sand, sample_holder, const.lambda_sample_holder)
+    '''density = calculate_density(temperature, const.VFF_pack_const)[1]
     heat_capacity = calculate_heat_capacity(temperature)
-    latent_heat_water = calculate_latent_heat(temperature, const.lh_b_1, const.lh_c_1, const.lh_d_1, const.R, const.m_mol)
+    latent_heat_water = calculate_latent_heat(temperature, const.lh_b_1, const.lh_c_1, const.lh_d_1, const.R, const.m_mol)'''
+    heat_capacity, latent_heat_water, density_grain, density = thermal_functions(temperature, const.lh_b_1, const.lh_c_1, const.lh_d_1, const.R, const.m_mol, const.VFF_pack_const)
     #Lambda = lambda_constant(const.n_x, const.n_y, const.n_z, const.lambda_constant)
     #sublimated_mass, resublimated_mass, pressure, outgassing_rate[j], empty_voxels = calculate_molecule_flux(const.n_x, const.n_y, const.n_z, temperature, pressure, const.lh_a_1, const.lh_b_1, const.lh_c_1, const.lh_d_1, const.m_mol, const.R, var.VFF_pack, const.r_mono, const.Phi, const.tortuosity, dx, dy, dz, const.dt, surface_reduced, const.avogadro_constant, const.k_boltzmann, sample_holder, uniform_water_masses, var.n_x_lr, var.n_y_lr, var.n_z_lr, Dr)
     sublimated_mass, resublimated_mass, pressure, outgassing_rate[j], empty_voxels = calculate_molecule_surface(const.n_x, const.n_y, const.n_z, temperature, pressure, const.lh_a_1, const.lh_b_1, const.lh_c_1, const.lh_d_1, const.m_mol, const.R, var.VFF_pack, const.r_mono, const.Phi, const.tortuosity, dx, dy, dz, const.dt, surface_reduced, const.avogadro_constant, const.k_boltzmann, sample_holder, uniform_water_masses, var.n_x_lr, var.n_y_lr, var.n_z_lr, Dr)
@@ -112,10 +116,11 @@ for j in tqdm(range(0, min(const.k, max_k, max_k_2))):
         #sensor_10mm, sensor_20mm, sensor_35mm, sensor_55mm, sensor_90mm, temperature_save = data_store_sensors(j, const.n_x, const.n_y, const.n_z, temperature, sensor_10mm, sensor_20mm, sensor_35mm, sensor_55mm, sensor_90mm, sett.data_reduce, temperature_save)
         temperature_save[j//sett.data_reduce] = temperature
         water_content_save[j // sett.data_reduce] = uniform_water_masses
+        sublimated_mass_save[j // sett.data_reduce] = sublimated_mass
 
 #Data saving and output
 #save_current_arrays(temperature, water_content_per_layer, co2_content_per_layer, dust_ice_ratio_per_layer, co2_h2o_ratio_per_layer, heat_capacity, highest_pressure, highest_pressure_co2, ejection_times, var.time_passed + const.dt * const.k)
-data_save(temperature_save, water_content_save, outgassing_rate, 'base_case')
+data_save(temperature_save, water_content_save, outgassing_rate, sublimated_mass_save, 'base_case')
 #print(sensor_10mm[1000:1100])
 #data_save_sensors(temperature_save, sensor_10mm, sensor_20mm, sensor_35mm, sensor_55mm, sensor_90mm, 'D:/Masterarbeit_data/3D_temps_sand_bigger_dot_p', 'D:/Masterarbeit_data/sensor_temp_sand_bigger_dot_p')
 '''data_dict = {'Temperature': temperature_save.tolist(), 'Surface': surface.tolist(), 'RSurface': surface_reduced.tolist(), 'HC': Lambda.tolist(), 'SH': sample_holder.tolist()}

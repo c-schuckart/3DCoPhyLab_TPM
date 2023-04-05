@@ -8,15 +8,15 @@ import numpy as np
 #n_x = 11                            # Number of Layers                       [-]
 #n_y = 11
 #n_z = 25
-min_dx = 0.5E-3                      # Layer Thickness of smallest layer in x direction, Numerical Resolution  [m]
-min_dy = 0.5E-3                      # Layer Thickness of smallest layer in y direction, Numerical Resolution  [m]
-min_dz = 0.5E-3                      # Layer Thickness of smallest layer in z direction, Numerical Resolution  [m]
-dt = 0.1                           # Timestep                               [s]
+min_dx = 0.5E-3                      # Layer Thickness of the smallest layer in x direction, Numerical Resolution  [m]
+min_dy = 0.5E-3                      # Layer Thickness of the smallest layer in y direction, Numerical Resolution  [m]
+min_dz = 0.5E-3                      # Layer Thickness of the smallest layer in z direction, Numerical Resolution  [m]
+dt = 0.01                           # Timestep                               [s]
 n_x = 63                            # Number of Layers                       [-]
 n_y = 63
 n_z = 43
 n = np.array([n_x, n_y, n_z])
-k = 36000 * 1                      # Number of Timesteps                    [-]
+k = 3600 * 1                      # Number of Timesteps                    [-]
 
 #Definition of Physical Parameters
 #Material Properties
@@ -37,7 +37,7 @@ m_H2O = 2.99E-26                  # mass of a water molecule               [kg]
 m_CO2 = 7.31E-26
 b = 1 * (2 * r_mono)                          # Permeability Coefficient               [-]
 co2_h2o_ratio_global = 0      # Percentage of CO2 ice content of total ice content [-]
-density_water_ice = 810           # Density if water ice at around 90K     [kg/m^3]
+density_water_ice = 930           # Density if water ice at around 90K     [kg/m^3]
 density_co2_ice = 1600
 density_sand = 1500
 density_sample_holder = 2698.9  # Density of aluminium, the sample holder material  [kg/m^3]
@@ -59,7 +59,8 @@ const_tensile_strength = 0.0045       # Tensile strength of the comet material [
 x_0 = 5E-2                        # Length scaling factor used to calculate the tensile strength [m]
 gravitational_pressure = 0        #Placeholder! [Pa]
 #Thermal Properties
-temperature_ini = 140             # Start Temperature                      [K]
+temperature_ini = 77             # Start Temperature                      [K]
+sample_holder_starting_temp = 110  # Starting temperature of the sample holder [K]
 Input_Intensity = 6500             # Intensity of the Light Source (Sun)    [W/m^2]
 epsilon = 1                       # Emissivity                             [-]
 albedo = 0.05                  # Albedo                                 [-]

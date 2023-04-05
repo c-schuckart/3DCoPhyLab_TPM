@@ -113,6 +113,18 @@ def calculate_heat_capacity(temperature):
 def calculate_latent_heat(temperature, b_1, c_1, d_1, R_gas, m_mol):
 	return ((-b_1[0] * np.log(10) + (c_1[0] - 1) * temperature + d_1[0] * np.log(10) * temperature**2) * R_gas / (m_mol[0])) # [J/kg]
 
+
+@njit
+def calculate_density(temperature, VFF):
+	density_grain = 918 - 0.13783 * temperature - 2.53451E-4 * temperature**2
+	return density_grain, density_grain * VFF
+
+
+@njit
+def thermal_functions(temperature, b_1, c_1, d_1, R_gas, m_mol, VFF):
+	density_grain = 918 - 0.13783 * temperature - 2.53451E-4 * temperature ** 2
+	return (7.5 * temperature + 90), ((-b_1[0] * np.log(10) + (c_1[0] - 1) * temperature + d_1[0] * np.log(10) * temperature**2) * R_gas / (m_mol[0])), density_grain, density_grain * VFF
+
 @njit(parallel=True)
 def lambda_sand(n_x, n_y, n_z, temperature, Dr, lambda_sand, sample_holder, lambda_sample_holder):
 	lambda_total = np.zeros((n_z, n_y, n_x, 6), dtype=np.float64)

@@ -75,7 +75,7 @@ def calculate_molecule_flux(n_x, n_y, n_z, temperature, pressure, a_1, b_1, c_1,
     resublimated_mass = np.zeros((n_z, n_y, n_x), dtype=np.float64)
     #Placeholder
     outgassed_mass = 0
-    empty_voxels = np.empty(0, dtype=np.float64)
+    empty_voxels = np.empty((0, 0), dtype=np.int32)
     for each in surface_reduced:
         #Setting p_surface to zero since outgassing can be assumed to always happen towards the vacuum
         outgassed_mass += sublimated_mass[each[2]][each[1]][each[0]]
@@ -155,7 +155,7 @@ def calculate_molecule_flux_diag(n_x, n_y, n_z, temperature, pressure, a_1, b_1,
     resublimated_mass = np.zeros((n_z, n_y, n_x), dtype=np.float64)
     #Placeholder
     outgassed_mass = 0
-    empty_voxels = np.empty(0, dtype=np.float64)
+    empty_voxels = np.empty((0, 0), dtype=np.int32)
     for each in surface_reduced:
         #Setting p_surface to zero since outgassing can be assumed to always happen towards the vacuum
         outgassed_mass += sublimated_mass[each[2]][each[1]][each[0]]
@@ -227,7 +227,7 @@ def calculate_molecule_flux_diag(n_x, n_y, n_z, temperature, pressure, a_1, b_1,
 
     return sublimated_mass, resublimated_mass, pressure, outgassed_mass/dt, empty_voxels, mass_flux
 
-
+@njit
 def calculate_molecule_surface(n_x, n_y, n_z, temperature, pressure, a_1, b_1, c_1, d_1, mol_mass, R_gas, VFF, r_grain, Phi, tortuosity, dx, dy, dz, dt, surface_reduced, avogadro_constant, k_B, sample_holder, water_mass_per_layer, n_x_lr, n_y_lr, n_z_lr, Dr):
     p_sub = np.zeros(np.shape(temperature), dtype=np.float64)
     sublimated_mass = np.zeros(np.shape(temperature), dtype=np.float64)
@@ -235,14 +235,17 @@ def calculate_molecule_surface(n_x, n_y, n_z, temperature, pressure, a_1, b_1, c
     #Placeholder
     outgassed_mass = 0
     mass_flux = np.zeros(np.shape(sublimated_mass), dtype=np.float64)
-    empty_voxels = np.empty(0, dtype=np.float64)
+    #Replace surface_reduced with len(temperature.flatten() because it could technically be that deeper voxels are drained at the same time step
+    empty_voxels = np.zeros((len(surface_reduced), 3), dtype=np.int32)
+    empty_voxel_count = 0
     for each in surface_reduced:
         p_sub[each[2]][each[1]][each[0]] = 10 ** (a_1[0] + b_1[0] / temperature[each[2]][each[1]][each[0]] + c_1[0] * np.log10(temperature[each[2]][each[1]][each[0]]) + d_1[0] * temperature[each[2]][each[1]][each[0]])
         sublimated_mass[each[2]][each[1]][each[0]] = (p_sub[each[2]][each[1]][each[0]] - pressure[each[2]][each[1]][each[0]]) * np.sqrt(mol_mass[0] / (2 * np.pi * R_gas * temperature[each[2]][each[1]][each[0]])) * (
                     3 * VFF[each[2]][each[1]][each[0]] / r_grain * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]])
         if sublimated_mass[each[2]][each[1]][each[0]] > water_mass_per_layer[each[2]][each[1]][each[0]]:
             sublimated_mass[each[2]][each[1]][each[0]] = water_mass_per_layer[each[2]][each[1]][each[0]]
-            empty_voxels = np.append(empty_voxels, np.array([each[0], each[1], each[2]], dtype=np.int32))
+            empty_voxels[empty_voxel_count] = np.array([each[0], each[1], each[2]], dtype=np.int32)
+            empty_voxel_count += 1
         outgassed_mass += sublimated_mass[each[2]][each[1]][each[0]]
         mass_flux[each[2]][each[1]][each[0]] = sublimated_mass[each[2]][each[1]][each[0]]
         #p_sub[each[2]][each[1]][each[0]] = 0
@@ -250,4 +253,4 @@ def calculate_molecule_surface(n_x, n_y, n_z, temperature, pressure, a_1, b_1, c
     #pressure = p_sub
     #Non 100% resublimation missing
 
-    return sublimated_mass, resublimated_mass, pressure, outgassed_mass/dt, empty_voxels
+    return sublimated_mass, resublimated_mass, pressure, outgassed_mass/dt, empty_voxels[0:empty_voxel_count]

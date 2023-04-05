@@ -41,11 +41,11 @@ def bar_chart_2D(dx, dy, scalars):
     return obj
 
 
-with open('test_gran.json') as json_file:
+with open('base_case.json') as json_file:
     data_vis = json.load(json_file)
 
-#sample = plot_3D(np.array(data_vis['Temperature'][len(data_vis['Temperature'])-1]))
-sample = plot_3D(np.array(data_vis['Temperature'][0]))
+sample = plot_3D(np.array(data_vis['Temperature'][len(data_vis['Temperature'])-2]))
+#sample = plot_3D(np.array(data_vis['Temperature'][2]))
 '''sample_and_surface = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
 surface = np.array(data_vis['Surface'])
 for i in range(0, const.n_z):
@@ -60,7 +60,7 @@ for i in range(0, const.n_z):
     #sample_and_surface[each[2]][each[1]][each[0]] = 100
 #sample = bar_chart_2D(data_vis['dx'], data_vis['dy'], data_vis['Lamp Power'])
 #sample, x, y = bar_chart_2D(data_vis['dx'], data_vis['dy'], data_vis['Lamp Power'])
-#sample = mlab.barchart(data_vis['Lamp Power'][1])
+#sample = mlab.barchart(np.array(data_vis['Lamp Power'][1])*1000)
 #nx, ny, nz = const.n_x * 1j, const.n_y * 1j, const.n_z * 1j
 #x, y = np.mgrid[-5:5:ny, -5:5:nx]
 #sample_2 = mlab.surf(y, x, twoD_gaussian(y, x, const.var_lamp_profile, 23610.30767673443), warp_scale=1000)
