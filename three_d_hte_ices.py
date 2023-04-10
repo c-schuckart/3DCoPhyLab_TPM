@@ -88,7 +88,7 @@ temperature = sample_holder_data(const.n_x, const.n_y, const.n_z, sample_holder,
 #Lambda = lambda_granular(const.n_x, const.n_y, const.n_z, temperature, Dr, dx, dy, dz, const.lambda_water_ice, const.poisson_ratio_par, const.young_modulus_par, const.surface_energy_par, const.r_mono, const.f_1, const.f_2, var.VFF_pack, const.sigma, const.e_1, sample_holder, const.lambda_sample_holder)
 #print(Lambda[15][0][0])
 for j in tqdm(range(0, min(const.k, max_k, max_k_2))):
-    Lambda = lambda_granular(const.n_x, const.n_y, const.n_z, temperature, Dr, dx, dy, dz, const.lambda_water_ice, const.poisson_ratio_par, const.young_modulus_par, const.surface_energy_par, const.r_mono, const.f_1, const.f_2, var.VFF_pack, const.sigma, const.e_1, sample_holder, const.lambda_sample_holder)
+    Lambda = lambda_granular(const.n_x, const.n_y, const.n_z, temperature, Dr, dx, dy, dz, const.lambda_water_ice, const.poisson_ratio_par, const.young_modulus_par, const.surface_energy_par, const.r_mono, const.f_1, const.f_2, var.VFF_pack, const.sigma, const.e_1, sample_holder, const.lambda_sample_holder) * const.lambda_scaling_factor
     #Lambda = lambda_sand(const.n_x, const.n_y, const.n_z, temperature, Dr, const.lambda_sand, sample_holder, const.lambda_sample_holder)
     '''density = calculate_density(temperature, const.VFF_pack_const)[1]
     heat_capacity = calculate_heat_capacity(temperature)
@@ -117,10 +117,16 @@ for j in tqdm(range(0, min(const.k, max_k, max_k_2))):
         temperature_save[j//sett.data_reduce] = temperature
         water_content_save[j // sett.data_reduce] = uniform_water_masses
         sublimated_mass_save[j // sett.data_reduce] = sublimated_mass
+    '''if j == 13200:
+        temperature_save[len(temperature_save)-1] = temperature
+        break'''
 
 #Data saving and output
 #save_current_arrays(temperature, water_content_per_layer, co2_content_per_layer, dust_ice_ratio_per_layer, co2_h2o_ratio_per_layer, heat_capacity, highest_pressure, highest_pressure_co2, ejection_times, var.time_passed + const.dt * const.k)
-data_save(temperature_save, water_content_save, outgassing_rate, sublimated_mass_save, 'base_case')
+temperature_save[len(temperature_save)-1] = temperature
+water_content_save[len(water_content_save)-1] = uniform_water_masses
+sublimated_mass_save[len(sublimated_mass_save)-1] = sublimated_mass
+data_save(temperature_save, water_content_save, outgassing_rate, sublimated_mass_save, 'D:/Masterarbeit_data/' + 'Albedo_' + str(const.albedo) + '_lambda_scale_' + str(const.lambda_scaling_factor) + '_VFF_' + str(const.VFF_pack_const))
 #print(sensor_10mm[1000:1100])
 #data_save_sensors(temperature_save, sensor_10mm, sensor_20mm, sensor_35mm, sensor_55mm, sensor_90mm, 'D:/Masterarbeit_data/3D_temps_sand_bigger_dot_p', 'D:/Masterarbeit_data/sensor_temp_sand_bigger_dot_p')
 '''data_dict = {'Temperature': temperature_save.tolist(), 'Surface': surface.tolist(), 'RSurface': surface_reduced.tolist(), 'HC': Lambda.tolist(), 'SH': sample_holder.tolist()}

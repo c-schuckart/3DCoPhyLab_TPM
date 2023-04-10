@@ -2,9 +2,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import (AutoLocator, AutoMinorLocator, MultipleLocator, LogLocator, LogFormatterMathtext)
 import matplotlib.lines as mlines
+import json
 import constants as const
 from scipy import interpolate
-from data_input import read_temperature_data,getPath
+from data_input import read_temperature_data, getPath
 
 '''file_name = 'Check_Knudsen_regime'
 #path = 'C:/Users/Christian Schuckart/Documents/Masterarbeit/Plots/' + file_name + '.png'
@@ -100,7 +101,7 @@ plt.show()
 #plt.savefig(path, dpi=600)
 '''
 
-data = np.genfromtxt("D:/Masterarbeit_data/sensor_temp_sand_1D_TPM.csv", delimiter=",")
+'''data = np.genfromtxt("D:/Masterarbeit_data/sensor_temp_sand_1D_TPM.csv", delimiter=",")
 time_sim = [const.dt * i for i in range(0, 35940)]
 
 time_deltas_data_interior, temp_10mm, temp_20mm, temp_35mm, temp_55mm, temp_90mm = read_temperature_data(getPath(), '2023-02-15 16:45:00', '2023-02-15 17:45:01', [1, 2, 3, 4, 5], [], [], [], [], [])
@@ -129,4 +130,59 @@ plt.legend()
 #plt.show()
 #plt.savefig('Constant_lambda_test_sand_' + str(const.lambda_sand) + '.png', dpi=600)
 plt.savefig('C:/Users/Christian Schuckart/Documents/Masterarbeit/Plots/Sand_surface_1D_TPM.png', dpi=600)
-#plt.savefig('linear_lambda_test_sand_' + str(const.lambda_a) + 'T + ' + str(const.lambda_b) + '.png', dpi=600)
+#plt.savefig('linear_lambda_test_sand_' + str(const.lambda_a) + 'T + ' + str(const.lambda_b) + '.png', dpi=600)'''
+
+#path_list_1 = ['D:/Masterarbeit_data/Albedo_0.9_lambda_scale_1_VFF_0.62.json', 'D:/Masterarbeit_data/Albedo_0.85_lambda_scale_1_VFF_0.62.json', 'D:/Masterarbeit_data/Albedo_0.8_lambda_scale_1_VFF_0.62.json']
+#path_list_2 = ['D:/Masterarbeit_data/Albedo_0.9_lambda_scale_2_VFF_0.62.json', 'D:/Masterarbeit_data/Albedo_0.85_lambda_scale_2_VFF_0.62.json', 'D:/Masterarbeit_data/Albedo_0.8_lambda_scale_2_VFF_0.62.json']
+path_list_1 = ['D:/Masterarbeit_data/Albedo_0.9_lambda_scale_1_VFF_0.62.json', 'D:/Masterarbeit_data/Albedo_0.9_lambda_scale_2_VFF_0.62.json']
+path_list_2 = ['D:/Masterarbeit_data/Albedo_0.85_lambda_scale_1_VFF_0.62.json', 'D:/Masterarbeit_data/Albedo_0.85_lambda_scale_2_VFF_0.62.json']
+path_list_3 = ['D:/Masterarbeit_data/Albedo_0.8_lambda_scale_1_VFF_0.62.json', 'D:/Masterarbeit_data/Albedo_0.8_lambda_scale_2_VFF_0.62.json']
+'''with open(getPath()) as json_file:
+#with open('test.json') as json_file:
+    data_vis = json.load(json_file)'''
+temperature_data = np.zeros((2, const.n_y, const.n_x), dtype=np.float64)
+for a in range(len(path_list_1)):
+    with open(path_list_3[a]) as json_file:
+        data = json.load(json_file)
+    surface_temp = np.zeros((const.n_y, const.n_x), dtype=np.float64)
+    temp = np.array(data['Temperature'][len(data['Temperature'])-1])
+    for i in range(0, const.n_z):
+        for j in range(0, const.n_y):
+            for k in range(0, const.n_x):
+                if temp[i][j][k] > 0 and surface_temp[j][k] == 0:
+                    surface_temp[j][k] = temp[i][j][k]
+    temperature_data[a] = surface_temp
+    print(np.sum([data['Outgassing rate'][b] * const.dt for b in range(len(data['Outgassing rate']))]))
+    json_file.close()
+max_temps = np.zeros(2, dtype=np.float64)
+avrg_temp = np.zeros(2, dtype=np.float64)
+for i in range(0, 2):
+    max_temps[i] = np.max(temperature_data[i])
+    avrg_temp[i] = np.average(temperature_data[i])
+with open('lamp_input_S_chamber.json') as json_file:
+    data_lamp = json.load(json_file)
+reduced_temp = np.zeros(2, dtype=np.float64)
+for a in range(len(reduced_temp)):
+    t = []
+    for j in range(0, const.n_y):
+        for k in range(0, const.n_x):
+            if data_lamp['Lamp Power'][1][j][k] > 0:
+                t.append(temperature_data[a][j][k])
+    reduced_temp[a] = np.average(t)
+lambda_factor = [1, 2]
+plt.xlabel('Lambda factor')
+plt.ylabel('Temperature (K)')
+plt.tick_params(axis='x', which='both', direction='in', top=True, labeltop=False)
+plt.tick_params(axis='y', which='both', direction='in', right=True, labelright=False)
+plt.scatter(lambda_factor, max_temps, label='Maximum surf. temp', s=5, color='red')
+plt.scatter(lambda_factor, avrg_temp, label='Avrg. surf. temp.', s=5, color='blue', marker='x')
+plt.scatter(lambda_factor, reduced_temp, label='Avrg. surf. temp. within lamp circle', s=5, color='black', marker='d')
+#plt.xlim(6000, 6200)
+#plt.title('Lambda linear ' + str(const.lambda_a) + '*T + ' + str(const.lambda_b))
+#plt.title('Lambda constant = ' + str(const.lambda_constant) + r', $b_{\eta}$ = ' + str(const.b)
+plt.title('Surface temps. after 1h - Albedo 0.8 - Temp. dep. lambda')
+plt.legend()
+#plt.show()
+#plt.savefig('Constant_lambda_test_sand_' + str(const.lambda_sand) + '.png', dpi=600)
+#plt.savefig('C:/Users/Christian Schuckart/Documents/Masterarbeit/Plots/Surface_temperature_lambda_1.png', dpi=600)
+plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Plots/Surface_temperature_albedo_0.8.png', dpi=600)

@@ -103,7 +103,7 @@ def fix_rim(n_x, n_y, limiter_x, limiter_y, a, a_rad, b, b_rad, array):
     misplaced_voxels = np.zeros((n_x * n_y, 3), dtype=np.int32)
     for j in range(limiter_y, n_y):
         for k in range(limiter_x, n_x):
-            if array[1][j][k] == 1 and max(array[1][j-1][k], array[1][j+1][k]) + max(array[1][j][k-1], array[1][j][k+1]) == 2 and ((k - a) / a_rad) ** 2 + ((j - b) / b_rad) ** 2 <= 1.002:
+            if array[1][j][k] == 1 and max(array[1][j-1][k], array[1][j+1][k]) + max(array[1][j][k-1], array[1][j][k+1]) == 2 and array[2][j][k] == 0: #and ((k - a) / a_rad) ** 2 + ((j - b) / b_rad) ** 2 <= 1.015:
                 array[1][j][k] = 0
                 misplaced_voxels[erronous_voxels_nr] = np.array([k, j, 1], dtype=np.int32)
                 erronous_voxels_nr += 1

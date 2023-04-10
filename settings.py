@@ -1,2 +1,2 @@
 mesh_form = 1                   # 0 == square, 1 == cylinder
-data_reduce = 1000
+data_reduce = 10000

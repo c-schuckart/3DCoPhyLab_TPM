@@ -16,12 +16,13 @@ n_x = 63                            # Number of Layers                       [-]
 n_y = 63
 n_z = 43
 n = np.array([n_x, n_y, n_z])
-k = 3600 * 1                      # Number of Timesteps                    [-]
+k = 360000 * 1                      # Number of Timesteps                    [-]
 
 #Definition of Physical Parameters
 #Material Properties
 lambda_constant = 1E-2            # Thermal Conductivity                   [W/(K m)]
 #lambda_constant = 100000            # Thermal Conductivity                   [W/(K m)]
+lambda_scaling_factor = 1
 r_mono = 2.5E-6                     # Radius of Monomeres                    [m]
 e_1 = 1.34                        # Parameter for mean free path           [-]
 #VFF_pack_const = 0.2              # Volume Filling Factor of Packing       [-]
@@ -63,7 +64,7 @@ temperature_ini = 77             # Start Temperature                      [K]
 sample_holder_starting_temp = 110  # Starting temperature of the sample holder [K]
 Input_Intensity = 6500             # Intensity of the Light Source (Sun)    [W/m^2]
 epsilon = 1                       # Emissivity                             [-]
-albedo = 0.05                  # Albedo                                 [-]
+albedo = 0.75                  # Albedo                                 [-]
 lambda_water_ice = 651            # thermal conductivity of water ice      [W/(m * T)], depending on T!
 lambda_co2_ice = 0.02             # thermal conductivity of water ice      [W/(m * K)], depending on T!
 lambda_sample_holder = 210        # thermal conductivity of aluminium, the sample holder material   [W/(m*K)]
