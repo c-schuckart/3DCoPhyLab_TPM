@@ -47,6 +47,10 @@ with open(getPath()) as json_file:
     data_vis = json.load(json_file)
 
 sample = plot_3D(np.array(data_vis['Temperature'][len(data_vis['Temperature'])-1]))
+for i in range(0, const.n_z):
+    if data_vis['Temperature'][len(data_vis['Temperature'])-1][i][const.n_y//2][const.n_x//2] > 0:
+        print(i-1)
+        break
 #sample = plot_3D(np.array(data_vis['Water content'][len(data_vis['Water content'])-2]))
 #sample = plot_3D(np.array(data_vis['Temperature'][2]))
 '''sample_and_surface = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)

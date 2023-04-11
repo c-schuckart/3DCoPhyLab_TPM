@@ -59,6 +59,7 @@ depth_dependent_strength = 3      # Parameter used to calculate the tensile stre
 const_tensile_strength = 0.0045       # Tensile strength of the comet material [Pa]
 x_0 = 5E-2                        # Length scaling factor used to calculate the tensile strength [m]
 gravitational_pressure = 0        #Placeholder! [Pa]
+surface_reduction_factor = 0.05
 #Thermal Properties
 temperature_ini = 77             # Start Temperature                      [K]
 sample_holder_starting_temp = 110  # Starting temperature of the sample holder [K]
