@@ -11,8 +11,10 @@ from heat_transfer_equation import hte_calculate, update_thermal_arrays
 from molecule_transfer import calculate_molecule_flux, calculate_molecule_surface
 from data_input import getPath, read_temperature_data, transform_temperature_data
 from save_and_load import data_store, data_store_sensors, data_save_sensors, data_save
-
-for albedo in [0.9, 0.91, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97]:
+a = np.array([0.9, 0.91, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97])
+fac = 1
+for val in range(0, len(a)):
+    albedo = 0.90 + 0.01 * val * fac
     #work arrays and mesh creation + surface detection
     temperature, dx, dy, dz, Dr, a, a_rad, b, b_rad = create_equidistant_mesh(const.n_x, const.n_y, const.n_z, const.temperature_ini, const.min_dx, const.min_dy, const.min_dz)
     #temperature, dx, dy, dz, Dr, Lambda = one_d_test(const.n_x, const.n_y, const.n_z, const.min_dx, const.min_dy, const.min_dz, 'y')
@@ -128,9 +130,11 @@ for albedo in [0.9, 0.91, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97]:
     temperature_save[len(temperature_save)-1] = temperature
     water_content_save[len(water_content_save)-1] = uniform_water_masses
     sublimated_mass_save[len(sublimated_mass_save)-1] = sublimated_mass
-    data_save(temperature_save, water_content_save, outgassing_rate, sublimated_mass_save, 'D:/Masterarbeit_data/' + 'Albedo_' + str(albedo) + '_surface_corr_factor_0.05')
-    print('ALbedo: ' + str(albedo) + '\n Outgassed mass: ')
+    data_save(temperature_save, water_content_save, outgassing_rate, sublimated_mass_save, 'D:/Christian Schuckart/' + 'Albedo_' + str(albedo) + '_surface_corr_factor_0.10')
+    print('Albedo: ' + str(albedo) + '\n Outgassed mass: ')
     print(np.sum([outgassing_rate[b] * const.dt for b in range(len(outgassing_rate))]))
+    if np.sum([outgassing_rate[b] * const.dt for b in range(len(outgassing_rate))]) < 0.006:
+        fac = -1
     #print(sensor_10mm[1000:1100])
     #data_save_sensors(temperature_save, sensor_10mm, sensor_20mm, sensor_35mm, sensor_55mm, sensor_90mm, 'D:/Masterarbeit_data/3D_temps_sand_bigger_dot_p', 'D:/Masterarbeit_data/sensor_temp_sand_bigger_dot_p')
     '''data_dict = {'Temperature': temperature_save.tolist(), 'Surface': surface.tolist(), 'RSurface': surface_reduced.tolist(), 'HC': Lambda.tolist(), 'SH': sample_holder.tolist()}
