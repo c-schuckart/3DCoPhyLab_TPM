@@ -129,6 +129,8 @@ for albedo in [0.9, 0.91, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97]:
     water_content_save[len(water_content_save)-1] = uniform_water_masses
     sublimated_mass_save[len(sublimated_mass_save)-1] = sublimated_mass
     data_save(temperature_save, water_content_save, outgassing_rate, sublimated_mass_save, 'D:/Masterarbeit_data/' + 'Albedo_' + str(albedo) + '_surface_corr_factor_0.05')
+    print('ALbedo: ' + str(albedo) + '\n Outgassed mass: ')
+    print(np.sum([outgassing_rate[b] * const.dt for b in range(len(outgassing_rate))]))
     #print(sensor_10mm[1000:1100])
     #data_save_sensors(temperature_save, sensor_10mm, sensor_20mm, sensor_35mm, sensor_55mm, sensor_90mm, 'D:/Masterarbeit_data/3D_temps_sand_bigger_dot_p', 'D:/Masterarbeit_data/sensor_temp_sand_bigger_dot_p')
     '''data_dict = {'Temperature': temperature_save.tolist(), 'Surface': surface.tolist(), 'RSurface': surface_reduced.tolist(), 'HC': Lambda.tolist(), 'SH': sample_holder.tolist()}
