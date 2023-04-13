@@ -132,14 +132,12 @@ plt.legend()
 plt.savefig('C:/Users/Christian Schuckart/Documents/Masterarbeit/Plots/Sand_surface_1D_TPM.png', dpi=600)
 #plt.savefig('linear_lambda_test_sand_' + str(const.lambda_a) + 'T + ' + str(const.lambda_b) + '.png', dpi=600)'''
 
-#path_list_1 = ['D:/Masterarbeit_data/Albedo_0.9_lambda_scale_1_VFF_0.62.json', 'D:/Masterarbeit_data/Albedo_0.85_lambda_scale_1_VFF_0.62.json', 'D:/Masterarbeit_data/Albedo_0.8_lambda_scale_1_VFF_0.62.json']
-#path_list_2 = ['D:/Masterarbeit_data/Albedo_0.9_lambda_scale_2_VFF_0.62.json', 'D:/Masterarbeit_data/Albedo_0.85_lambda_scale_2_VFF_0.62.json', 'D:/Masterarbeit_data/Albedo_0.8_lambda_scale_2_VFF_0.62.json']
-path_list_1 = ['D:/Masterarbeit_data/Albedo_0.9_lambda_scale_1_VFF_0.62.json', 'D:/Masterarbeit_data/Albedo_0.9_lambda_scale_2_VFF_0.62.json']
+'''path_list_1 = ['D:/Masterarbeit_data/Albedo_0.9_lambda_scale_1_VFF_0.62.json', 'D:/Masterarbeit_data/Albedo_0.9_lambda_scale_2_VFF_0.62.json']
 path_list_2 = ['D:/Masterarbeit_data/Albedo_0.85_lambda_scale_1_VFF_0.62.json', 'D:/Masterarbeit_data/Albedo_0.85_lambda_scale_2_VFF_0.62.json']
 path_list_3 = ['D:/Masterarbeit_data/Albedo_0.8_lambda_scale_1_VFF_0.62.json', 'D:/Masterarbeit_data/Albedo_0.8_lambda_scale_2_VFF_0.62.json']
-'''with open(getPath()) as json_file:
+with open(getPath()) as json_file:
 #with open('test.json') as json_file:
-    data_vis = json.load(json_file)'''
+    data_vis = json.load(json_file)
 temperature_data = np.zeros((2, const.n_y, const.n_x), dtype=np.float64)
 for a in range(len(path_list_1)):
     with open(path_list_1[a]) as json_file:
@@ -194,4 +192,58 @@ plt.legend()
 #plt.show()
 #plt.savefig('Constant_lambda_test_sand_' + str(const.lambda_sand) + '.png', dpi=600)
 plt.savefig('C:/Users/Christian Schuckart/Documents/Masterarbeit/Plots/Surface_temperature_albedo_0.9.png', dpi=600)
+#plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Plots/Surface_temperature_albedo_0.8.png', dpi=600)'''
+
+path_list_1 = ['D:/Masterarbeit_data/Albedo_0.90_surface_corr_factor_0.10.json', 'D:/Masterarbeit_data/Albedo_0.89_surface_corr_factor_0.10.json', 'D:/Masterarbeit_data/Albedo_0.88_surface_corr_factor_0.10.json', 'D:/Masterarbeit_data/Albedo_0.87_surface_corr_factor_0.10.json', 'D:/Masterarbeit_data/Albedo_0.86_surface_corr_factor_0.10.json', 'D:/Masterarbeit_data/Albedo_0.85_surface_corr_factor_0.10.json', 'D:/Masterarbeit_data/Albedo_0.84_surface_corr_factor_0.10.json']
+#path_list_1 = ['D:/Masterarbeit_data/Albedo_0.90_surface_corr_factor_0.10.json', 'D:/Masterarbeit_data/Albedo_0.89_surface_corr_factor_0.10.json', 'D:/Masterarbeit_data/Albedo_0.88_surface_corr_factor_0.10.json']
+#path_list_1 = ['D:/Masterarbeit_data/Albedo_0.9_lambda_scale_1_VFF_0.62.json', 'D:/Masterarbeit_data/Albedo_0.85_lambda_scale_1_VFF_0.62.json', 'D:/Masterarbeit_data/Albedo_0.8_lambda_scale_1_VFF_0.62.json', 'D:/Masterarbeit_data/Albedo_0.75_lambda_scale_1_VFF_0.62.json']
+outgassed_masses = []
+temperature_data = []
+for a in range(len(path_list_1)):
+    with open(path_list_1[a]) as json_file:
+        data = json.load(json_file)
+    outgassed_masses.append(np.sum([data['Outgassing rate'][b] * const.dt for b in range(len(data['Outgassing rate']))]) * 1000)
+    surface_temp = np.zeros((const.n_y, const.n_x), dtype=np.float64)
+    temp = np.array(data['Temperature'][len(data['Temperature']) - 1])
+    for i in range(0, const.n_z):
+        for j in range(0, const.n_y):
+            for k in range(0, const.n_x):
+                if temp[i][j][k] > 0 and surface_temp[j][k] == 0:
+                    surface_temp[j][k] = temp[i][j][k]
+    temperature_data.append(surface_temp)
+    json_file.close()
+max_temps = np.zeros(len(path_list_1), dtype=np.float64)
+for i in range(0, len(path_list_1)):
+    max_temps[i] = np.max(temperature_data[i])
+
+albedo_values = [0.9, 0.89, 0.88, 0.87, 0.86, 0.85, 0.84]
+plt.xlabel('Albedo')
+plt.ylabel('Outgassed mass (g)')
+plt.tick_params(axis='x', which='both', direction='in', top=True, labeltop=False)
+plt.tick_params(axis='y', which='both', direction='in', right=True, labelright=False)
+plt.scatter(albedo_values, outgassed_masses, s=10, label='Outgassed mass')
+#plt.xlim(6000, 6200)
+#plt.title('Lambda linear ' + str(const.lambda_a) + '*T + ' + str(const.lambda_b))
+#plt.title('Lambda constant = ' + str(const.lambda_constant) + r', $b_{\eta}$ = ' + str(const.b)
+plt.title('Activity fraction: 10% - Outgassed mass')
+plt.legend()
+#plt.show()
+#plt.savefig('Constant_lambda_test_sand_' + str(const.lambda_sand) + '.png', dpi=600)
+plt.savefig('C:/Users/Christian Schuckart/Documents/Masterarbeit/Plots/activity_fraction_0.10_outgassed_mass.png', dpi=600)
 #plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Plots/Surface_temperature_albedo_0.8.png', dpi=600)
+
+plt.show()
+
+plt.xlabel('Albedo')
+plt.ylabel('Max. surface temperature (K)')
+plt.tick_params(axis='x', which='both', direction='in', top=True, labeltop=False)
+plt.tick_params(axis='y', which='both', direction='in', right=True, labelright=False)
+plt.scatter(albedo_values, max_temps, label='Maximum surf. temp', s=10)
+#plt.xlim(6000, 6200)
+#plt.title('Lambda linear ' + str(const.lambda_a) + '*T + ' + str(const.lambda_b))
+#plt.title('Lambda constant = ' + str(const.lambda_constant) + r', $b_{\eta}$ = ' + str(const.b)
+plt.title('Activity fraction: 10% - Max. surface temperatures')
+plt.legend()
+#plt.show()
+#plt.savefig('Constant_lambda_test_sand_' + str(const.lambda_sand) + '.png', dpi=600)
+plt.savefig('C:/Users/Christian Schuckart/Documents/Masterarbeit/Plots/activity_fraction_0.10_max_surface_temp.png', dpi=600)
