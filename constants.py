@@ -8,15 +8,15 @@ import numpy as np
 #n_x = 11                            # Number of Layers                       [-]
 #n_y = 11
 #n_z = 25
-min_dx = 0.5E-3                      # Layer Thickness of the smallest layer in x direction, Numerical Resolution  [m]
-min_dy = 0.5E-3                      # Layer Thickness of the smallest layer in y direction, Numerical Resolution  [m]
-min_dz = 0.5E-3                      # Layer Thickness of the smallest layer in z direction, Numerical Resolution  [m]
-dt = 0.01                           # Timestep                               [s]
-n_x = 63                            # Number of Layers                       [-]
-n_y = 63
-n_z = 43
+min_dx = 2E-3                      # Layer Thickness of the smallest layer in x direction, Numerical Resolution  [m]
+min_dy = 2E-3                      # Layer Thickness of the smallest layer in y direction, Numerical Resolution  [m]
+min_dz = 2E-3                      # Layer Thickness of the smallest layer in z direction, Numerical Resolution  [m]
+dt = 0.005                           # Timestep                               [s]
+n_x = 38                           # Number of Layers                       [-]
+n_y = 38
+n_z = 53
 n = np.array([n_x, n_y, n_z])
-k = 360000 * 1                      # Number of Timesteps                    [-]
+k = 360000 * 10                      # Number of Timesteps                    [-]
 
 #Definition of Physical Parameters
 #Material Properties
@@ -25,8 +25,8 @@ lambda_constant = 1E-2            # Thermal Conductivity                   [W/(K
 lambda_scaling_factor = 1
 r_mono = 2.5E-6                     # Radius of Monomeres                    [m]
 e_1 = 1.34                        # Parameter for mean free path           [-]
-#VFF_pack_const = 0.2              # Volume Filling Factor of Packing       [-]
-VFF_pack_const = 0.62              # Volume Filling Factor of Packing       [-]
+VFF_pack_const = 1              # Volume Filling Factor of Packing       [-]
+#VFF_pack_const = 0.62              # Volume Filling Factor of Packing       [-]
 poisson_ratio_par = 0.17          # Poisson`s ratio of Particle            [-]
 young_modulus_par = 5.5E10        # Young`s modulus of Particle            [Pa]
 tortuosity = 1.10                 # Tortuosity factor for monodisperse spherical particles for VFF 0.2
@@ -59,13 +59,13 @@ depth_dependent_strength = 3      # Parameter used to calculate the tensile stre
 const_tensile_strength = 0.0045       # Tensile strength of the comet material [Pa]
 x_0 = 5E-2                        # Length scaling factor used to calculate the tensile strength [m]
 gravitational_pressure = 0        #Placeholder! [Pa]
-surface_reduction_factor = 0.05
+surface_reduction_factor = 1
 #Thermal Properties
 temperature_ini = 77             # Start Temperature                      [K]
 sample_holder_starting_temp = 110  # Starting temperature of the sample holder [K]
 Input_Intensity = 6500             # Intensity of the Light Source (Sun)    [W/m^2]
 epsilon = 1                       # Emissivity                             [-]
-albedo = 0.75                  # Albedo                                 [-]
+albedo = 0.45                  # Albedo                                 [-]
 lambda_water_ice = 651            # thermal conductivity of water ice      [W/(m * T)], depending on T!
 lambda_co2_ice = 0.02             # thermal conductivity of water ice      [W/(m * K)], depending on T!
 lambda_sample_holder = 210        # thermal conductivity of aluminium, the sample holder material   [W/(m*K)]
@@ -79,7 +79,7 @@ r_H = 1                           # Lamp Distance                  		   [m]
 
 #Constants
 sigma = 5.67E-8                   # Stefan-Boltzmann Constant              [W/(m^2 K^4)]
-solar_constant = 1361             # Solar Constant                         [W/m^2]
+solar_constant = 1367             # Solar Constant                         [W/m^2]
 #solar_constant = 1600            # Solar Constant                         [W/m^2]
 k_boltzmann = 1.38E-23            # Boltzmann's Constant                   [m^2 kg / (s^2 K)]
 avogadro_constant = 6.022E23      # Avogadro constant                      [1/mol]

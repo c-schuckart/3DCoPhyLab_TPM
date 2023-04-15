@@ -4,6 +4,7 @@ from scipy import integrate
 import variables_and_arrays as var
 import constants as const
 import settings as sett
+from read_images import GCD, convolve
 
 
 '''
@@ -195,4 +196,20 @@ def get_energy_input_lamp(n_x, n_y, n_z, dx, dy, amplitude, sigma, temperature, 
 					#lamp_power[i][j][k] = np.average(twoD_gaussian(y, x, sigma, amplitude))
 
 	return lamp_power
+
+def get_L_chamber_lamp_power():
+       X=np.array([[-5,-4,-3,-2,-1,0,1,2,3,4,5],[-5,-4,-3,-2,-1,0,1,2,3,4,5],[-5,-4,-3,-2,-1,0,1,2,3,4,5],[-5,-4,-3,-2,-1,0,1,2,3,4,5],[-5,-4,-3,-2,-1,0,1,2,3,4,5],[-5,-4,-3,-2,-1,0,1,2,3,4,5],[-5,-4,-3,-2,-1,0,1,2,3,4,5],[-5,-4,-3,-2,-1,0,1,2,3,4,5],[-5,-4,-3,-2,-1,0,1,2,3,4,5],[-5,-4,-3,-2,-1,0,1,2,3,4,5],[-5,-4,-3,-2,-1,0,1,2,3,4,5]])
+       Y=np.array([[-5,-5,-5,-5,-5,-5,-5,-5,-5,-5,-5],[-4,-4,-4,-4,-4,-4,-4,-4,-4,-4,-4],[-3,-3,-3,-3,-3,-3,-3,-3,-3,-3,-3],[-2,-2,-2,-2,-2,-2,-2,-2,-2,-2,-2],[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1],[0,0,0,0,0,0,0,0,0,0,0],[1,1,1,1,1,1,1,1,1,1,1],[2,2,2,2,2,2,2,2,2,2,2],[3,3,3,3,3,3,3,3,3,3,3],[4,4,4,4,4,4,4,4,4,4,4],[5,5,5,5,5,5,5,5,5,5,5]])
+       Z=np.array([[0,0,5,10,10,20,10,5,5,0,0],[5,20,100,600,900,1200,900,600,100,20,5],[10,40,400,1900,2350,2500,2350,1900,400,40,10],[10,60,650,2200,2600,2800,2600,2200,650,60,10],[20,90,950,2400,3200,3300,3200,2400,950,90,20],[30,150,1200,2600,3400,3600,3400,2600,1200,150,30],[20,100,1000,2500,3300,3400,3300,2500,1000,100,20],[10,70,700,2400,2835,3000,2835,2400,720,55,10],[10,50,500,650,800,900,800,650,500,50,10],[5,40,50,70,100,150,100,70,50,40,5],[5,5,10,10,15,30,15,10,10,5,5]], dtype=np.float64)
+
+       Lamp_power_per_m2 = Z * 1/0.48
+       print(Lamp_power_per_m2*1/1367)
+       return Lamp_power_per_m2
+
+def calculate_L_chamber_lamp_bd(Volt):
+	Surface_powers = get_L_chamber_lamp_power() * 0.01**2 * S_chamber_cal_curve(Volt)/S_chamber_cal_curve(24)
+	ggT = GCD(len(Surface_powers[0]), const.n_x-2)
+	length = len(Surface_powers[0])//ggT
+	convolved = convolve(Surface_powers, length, const.n_x-2, len(Surface_powers[0]))[0]
+	return convolved
 
