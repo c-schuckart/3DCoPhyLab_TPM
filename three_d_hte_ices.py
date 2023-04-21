@@ -54,11 +54,10 @@ E_In_arr = var.E_In_arr
 #2023-02-15 20:45:41
 #time_deltas_data_surface, surface_temp = read_temperature_data(getPath(), '2023-02-15 16:45:00', '2023-02-15 17:45:02', [1], [])
 #max_k, surface_temp = transform_temperature_data(const.k, const.dt, np.array(time_deltas_data_surface), [], surface_temp)
-lamp_power = calculate_L_chamber_lamp_bd(15.33)
+lamp_power = calculate_L_chamber_lamp_bd(15.33, 'M', const.n_x, const.n_y, const.n_z)
 max_k = const.k
 time_deltas_data_interior, sample_holder_temp = read_temperature_data(getPath(), '2023-02-22 11:27:02', '2023-02-22 13:00:56', [6], [])
 max_k_2, sample_holder_temp = transform_temperature_data(const.k, const.dt, np.array(time_deltas_data_interior), [], sample_holder_temp)
-print(np.sum(time_deltas_data_interior))
 
 temperature_save = np.zeros((min(const.k, max_k, max_k_2)//sett.data_reduce + 1, const.n_z, const.n_y, const.n_x))
 sensor_10mm = np.zeros(min(const.k, max_k, max_k_2), dtype=np.float64)
@@ -130,13 +129,13 @@ temperature_save[len(temperature_save)-1] = temperature
 water_content_save[len(water_content_save)-1] = uniform_water_masses
 sublimated_mass_save[len(sublimated_mass_save)-1] = sublimated_mass
 #data_save(temperature_save, water_content_save, outgassing_rate, sublimated_mass_save, 'D:/Masterarbeit_data/' + 'Albedo_' + str(albedo) + '_just_surface_area')
-data_save(np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64), water_content_save, outgassing_rate, sublimated_mass_save,'D:/Masterarbeit_data/' + 'Albedo_' + str(const.albedo) + '_just_surface_area')
+data_save(np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64), water_content_save, outgassing_rate, sublimated_mass_save,'D:/Masterarbeit_data/' + 'Albedo_' + str(const.albedo) + '_lamp_test')
 #print('Albedo: ' + str(albedo) + '\n Outgassed mass: ')
 #print(np.sum([outgassing_rate[b] * const.dt for b in range(len(outgassing_rate))]))
 #if np.sum([outgassing_rate[b] * const.dt for b in range(len(outgassing_rate))]) < 0.006E-3:
     #fac = -1
 #print(sensor_10mm[1000:1100])
-data_save_sensors(temperature_save, sensor_10mm, sensor_20mm, sensor_35mm, sensor_55mm, sensor_90mm, 'D:/Masterarbeit_data/3D_temps_230K_test', 'D:/Masterarbeit_data/sensor_temp_230K_test')
+data_save_sensors(temperature_save, sensor_10mm, sensor_20mm, sensor_35mm, sensor_55mm, sensor_90mm, 'D:/Masterarbeit_data/3D_temps_lamp_test', 'D:/Masterarbeit_data/sensor_temp_lamp_test')
 '''data_dict = {'Temperature': tempera ture_save.tolist(), 'Surface': surface.tolist(), 'RSurface': surface_reduced.tolist(), 'HC': Lambda.tolist(), 'SH': sample_holder.tolist()}
 with open('test_gran.json', 'w') as outfile:
     json.dump(data_dict, outfile)

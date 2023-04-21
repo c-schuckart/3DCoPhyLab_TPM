@@ -87,7 +87,7 @@ def energy_input(r_H, albedo, dt, input_energy, sigma, epsilon, temperature, Lam
 		E_Cond_y_neg = Lambda[each[2]][each[1]][each[0]][3] * (temperature[each[2]][each[1] - 1][each[0]] - temperature[each[2]][each[1]][each[0]]) / Dr[each[2]][each[1]][each[0]][3] * dt * dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (1 - surface[each[2]][each[1]][each[0]][3])
 		E_Cond_x_pos = Lambda[each[2]][each[1]][each[0]][4] * (temperature[each[2]][each[1]][each[0] + 1] - temperature[each[2]][each[1]][each[0]]) / Dr[each[2]][each[1]][each[0]][4] * dt * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (1 - surface[each[2]][each[1]][each[0]][4])
 		E_Cond_x_neg = Lambda[each[2]][each[1]][each[0]][5] * (temperature[each[2]][each[1]][each[0] - 1] - temperature[each[2]][each[1]][each[0]]) / Dr[each[2]][each[1]][each[0]][5] * dt * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (1 - surface[each[2]][each[1]][each[0]][5])
-		E_Lat = - (sublimated_mass[each[2]][each[1]][each[0]] - resublimated_mass[each[2]][each[1]][each[0]]) * latent_heat_water[each[2]][each[1]][each[0]] * dt
+		E_Lat = - (sublimated_mass[each[2]][each[1]][each[0]] - resublimated_mass[each[2]][each[1]][each[0]]) * latent_heat_water[each[2]][each[1]][each[0]]
 		#E_Lat = 0
 		E_Energy_Increase = E_In + E_Rad + E_Cond_z_pos + E_Cond_z_neg + E_Cond_y_pos + E_Cond_y_neg + E_Cond_x_pos + E_Cond_x_neg + E_Lat
 		delta_T_0[each[2]][each[1]][each[0]] = E_Energy_Increase / (heat_capacity[each[2]][each[1]][each[0]] * density[each[2]][each[1]][each[0]] * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]])
@@ -197,19 +197,32 @@ def get_energy_input_lamp(n_x, n_y, n_z, dx, dy, amplitude, sigma, temperature, 
 
 	return lamp_power
 
-def get_L_chamber_lamp_power():
-       X=np.array([[-5,-4,-3,-2,-1,0,1,2,3,4,5],[-5,-4,-3,-2,-1,0,1,2,3,4,5],[-5,-4,-3,-2,-1,0,1,2,3,4,5],[-5,-4,-3,-2,-1,0,1,2,3,4,5],[-5,-4,-3,-2,-1,0,1,2,3,4,5],[-5,-4,-3,-2,-1,0,1,2,3,4,5],[-5,-4,-3,-2,-1,0,1,2,3,4,5],[-5,-4,-3,-2,-1,0,1,2,3,4,5],[-5,-4,-3,-2,-1,0,1,2,3,4,5],[-5,-4,-3,-2,-1,0,1,2,3,4,5],[-5,-4,-3,-2,-1,0,1,2,3,4,5]])
-       Y=np.array([[-5,-5,-5,-5,-5,-5,-5,-5,-5,-5,-5],[-4,-4,-4,-4,-4,-4,-4,-4,-4,-4,-4],[-3,-3,-3,-3,-3,-3,-3,-3,-3,-3,-3],[-2,-2,-2,-2,-2,-2,-2,-2,-2,-2,-2],[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1],[0,0,0,0,0,0,0,0,0,0,0],[1,1,1,1,1,1,1,1,1,1,1],[2,2,2,2,2,2,2,2,2,2,2],[3,3,3,3,3,3,3,3,3,3,3],[4,4,4,4,4,4,4,4,4,4,4],[5,5,5,5,5,5,5,5,5,5,5]])
-       Z=np.array([[0,0,5,10,10,20,10,5,5,0,0],[5,20,100,600,900,1200,900,600,100,20,5],[10,40,400,1900,2350,2500,2350,1900,400,40,10],[10,60,650,2200,2600,2800,2600,2200,650,60,10],[20,90,950,2400,3200,3300,3200,2400,950,90,20],[30,150,1200,2600,3400,3600,3400,2600,1200,150,30],[20,100,1000,2500,3300,3400,3300,2500,1000,100,20],[10,70,700,2400,2835,3000,2835,2400,720,55,10],[10,50,500,650,800,900,800,650,500,50,10],[5,40,50,70,100,150,100,70,50,40,5],[5,5,10,10,15,30,15,10,10,5,5]], dtype=np.float64)
+def get_L_chamber_lamp_power(sample_holder):
+	X=np.array([[-5,-4,-3,-2,-1,0,1,2,3,4,5],[-5,-4,-3,-2,-1,0,1,2,3,4,5],[-5,-4,-3,-2,-1,0,1,2,3,4,5],[-5,-4,-3,-2,-1,0,1,2,3,4,5],[-5,-4,-3,-2,-1,0,1,2,3,4,5],[-5,-4,-3,-2,-1,0,1,2,3,4,5],[-5,-4,-3,-2,-1,0,1,2,3,4,5],[-5,-4,-3,-2,-1,0,1,2,3,4,5],[-5,-4,-3,-2,-1,0,1,2,3,4,5],[-5,-4,-3,-2,-1,0,1,2,3,4,5],[-5,-4,-3,-2,-1,0,1,2,3,4,5]])
+	Y=np.array([[-5,-5,-5,-5,-5,-5,-5,-5,-5,-5,-5],[-4,-4,-4,-4,-4,-4,-4,-4,-4,-4,-4],[-3,-3,-3,-3,-3,-3,-3,-3,-3,-3,-3],[-2,-2,-2,-2,-2,-2,-2,-2,-2,-2,-2],[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1],[0,0,0,0,0,0,0,0,0,0,0],[1,1,1,1,1,1,1,1,1,1,1],[2,2,2,2,2,2,2,2,2,2,2],[3,3,3,3,3,3,3,3,3,3,3],[4,4,4,4,4,4,4,4,4,4,4],[5,5,5,5,5,5,5,5,5,5,5]])
+	Z=np.array([[0,0,5,10,10,20,10,5,5,0,0],[5,20,100,600,900,1200,900,600,100,20,5],[10,40,400,1900,2350,2500,2350,1900,400,40,10],[10,60,650,2200,2600,2800,2600,2200,650,60,10],[20,90,950,2400,3200,3300,3200,2400,950,90,20],[30,150,1200,2600,3400,3600,3400,2600,1200,150,30],[20,100,1000,2500,3300,3400,3300,2500,1000,100,20],[10,70,700,2400,2835,3000,2835,2400,720,55,10],[10,50,500,650,800,900,800,650,500,50,10],[5,40,50,70,100,150,100,70,50,40,5],[5,5,10,10,15,30,15,10,10,5,5]], dtype=np.float64)
+	if sample_holder == 'M':
+		new_Z = np.zeros((15, 15), dtype=np.float64)
+		for i in range(1, 16):
+			for j in range(1, 16):
+				if i % 2 == 0 and j % 2 == 0:
+					new_Z[i-1][j-1] = Z[i//2 + 1][j//2 + 1]
+				if i % 2 == 1 and j % 2 == 0:
+					new_Z[i-1][j-1] = (Z[i//2 + 1][j//2 + 1] + Z[(i+1)//2 + 1][j//2 + 1])/2
+				if i % 2 == 0 and j % 2 == 1:
+					new_Z[i-1][j-1] = (Z[i//2 + 1][j//2 + 1] + Z[i//2 + 1][(j+1)//2 + 1])/2
+				if i % 2 == 1 and j % 2 == 1:
+					new_Z[i-1][j-1] = (Z[i // 2 + 1][j // 2 + 1] + Z[i // 2 + 1][(j + 1) // 2 + 1] + Z[(i+1) // 2 + 1][j // 2 + 1] + Z[(i+1) // 2 + 1][(j + 1) // 2 + 1]) / 4
+		Z = new_Z
+	Lamp_power_per_m2 = Z * 1/0.48
+	return Lamp_power_per_m2
 
-       Lamp_power_per_m2 = Z * 1/0.48
-       print(Lamp_power_per_m2*1/1367)
-       return Lamp_power_per_m2
-
-def calculate_L_chamber_lamp_bd(Volt):
-	Surface_powers = get_L_chamber_lamp_power() * 0.01**2 * S_chamber_cal_curve(Volt)/S_chamber_cal_curve(24)
+def calculate_L_chamber_lamp_bd(Volt, sample_holder, n_x, n_y, n_z):
+	Surface_powers = get_L_chamber_lamp_power(sample_holder) * 0.01**2 * S_chamber_cal_curve(Volt)/S_chamber_cal_curve(24)
 	ggT = GCD(len(Surface_powers[0]), const.n_x-2)
 	length = len(Surface_powers[0])//ggT
 	convolved = convolve(Surface_powers, length, const.n_x-2, len(Surface_powers[0]))[0]
-	return convolved
+	lamp_energy = np.zeros((n_z, n_y, n_x), dtype=np.float64)
+	lamp_energy[:] = convolved
+	return lamp_energy
 

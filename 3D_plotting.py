@@ -47,7 +47,7 @@ with open(getPath()) as json_file:
     data_vis = json.load(json_file)
 
 sample = plot_3D(np.array(data_vis['Temperature'][len(data_vis['Temperature'])-1]))
-print(np.sum([data_vis['Outgassing rate'][b] * const.dt for b in range(len(data_vis['Outgassing rate']))]))
+#print(np.sum([data_vis['Outgassing rate'][b] * const.dt for b in range(len(data_vis['Outgassing rate']))]))
 for i in range(0, const.n_z):
     if data_vis['Temperature'][len(data_vis['Temperature'])-1][i][const.n_y//2][const.n_x//2] > 0:
         print(i-1)
