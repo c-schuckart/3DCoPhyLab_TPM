@@ -24,3 +24,7 @@ VFF_pack = np.full((const.n_z, const.n_y, const.n_x), const.VFF_pack_const, dtyp
 n_z_lr = np.array([-1, 1, 0, 0, 0, 0], dtype=np.int32)
 n_y_lr = np.array([0, 0, 1, -1, 0, 0], dtype=np.int32)
 n_x_lr = np.array([0, 0, 0, 0, 1, -1], dtype=np.int32)
+R = const.r_mono/2
+K = 3/4*np.pi*2*(1 - const.poisson_ratio_par**2)/(np.pi * const.young_modulus_par)
+P = np.pi*R*const.surface_energy_par
+r_n = np.full((const.n_z, const.n_y, const.n_x, R*K*(P + 3*const.surface_energy_par*np.pi*R + np.sqrt(6*const.surface_energy_par*np.pi*R*P + (3*const.surface_energy_par*np.pi*R)**2))), dtype=np.float64)
