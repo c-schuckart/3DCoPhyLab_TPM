@@ -257,10 +257,13 @@ def calculate_molecule_surface(n_x, n_y, n_z, temperature, pressure, a_1, b_1, c
 
 @njit
 def sinter_neck_calculation(r_n, dt, temperature, a_1, b_1, c_1, d_1, omega, surface_energy, R_gas, r_grain, alpha, m_mol, density, total_passed_time, pressure):
-    p_sub = 10 ** (a_1[0] + b_1[0] / temperature + c_1[0] * np.log10(temperature) + d_1[0] * temperature)
-    Z = (p_sub - pressure) * np.sqrt(1/(2 * np.pi * m_mol * R_gas * temperature))
-    r_p = r_grain - (r_grain/(r_grain - 2 * m_mol * surface_energy / (density * R_gas * temperature))) * Z * total_passed_time / density
-    delta = r_n ** 2 / (2 * (r_p - r_n))
-    d_s = r_grain * (alpha/2 + np.arctan(r_grain/(r_n + delta)) - np.pi/2)
-    r_n = r_n + dt * (omega**2 * surface_energy * p_sub)/(R_gas * temperature) * d_s / (d_s + delta * np.arctan(r_grain/(r_n + delta))) * (2/r_p + 1/delta - 1/r_n)
-    return r_n
+    #p_sub = 10 ** (a_1[0] + b_1[0] / temperature + c_1[0] * np.log10(temperature) + d_1[0] * temperature)
+    #print(omega, surface_energy, r_grain, alpha, total_passed_time)
+    p_sub = 3.23E12 * np.exp(-6134.6/temperature)
+    Z = (p_sub - pressure) * (1/np.sqrt(2 * np.pi * m_mol * R_gas * temperature))
+    r_p = r_grain - (r_grain/(r_grain - (2 * m_mol * surface_energy / (density * R_gas * temperature)))) * Z * m_mol * total_passed_time / density
+    delta = r_n**2 / (2 * (r_p - r_n))
+    d_s = r_p * (alpha/2 + np.arctan(r_p/(r_n + delta)) - np.pi/2)
+    rate = ((omega**2 * surface_energy * p_sub)/(R_gas * temperature) * 1/np.sqrt(2*np.pi * m_mol * R_gas * temperature) * d_s / (d_s + delta * np.arctan(r_grain/(r_n + delta))) * (2/r_p + 1/delta - 1/r_n) - Z/density * m_mol)
+    r_n = r_n + dt * rate
+    return r_n, rate, r_p
