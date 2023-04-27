@@ -3,6 +3,7 @@ from numba import jit, njit, prange
 #import main
 import constants as const
 import variables_and_arrays as var
+from scipy.linalg import solve
 
 
 '''
@@ -161,68 +162,27 @@ def calculate_molecule_flux_diag(n_x, n_y, n_z, temperature, pressure, a_1, b_1,
         outgassed_mass += sublimated_mass[each[2]][each[1]][each[0]]
         p_sub[each[2]][each[1]][each[0]] = 0
     mass_flux = np.zeros(np.shape(sublimated_mass), dtype=np.float64)
+    j = n_y//2
+    k = n_x//2
+    matrix = np.zeros((n_z, n_z), dtype=np.float64)
+    pressures_z = np.zeros(n_z, dtype=np.float64)
     for i in prange(1, n_z-1):
-        for j in range(1, n_y-1):
-            for k in range(1, n_x-1):
-                if temperature[i][j][k] > 0 and sample_holder[i][j][k] != 1:
-                    empty = False
-                    if sublimated_mass[i][j][k] > water_mass_per_layer[i][j][k]:
-                        sublimated_mass[i][j][k] = water_mass_per_layer[i][j][k]
-                        empty_voxels = np.append(empty_voxels, np.array([k, j, i], dtype=np.int32))
-                        empty = True
-                    diff_z = (1 - VFF[i][j][k]) * np.sqrt(1/(2 * np.pi * mol_mass[0] * R_gas * (temperature[i-1][j][k] + temperature[i][j][k])/2)) * (p_sub[i-1][j][k] - p_sub[i][j][k])/(1 + 3 * (1 - (1 - VFF[i][j][k]))/(2 * (1 - VFF[i][j][k]) * r_grain) * Phi * tortuosity * Dr[i][j][k][0] / 4)
-                    diff_y = (1 - VFF[i][j][k]) * np.sqrt(1/(2 * np.pi * mol_mass[0] * R_gas * (temperature[i][j-1][k] + temperature[i][j][k])/2)) * (p_sub[i][j-1][k] - p_sub[i][j][k])/(1 + 3 * (1 - (1 - VFF[i][j][k]))/(2 * (1 - VFF[i][j][k]) * r_grain) * Phi * tortuosity * Dr[i][j][k][2] / 4)
-                    diff_x = (1 - VFF[i][j][k]) * np.sqrt(1/(2 * np.pi * mol_mass[0] * R_gas * (temperature[i][j][k-1] + temperature[i][j][k])/2)) * (p_sub[i][j][k-1] - p_sub[i][j][k])/(1 + 3 * (1 - (1 - VFF[i][j][k]))/(2 * (1 - VFF[i][j][k]) * r_grain) * Phi * tortuosity * Dr[i][j][k][4] / 4)
-                    #print(i, j, k)
-                    #print(sample_holder[i-1:i+2][j][k])
-                    #print(sample_holder[i][j][k], sample_holder[i][j-1][k], sample_holder[i][j+1][k])
-                    #print(sample_holder[1][j-1:j+2][:])
-                    if np.sum(np.array([sample_holder[i-1][j][k], sample_holder[i][j][k], sample_holder[i+1][j][k]])) != 0:
-                        diff_z = 0
-                    if np.sum(np.array([sample_holder[i][j-1][k], sample_holder[i][j][k], sample_holder[i][j+1][k]])) != 0:
-                        diff_y = 0
-                    if np.sum(np.array([sample_holder[i][j][k-1], sample_holder[i][j][k], sample_holder[i][j][k+1]])) != 0:
-                        diff_x = 0
-                    mass_flux[i-1][j][k] -= diff_z
-                    mass_flux[i+1][j][k] += diff_z
-                    mass_flux[i][j-1][k] -= diff_y
-                    mass_flux[i][j+1][k] += diff_y
-                    mass_flux[i][j][k-1] -= diff_x
-                    mass_flux[i][j][k+1] += diff_x
-                    if temperature[i-1][j][k] > temperature[i][j][k] and diff_z > 0 and not empty:
-                        resublimated_mass[i][j][k] += diff_z
-                        mass_flux[i-1][j][k] = 0
-                    elif temperature[i+1][j][k] > temperature[i][j][k] and diff_z < 0 and not empty:
-                        resublimated_mass[i][j][k] -= diff_z
-                        mass_flux[i+1][j][k] = 0
-                    if temperature[i][j-1][k] > temperature[i][j][k] and diff_y > 0 and not empty:
-                        resublimated_mass[i][j][k] += diff_y
-                        mass_flux[i][j-1][k] = 0
-                    elif temperature[i][j+1][k] > temperature[i][j][k] and diff_y < 0 and not empty:
-                        resublimated_mass[i][j][k] -= diff_y
-                        mass_flux[i][j+1][k] = 0
-                    if temperature[i][j][k-1] > temperature[i][j][k] and diff_x > 0 and not empty:
-                        resublimated_mass[i][j][k] += diff_x
-                        mass_flux[i][j][k-1] = 0
-                    elif temperature[i][j][k+1] > temperature[i][j][k] and diff_x < 0 and not empty:
-                        resublimated_mass[i][j][k] -= diff_x
-                        mass_flux[i][j][k+1] = 0
-                    for a in range(0, 6):
-                        if temperature[i + n_z_lr[a]][j + n_y_lr[a]][k + n_x_lr[a]] == 0:
-                            outgassed_mass += mass_flux[i + n_z_lr[a]][j + n_y_lr[a]][k + n_x_lr[a]]
-                        else:
-                            p_sub[i + n_z_lr[a]][j + n_y_lr[a]][k + n_x_lr[a]] += mass_flux[i + n_z_lr[a]][j + n_y_lr[a]][k + n_x_lr[a]] * dt * mol_mass[0] / avogadro_constant * k_B * temperature[i + n_z_lr[a]][j + n_y_lr[a]][k + n_x_lr[a]] / Dr[a]
-                    '''p_sub[i+1][j][k] += mass_flux[i+1][j][k] * dt * mol_mass[0] / avogadro_constant * k_B * temperature[i+1][j][k] / dz[i+1][j][k]
-                    p_sub[i][j-1][k] += mass_flux[i][j-1][k] * dt * mol_mass[0] / avogadro_constant * k_B * temperature[i][j-1][k] / dy[i][j-1][k]
-                    p_sub[i][j+1][k] += mass_flux[i][j+1][k] * dt * mol_mass[0] / avogadro_constant * k_B * temperature[i][j+1][k] / dy[i][j+1][k]
-                    p_sub[i][j][k-1] += mass_flux[i][j][k-1] * dt * mol_mass[0] / avogadro_constant * k_B * temperature[i][j][k-1] / dx[i][j][k-1]
-                    p_sub[i][j][k+1] += mass_flux[i][j][k+1] * dt * mol_mass[0] / avogadro_constant * k_B * temperature[i][j][k+1] / dx[i][j][k+1]'''
-    '''for each in surrounding_surface:
-        #This should always be >= 1 since p_surface is set to 0
-        outgassed_mass += max(mass_flux[each[2]][each[1]][each[0]], 0)
-        p_sub[each[2]][each[1]][each[0]] = 0'''
+        if temperature[i][j][k] > 0 and sample_holder[i][j][k] != 1:
+            empty = False
+            if sublimated_mass[i][j][k] > water_mass_per_layer[i][j][k]:
+                sublimated_mass[i][j][k] = water_mass_per_layer[i][j][k]
+                empty_voxels = np.append(empty_voxels, np.array([k, j, i], dtype=np.int32))
+                empty = True
+            alpha_top = (1 - VFF[i][j][k]) * np.sqrt(1/(2 * np.pi * mol_mass[0] * R_gas * (temperature[i-1][j][k] + temperature[i][j][k])/2)) / (1 + 3 * (1 - (1 - VFF[i][j][k]))/(2 * (1 - VFF[i][j][k]) * r_grain) * Phi * tortuosity * Dr[i][j][k][0] / 4)
+            alpha_bottom = (1 - VFF[i][j][k]) * np.sqrt(1/(2 * np.pi * mol_mass[0] * R_gas * (temperature[i+1][j][k] + temperature[i][j][k])/2)) / (1 + 3 * (1 - (1 - VFF[i][j][k]))/(2 * (1 - VFF[i][j][k]) * r_grain) * Phi * tortuosity * Dr[i][j][k][1] / 4)
+            matrix[i][i] = (alpha_bottom - alpha_top)
+            matrix[i][i+1] = alpha_top
+            matrix[i][i-1] = alpha_bottom
+            pressures_z[i] = p_sub[i]
+    pressures_result = solve(matrix, pressures_z)
 
-    pressure = p_sub
+
+    #pressure = p_sub
     #Non 100% resublimation missing
 
     return sublimated_mass, resublimated_mass, pressure, outgassed_mass/dt, empty_voxels, mass_flux
@@ -255,6 +215,38 @@ def calculate_molecule_surface(n_x, n_y, n_z, temperature, pressure, a_1, b_1, c
     return sublimated_mass, resublimated_mass, pressure, outgassed_mass/dt, empty_voxels[0:empty_voxel_count]
 
 
+def diffusion_paramters(a_1, b_1, c_1, d_1, temperature):
+    for i in prange(1, n_z-1):
+        for j in range(1, n_y-1):
+            for k in range(1, n_x-1):
+                p_sub[i][j][k] = 10 ** (a_1[0] + b_1[0] / temperature[i][j][k] + c_1[0] * np.log10(temperature[i][j][k]) + d_1[0] * temperature[i][j][k])
+                '''Permeability needs to be an interface parameter like Lambda. And look up calculation of D from k_m0'''
+                permeability = 1/np.sqrt(2 * np.pi * m_mol * R_gas * temperature[i][j][k]) * (1 - VFF)**2 * r_mono/(3 * (1 - (1 - VFF))) * 4 / (Phi * q)
+
+@njit(parallel=True)
+def de_calculate(n_x, n_y, n_z, surface, delta_p_0, gas_mass, temperature, p_sub, Diffusion_coefficient, Dr, dx, dy, dz, dt, pressure, m_H2O, k_Boltzmann, VFF, r_mono):
+    delta_p = np.zeros((n_z, n_y, n_x), dtype=np.float64) + delta_p_0
+    Energy_Increase_per_Layer = np.zeros((n_z, n_y, n_x), dtype=np.float64)
+    Latent_Heat_per_Layer = np.zeros((n_z, n_y, n_x), dtype=np.float64)
+    Fourier_number = np.zeros((n_z, n_y, n_x), dtype=np.float64)
+    for i in prange(1, n_z-1):
+        for j in range(1, n_y-1):
+            for k in range(1, n_x-1):
+                if np.sum(surface[i][j][k]) == 0 and gas_mass[i][j][k] > 0:
+                    # Standard Thermal Diffusivity Equation 3D explicit
+                    delta_p[i][j][k] = ((((gas_mass[i][j][k + 1] - gas_mass[i][j][k]) * Diffusion_coefficient[i][j][k][4] / (Dr[i][j][k][4])) - ((gas_mass[i][j][k] - gas_mass[i][j][k - 1]) * Diffusion_coefficient[i][j][k][5] / (Dr[i][j][k][5]))) / dx[i][j][k]) * dt + \
+                                       ((((gas_mass[i][j + 1][k] - gas_mass[i][j][k]) * Diffusion_coefficient[i][j][k][2] / (Dr[i][j][k][2]))
+                                         - ((gas_mass[i][j][k] - gas_mass[i][j - 1][k]) * Diffusion_coefficient[i][j][k][3] / (
+                                               Dr[i][j][k][3]))) / dy[i][j][k]) * dt + \
+                                       ((((gas_mass[i + 1][j][k] - gas_mass[i][j][k]) * Diffusion_coefficient[i][j][k][0] / (Dr[i][j][k][0]))
+                                         - ((gas_mass[i][j][k] - gas_mass[i - 1][j][k]) * Diffusion_coefficient[i][j][k][1] / (
+                                               Dr[i][j][k][1]))) / dz[i][j][k]) * dt + (p_sub[i][j][k] - pressure[i][j][k]) * np.sqrt(m_H2O/(2 * np.pi * k_Boltzmann * temperature[i][j][k]) * 3 * VFF/r_mono * dx[i][j][k] * dy[i][j][k] * dz[i][j][k])
+                    #Fourier_number[i][j][k] = np.max(Lambda[i][j][k]) / (density[i][j][k] * heat_capacity[i][j][k]) * dt * (1 / dx[i][j][k] ** 2 + 1 / dy[i][j][k] ** 2 + 1 / dz[i][j][k] ** 2)# [-]
+                    #Latent_Heat_per_Layer[i] = - (j_leave[i] - j_inward[i]) * latent_heat_water * dt - (j_leave_co2[i] - j_inward_co2[i]) * latent_heat_co2 * dt
+                    #Energy_Increase_per_Layer[i][j][k] = heat_capacity[i][j][k] * density[i][j][k] * dx[i][j][k] * dy[i][j][k] * dz[i][j][k] * delta_T[i][j][k]  # [J]
+    return delta_p, Energy_Increase_per_Layer, Latent_Heat_per_Layer, np.max(Fourier_number)
+
+
 @njit
 def sinter_neck_calculation(r_n, dt, temperature, a_1, b_1, c_1, d_1, omega, surface_energy, R_gas, r_grain, alpha, m_mol, density, total_passed_time, pressure):
     #p_sub = 10 ** (a_1[0] + b_1[0] / temperature + c_1[0] * np.log10(temperature) + d_1[0] * temperature)
@@ -262,8 +254,9 @@ def sinter_neck_calculation(r_n, dt, temperature, a_1, b_1, c_1, d_1, omega, sur
     p_sub = 3.23E12 * np.exp(-6134.6/temperature)
     Z = (p_sub - pressure) * (1/np.sqrt(2 * np.pi * m_mol * R_gas * temperature))
     r_p = r_grain - (r_grain/(r_grain - (2 * m_mol * surface_energy / (density * R_gas * temperature)))) * Z * m_mol * total_passed_time / density
+    r_g = r_grain
     delta = r_n**2 / (2 * (r_p - r_n))
-    d_s = r_p * (alpha/2 + np.arctan(r_p/(r_n + delta)) - np.pi/2)
-    rate = ((omega**2 * surface_energy * p_sub)/(R_gas * temperature) * 1/np.sqrt(2*np.pi * m_mol * R_gas * temperature) * d_s / (d_s + delta * np.arctan(r_grain/(r_n + delta))) * (2/r_p + 1/delta - 1/r_n) - Z/density * m_mol)
+    d_s = r_g * (alpha/2 + np.arctan(r_g/(r_n + delta)) - np.pi/2)
+    rate = ((omega**2 * surface_energy * p_sub)/(R_gas * temperature) * 1/np.sqrt(2*np.pi * m_mol * R_gas * temperature) * d_s / (d_s + delta * np.arctan(r_g/(r_n + delta))) * (2/r_p + 1/delta - 1/r_n) - Z/density * m_mol)
     r_n = r_n + dt * rate
     return r_n, rate, r_p

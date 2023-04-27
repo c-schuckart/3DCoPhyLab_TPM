@@ -100,42 +100,47 @@ plt.show()
 #plt.savefig('Constant_lambda_test_sand_' + str(const.lambda_sand) + '.png', dpi=600)
 #plt.savefig(path, dpi=600)
 '''
-with open('D:/Masterarbeit_data/Albedo_0.45_lamp_test.json') as json_file:
-    data_outgassing = json.load(json_file)
+albedos = [567, 325.5, 162.75]
+for Lambda in albedos:
+    with open('D:/Masterarbeit_data/L_chamber_albedo/Albedo_0.80_Lambda_wi_' + str(Lambda) + '_lamp_test.json') as json_file:
+        data_outgassing = json.load(json_file)
 
-outgassed_mass = np.sum(data_outgassing['Outgassing rate'])*const.dt/1.565*1000
-json_file.close()
+    outgassed_mass = np.sum(data_outgassing['Outgassing rate'])*const.dt/1.565*1000
+    json_file.close()
 
-data = np.genfromtxt("D:/Masterarbeit_data/sensor_temp_lamp_test.csv", delimiter=",")
-time_sim = [const.dt * i for i in range(0, 1124800)]
+    data = np.genfromtxt('D:/Masterarbeit_data/L_chamber_albedo/sensor_temp_lamp_test_albedo_0.80_Lambda_wi' + str(Lambda) +  '.csv', delimiter=",")
+    time_sim = [const.dt * i for i in range(0, 1124800)]
 
-time_deltas_data_interior, temp_10mm, temp_20mm, temp_35mm, temp_55mm, temp_90mm = read_temperature_data('C:/Users/Christian/Downloads/temps_ice.txt', '2023-02-22 11:27:02', '2023-02-22 13:00:56', [1, 2, 3, 4, 5], [], [], [], [], [])
-time_data = [np.sum(time_deltas_data_interior[0:i+1]).astype(int) for i in range(len(time_deltas_data_interior)-1)]
+    time_deltas_data_interior, temp_10mm, temp_20mm, temp_35mm, temp_55mm, temp_90mm = read_temperature_data('D:/Laboratoy_data/temps_ice.txt', '2023-02-22 11:27:02', '2023-02-22 13:00:56', [1, 2, 3, 4, 5], [], [], [], [], [])
+    time_data = [np.sum(time_deltas_data_interior[0:i+1]).astype(int) for i in range(len(time_deltas_data_interior)-1)]
 
-print(len(time_data), len(temp_10mm))
-plt.xlabel('Time (s)')
-plt.ylabel('Temperature (K)')
-plt.tick_params(axis='x', which='both', direction='in', top=True, labeltop=False)
-plt.tick_params(axis='y', which='both', direction='in', right=True, labelright=False)
-plt.scatter(time_data, temp_10mm[:-1], label='10mm sensor', s=1, color='black')
-plt.scatter(time_data, temp_20mm[:-1], label='20mm sensor', s=1, color='black', marker='x')
-plt.scatter(time_data, temp_35mm[:-1], label='35mm sensor', s=1, color='black', marker='d')
-plt.scatter(time_data, temp_55mm[:-1], label='55mm sensor', s=1, color='black', marker='+')
-plt.scatter(time_data, temp_90mm[:-1], label='90mm sensor', s=1, color='black', marker='1')
-plt.plot(time_sim, data[0], label='10mm simulation')
-plt.plot(time_sim, data[1], label='20mm simulation')
-plt.plot(time_sim, data[2], label='35mm simulation')
-plt.plot(time_sim, data[3], label='55mm simulation')
-plt.plot(time_sim, data[4], label='90mm simulation')
-#plt.xlim(6000, 6200)
-#plt.title('Lambda linear ' + str(const.lambda_a) + '*T + ' + str(const.lambda_b))
-#plt.title('Lambda constant = ' + str(const.lambda_constant) + r', $b_{\eta}$ = ' + str(const.b)
-plt.title('Albdeo: 0.45 - Outgassed mass: ' + str(round(outgassed_mass, 3)) + ' g/h')
-plt.legend()
-#plt.show()
-plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Plots/Albedo_0.45_ice_block.png', dpi=600)
-#plt.savefig('C:/Users/Christian Schuckart/Documents/Masterarbeit/Plots/Sand_surface_1D_TPM.png', dpi=600)
-#plt.savefig('linear_lambda_test_sand_' + str(const.lambda_a) + 'T + ' + str(const.lambda_b) + '.png', dpi=600)
+    print(len(time_data), len(temp_10mm))
+    plt.xlabel('Time (s)')
+    plt.ylabel('Temperature (K)')
+    plt.tick_params(axis='x', which='both', direction='in', top=True, labeltop=False)
+    plt.tick_params(axis='y', which='both', direction='in', right=True, labelright=False)
+    plt.scatter(time_data, temp_10mm[:-1], label='10mm sensor', s=1, color='black')
+    plt.scatter(time_data, temp_20mm[:-1], label='20mm sensor', s=1, color='black', marker='x')
+    plt.scatter(time_data, temp_35mm[:-1], label='35mm sensor', s=1, color='black', marker='d')
+    plt.scatter(time_data, temp_55mm[:-1], label='55mm sensor', s=1, color='black', marker='+')
+    plt.scatter(time_data, temp_90mm[:-1], label='90mm sensor', s=1, color='black', marker='1')
+    plt.plot(time_sim, data[0], label='10mm simulation')
+    plt.plot(time_sim, data[1], label='20mm simulation')
+    plt.plot(time_sim, data[2], label='35mm simulation')
+    plt.plot(time_sim, data[3], label='55mm simulation')
+    plt.plot(time_sim, data[4], label='90mm simulation')
+    #plt.xlim(6000, 6200)
+    plt.ylim(65, 220)
+    #plt.title('Lambda linear ' + str(const.lambda_a) + '*T + ' + str(const.lambda_b))
+    #plt.title('Lambda constant = ' + str(const.lambda_constant) + r', $b_{\eta}$ = ' + str(const.b)
+    plt.title('Albedo: 0.8 - Lambda: ' + str(Lambda) + '/T - Outgassed mass: ' + str(round(outgassed_mass, 3)) + ' g/h')
+    plt.legend()
+    #plt.show()
+    plt.savefig('C:/Users/Christian Schuckart/Documents/Masterarbeit/Plots/Albedo_0.80_Lambda_wi_' + str(Lambda) + '_ice_block.png', dpi=600)
+    plt.clf()
+    #plt.savefig('C:/Users/Christian Schuckart/Documents/Masterarbeit/Plots/Sand_surface_1D_TPM.png', dpi=600)
+    #plt.savefig('linear_lambda_test_sand_' + str(const.lambda_a) + 'T + ' + str(const.lambda_b) + '.png', dpi=600)
+
 
 '''path_list_1 = ['D:/Masterarbeit_data/Albedo_0.9_lambda_scale_1_VFF_0.62.json', 'D:/Masterarbeit_data/Albedo_0.9_lambda_scale_2_VFF_0.62.json']
 path_list_2 = ['D:/Masterarbeit_data/Albedo_0.85_lambda_scale_1_VFF_0.62.json', 'D:/Masterarbeit_data/Albedo_0.85_lambda_scale_2_VFF_0.62.json']

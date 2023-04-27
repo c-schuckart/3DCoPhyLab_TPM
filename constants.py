@@ -69,6 +69,7 @@ Input_Intensity = 6500             # Intensity of the Light Source (Sun)    [W/m
 epsilon = 1                       # Emissivity                             [-]
 albedo = 0.80                  # Albedo                                 [-]
 lambda_water_ice = 651            # thermal conductivity of water ice      [W/(m * T)], depending on T!
+#lambda_water_ice = 567
 lambda_co2_ice = 0.02             # thermal conductivity of water ice      [W/(m * K)], depending on T!
 lambda_sample_holder = 210        # thermal conductivity of aluminium, the sample holder material   [W/(m*K)]
 lambda_sand = 0.25
