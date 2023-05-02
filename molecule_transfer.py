@@ -215,13 +215,20 @@ def calculate_molecule_surface(n_x, n_y, n_z, temperature, pressure, a_1, b_1, c
     return sublimated_mass, resublimated_mass, pressure, outgassed_mass/dt, empty_voxels[0:empty_voxel_count]
 
 
-def diffusion_paramters(a_1, b_1, c_1, d_1, temperature):
+@njit
+def diffusion_parameters(n_x, n_y, n_z, a_1, b_1, c_1, d_1, temperature, temps, m_mol, R_gas, VFF, r_mono, Phi, q, pressure, m_H2O, k_B, dx, dy, dz, dt):
+    diffusion_coefficient = np.zeros((n_z, n_y, n_x, 6), dtype=np.float64)
+    p_sub = np.zeros((n_z, n_y, n_x), dtype=np.float64)
     for i in prange(1, n_z-1):
         for j in range(1, n_y-1):
             for k in range(1, n_x-1):
                 p_sub[i][j][k] = 10 ** (a_1[0] + b_1[0] / temperature[i][j][k] + c_1[0] * np.log10(temperature[i][j][k]) + d_1[0] * temperature[i][j][k])
-                '''Permeability needs to be an interface parameter like Lambda. And look up calculation of D from k_m0'''
-                permeability = 1/np.sqrt(2 * np.pi * m_mol * R_gas * temperature[i][j][k]) * (1 - VFF)**2 * r_mono/(3 * (1 - (1 - VFF))) * 4 / (Phi * q)
+                #gas_mass[i][j][k] = (p_sub[i][j][k] - pressure[i][j][k]) * np.sqrt(m_H2O / (2 * np.pi * k_B * temperature[i][j][k])) * (3 * VFF[i][j][k] / r_mono * dx[i][j][k] * dy[i][j][k] * dz[i][j][k]) * dt
+                '''Permeability needs to be an interface parameter like Lambda, so VFF needs also be calculated on the interface. r_mono should be r_p from sintering. And look up calculation of D from k_m0'''
+                for a in range(len(temps)):
+                    #diff_coeff = permeability * (porosity/(R*T))**-1
+                    diffusion_coefficient[i][j][k][a] = ((1 - VFF[i][j][k])/(R_gas * temps[a]))**(-1) * 1/np.sqrt(2 * np.pi * m_mol * R_gas * temps[a]) * (1 - VFF[i][j][k])**2 * r_mono/(3 * (1 - (1 - VFF[i][j][k]))) * 4 / (Phi * q)
+    return diffusion_coefficient, p_sub#, gas_mass
 
 @njit(parallel=True)
 def de_calculate(n_x, n_y, n_z, surface, delta_p_0, gas_mass, temperature, p_sub, Diffusion_coefficient, Dr, dx, dy, dz, dt, pressure, m_H2O, k_Boltzmann, VFF, r_mono):
@@ -260,3 +267,8 @@ def sinter_neck_calculation(r_n, dt, temperature, a_1, b_1, c_1, d_1, omega, sur
     rate = ((omega**2 * surface_energy * p_sub)/(R_gas * temperature) * 1/np.sqrt(2*np.pi * m_mol * R_gas * temperature) * d_s / (d_s + delta * np.arctan(r_g/(r_n + delta))) * (2/r_p + 1/delta - 1/r_n) - Z/density * m_mol)
     r_n = r_n + dt * rate
     return r_n, rate, r_p
+
+
+@njit
+def gas_mass_function(T, pressure, VFF, dx, dy, dz, target_mass):
+    return ((10 ** (const.lh_a_1[0] + const.lh_b_1[0] / T + const.lh_c_1[0] * np.log10(T) + const.lh_d_1[0] * T)) - pressure) * np.sqrt(const.m_H2O / (2 * np.pi * const.k_boltzmann * T)) * (3 * VFF / const.r_mono * dx * dy * dz) * const.dt - target_mass

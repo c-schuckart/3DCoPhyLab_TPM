@@ -2,6 +2,8 @@ import numpy as np
 from numba import jit, njit, prange
 import variables_and_arrays as var
 import constants as const
+from scipy.optimize import brentq
+from molecule_transfer import gas_mass_function
 
 '''
 Numerical implementation of the heat transfer equation in a finite differences, forward time centered space, explicit scheme.
@@ -199,6 +201,55 @@ def update_thermal_arrays(n_x, n_y, n_z, temperature, uniform_water_mass,  delta
         heat_capacity[i] = heat_capacity_dust * (1 - dust_ice_ratio_per_layer[i]) + heat_capacity_water_ice * (
                     dust_ice_ratio_per_layer[i] * (1 - co2_h2o_ratio_per_layer[i])) + heat_capacity_co2_ice * (
                                        dust_ice_ratio_per_layer[i] * co2_h2o_ratio_per_layer[i])'''
+    Energy_Increase_Total_per_time_Step = np.sum(Energy_Increase_per_Layer)
+    E_conservation = Energy_Increase_Total_per_time_Step - E_Rad - Latent_Heat_per_time_step - E_In
+    # Set Energy Loss per Timestep = 0 -> Differential Counting of Energy Loss
+    return temperature_o, uniform_water_mass, heat_capacity, dust_ice_ratio_per_layer, co2_h2o_ratio_per_layer, E_conservation, Energy_Increase_Total_per_time_Step, E_Rad, Latent_Heat_per_time_step, E_In
+
+
+@njit(parallel=False)
+def update_thermal_arrays_diffusion(n_x, n_y, n_z, temperature, uniform_water_mass,  delta_T, Energy_Increase_per_Layer, sublimated_mass, resublimated_mass, dt, avogadro_constant, molar_mass_water, molar_mass_co2, heat_capacity, heat_capacity_water_ice, heat_capacity_co2_ice, EIpL_0, Latent_Heat_per_Layer, E_Lat_0, E_Rad, E_In, gas_mass, delta_gm):
+    temperature_o = temperature + delta_T
+    gas_mass = gas_mass + delta_gm
+    temperature_outgassing = np.zeros((n_z, n_y, n_x), dtype=np.float64)
+    Energy_Increase_per_Layer[0] = EIpL_0
+    Latent_Heat_per_Layer[0] = E_Lat_0
+    Energy_Increase_Total_per_time_Step = 0
+    Latent_Heat_per_time_step = 0
+    dust_ice_ratio_per_layer = 0
+    co2_h2o_ratio_per_layer = 0
+    uniform_water_mass = uniform_water_mass - sublimated_mass
+    '''for i in range(0, n + 1):
+        #temperature_o[i] = temperature[i] + delta_T[i]  # [K]
+        #print(temperature[i], delta_T[i], temperature_o[i])
+        Energy_Increase_Total_per_time_Step += Energy_Increase_per_Layer[i] * surface_area  # [J/m^2 * m^2]
+        Latent_Heat_per_time_step += Latent_Heat_per_Layer[i]
+        water_content_per_layer[i] += (j_inward[i] - j_leave[i]) * surface_area * dt / molar_mass_water * avogadro_constant
+        co2_content_per_layer[i] += (j_inward_co2[i] - j_leave_co2[i]) * surface_area * dt / molar_mass_co2 * avogadro_constant
+        outgassed_molecules_per_time_step += j_leave[i] / 2 * surface_area * dt / molar_mass_water * avogadro_constant
+        outgassed_molecules_per_time_step_co2 += j_leave_co2[i] / 2 * surface_area * dt / molar_mass_co2 * avogadro_constant
+        #Heat capacity update part
+        if water_content_per_layer[i] < 0:
+            water_content_per_layer[i+1] += water_content_per_layer[i]
+            water_content_per_layer[i] = 0
+        if co2_content_per_layer[i] < 0:
+            co2_content_per_layer[i+1] += co2_content_per_layer[i]
+            co2_content_per_layer[i] = 0
+        mass_ice = water_content_per_layer[i] / avogadro_constant * molar_mass_water + co2_content_per_layer[i] / avogadro_constant * molar_mass_co2
+        #dust_ice_ratio_per_layer[i] = mass_ice / (mass_ice + dust_mass_in_dust_ice_layers)
+        mass_co2 = co2_content_per_layer[i] / avogadro_constant * molar_mass_co2
+        if mass_ice > 0:
+            co2_h2o_ratio_per_layer[i] = mass_co2 / mass_ice
+        else:
+            co2_h2o_ratio_per_layer[i] = 0
+        heat_capacity[i] = heat_capacity_dust * (1 - dust_ice_ratio_per_layer[i]) + heat_capacity_water_ice * (
+                    dust_ice_ratio_per_layer[i] * (1 - co2_h2o_ratio_per_layer[i])) + heat_capacity_co2_ice * (
+                                       dust_ice_ratio_per_layer[i] * co2_h2o_ratio_per_layer[i])'''
+    reached_temps = np.linspace(const.temperature_ini - 10, 250, 200)
+    for i in range(1, n_z-1):
+        for j in range(1, n_y-1):
+            for k in range(1, n_x-1):
+                temperature_outgassing[i][j][k] = brentq(gas_mass_function, const.temperature_ini - 10, 250, args=(pressure[i][j][k], [i][j][k], dx[i][j][k], dy[i][j][k], dz[i][j][k], gas_mass[i][j][k]))
     Energy_Increase_Total_per_time_Step = np.sum(Energy_Increase_per_Layer)
     E_conservation = Energy_Increase_Total_per_time_Step - E_Rad - Latent_Heat_per_time_step - E_In
     # Set Energy Loss per Timestep = 0 -> Differential Counting of Energy Loss
