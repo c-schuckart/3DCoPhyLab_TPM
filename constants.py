@@ -1,20 +1,20 @@
 import numpy as np
 
 #Definition of Simulation Parameters
-#min_dx = 2.5E-6                      # Layer Thickness of smallest layer in x direction, Numerical Resolution  [m]
-#min_dy = 2.5E-6                      # Layer Thickness of smallest layer in y direction, Numerical Resolution  [m]
-#min_dz = 2.5E-6                      # Layer Thickness of smallest layer in z direction, Numerical Resolution  [m]
-#dt = 0.00005                           # Timestep                               [s]
-#n_x = 11                            # Number of Layers                       [-]
-#n_y = 11
-#n_z = 25
-min_dx = 2E-3                      # Layer Thickness of the smallest layer in x direction, Numerical Resolution  [m]
+min_dx = 5E-6                      # Layer Thickness of smallest layer in x direction, Numerical Resolution  [m]
+min_dy = 5E-6                      # Layer Thickness of smallest layer in y direction, Numerical Resolution  [m]
+min_dz = 5E-6                      # Layer Thickness of smallest layer in z direction, Numerical Resolution  [m]
+dt = 0.00005                           # Timestep                               [s]
+n_x = 100                            # Number of Layers                       [-]
+n_y = 100
+n_z = 100
+'''min_dx = 2E-3                      # Layer Thickness of the smallest layer in x direction, Numerical Resolution  [m]
 min_dy = 2E-3                      # Layer Thickness of the smallest layer in y direction, Numerical Resolution  [m]
 min_dz = 2E-3                      # Layer Thickness of the smallest layer in z direction, Numerical Resolution  [m]
 dt = 0.005                           # Timestep                               [s]
 n_x = 38                           # Number of Layers                       [-]
 n_y = 38
-n_z = 53
+n_z = 53'''
 n = np.array([n_x, n_y, n_z])
 k = 360000 * 10                      # Number of Timesteps                    [-]
 
@@ -25,8 +25,8 @@ lambda_constant = 1E-2            # Thermal Conductivity                   [W/(K
 lambda_scaling_factor = 1
 r_mono = 2.5E-6                     # Radius of Monomeres                    [m]
 e_1 = 1.34                        # Parameter for mean free path           [-]
-VFF_pack_const = 1              # Volume Filling Factor of Packing       [-]
-#VFF_pack_const = 0.62              # Volume Filling Factor of Packing       [-]
+#VFF_pack_const = 1              # Volume Filling Factor of Packing       [-]
+VFF_pack_const = 0.62              # Volume Filling Factor of Packing       [-]
 poisson_ratio_par = 0.31          # Poisson`s ratio of Particle            [-]
 young_modulus_par = 10.5E9        # Young`s modulus of Particle            [Pa]
 tortuosity = 1.10                 # Tortuosity factor for monodisperse spherical particles for VFF 0.2

@@ -215,59 +215,79 @@ def calculate_molecule_surface(n_x, n_y, n_z, temperature, pressure, a_1, b_1, c
     return sublimated_mass, resublimated_mass, pressure, outgassed_mass/dt, empty_voxels[0:empty_voxel_count]
 
 
-@njit
-def diffusion_parameters(n_x, n_y, n_z, a_1, b_1, c_1, d_1, temperature, temps, m_mol, R_gas, VFF, r_mono, Phi, q, pressure, m_H2O, k_B, dx, dy, dz, dt):
+@njit(parallel=True)
+def diffusion_parameters(n_x, n_y, n_z, a_1, b_1, c_1, d_1, temperature, temps, m_mol, R_gas, VFF, r_mono, Phi, q):
     diffusion_coefficient = np.zeros((n_z, n_y, n_x, 6), dtype=np.float64)
     p_sub = np.zeros((n_z, n_y, n_x), dtype=np.float64)
     for i in prange(1, n_z-1):
         for j in range(1, n_y-1):
             for k in range(1, n_x-1):
-                p_sub[i][j][k] = 10 ** (a_1[0] + b_1[0] / temperature[i][j][k] + c_1[0] * np.log10(temperature[i][j][k]) + d_1[0] * temperature[i][j][k])
-                #gas_mass[i][j][k] = (p_sub[i][j][k] - pressure[i][j][k]) * np.sqrt(m_H2O / (2 * np.pi * k_B * temperature[i][j][k])) * (3 * VFF[i][j][k] / r_mono * dx[i][j][k] * dy[i][j][k] * dz[i][j][k]) * dt
-                '''Permeability needs to be an interface parameter like Lambda, so VFF needs also be calculated on the interface. r_mono should be r_p from sintering. And look up calculation of D from k_m0'''
-                for a in range(len(temps)):
-                    #diff_coeff = permeability * (porosity/(R*T))**-1
-                    diffusion_coefficient[i][j][k][a] = ((1 - VFF[i][j][k])/(R_gas * temps[a]))**(-1) * 1/np.sqrt(2 * np.pi * m_mol * R_gas * temps[a]) * (1 - VFF[i][j][k])**2 * r_mono/(3 * (1 - (1 - VFF[i][j][k]))) * 4 / (Phi * q)
+                if temperature[i][j][k] > 0:
+                    p_sub[i][j][k] = 10 ** (a_1[0] + b_1[0] / temperature[i][j][k] + c_1[0] * np.log10(temperature[i][j][k]) + d_1[0] * temperature[i][j][k])
+                    #gas_mass[i][j][k] = (p_sub[i][j][k] - pressure[i][j][k]) * np.sqrt(m_H2O / (2 * np.pi * k_B * temperature[i][j][k])) * (3 * VFF[i][j][k] / r_mono * dx[i][j][k] * dy[i][j][k] * dz[i][j][k]) * dt
+                    '''Permeability needs to be an interface parameter like Lambda, so VFF needs also be calculated on the interface. r_mono should be r_p from sintering. And look up calculation of D from k_m0'''
+                    for a in range(len(temps[i][j][k])):
+                        #diff_coeff = permeability * (porosity/(R*T))**-1
+                        diffusion_coefficient[i][j][k][a] = ((1 - VFF[i][j][k])/(R_gas * temps[i][j][k][a]))**(-1) * 1/np.sqrt(2 * np.pi * m_mol * R_gas * temps[i][j][k][a]) * (1 - VFF[i][j][k])**2 * 2 * r_mono/(3 * (1 - (1 - VFF[i][j][k]))) * 4 / (Phi * q)
     return diffusion_coefficient, p_sub#, gas_mass
 
 @njit(parallel=True)
-def de_calculate(n_x, n_y, n_z, surface, delta_p_0, gas_mass, temperature, p_sub, Diffusion_coefficient, Dr, dx, dy, dz, dt, pressure, m_H2O, k_Boltzmann, VFF, r_mono):
-    delta_p = np.zeros((n_z, n_y, n_x), dtype=np.float64) + delta_p_0
-    Energy_Increase_per_Layer = np.zeros((n_z, n_y, n_x), dtype=np.float64)
-    Latent_Heat_per_Layer = np.zeros((n_z, n_y, n_x), dtype=np.float64)
+def de_calculate(n_x, n_y, n_z, surface, sample_holder, delta_gm_0, gas_mass, temperature, p_sub, Diffusion_coefficient, Dr, dx, dy, dz, dt, pressure, m_H2O, k_Boltzmann, VFF, r_mono):
+    delta_gm = np.zeros((n_z, n_y, n_x), dtype=np.float64) + delta_gm_0
     Fourier_number = np.zeros((n_z, n_y, n_x), dtype=np.float64)
     for i in prange(1, n_z-1):
         for j in range(1, n_y-1):
             for k in range(1, n_x-1):
-                if np.sum(surface[i][j][k]) == 0 and gas_mass[i][j][k] > 0:
+                if np.sum(surface[i][j][k]) == 0 and sample_holder[i][j][k] != 1: #and gas_mass[i][j][k] > 0:
                     # Standard Thermal Diffusivity Equation 3D explicit
-                    delta_p[i][j][k] = ((((gas_mass[i][j][k + 1] - gas_mass[i][j][k]) * Diffusion_coefficient[i][j][k][4] / (Dr[i][j][k][4])) - ((gas_mass[i][j][k] - gas_mass[i][j][k - 1]) * Diffusion_coefficient[i][j][k][5] / (Dr[i][j][k][5]))) / dx[i][j][k]) * dt + \
+                    delta_gm[i][j][k] = ((((gas_mass[i][j][k + 1] - gas_mass[i][j][k]) * Diffusion_coefficient[i][j][k][4] / (Dr[i][j][k][4])) - ((gas_mass[i][j][k] - gas_mass[i][j][k - 1]) * Diffusion_coefficient[i][j][k][5] / (Dr[i][j][k][5]))) / dx[i][j][k]) * dt + \
                                        ((((gas_mass[i][j + 1][k] - gas_mass[i][j][k]) * Diffusion_coefficient[i][j][k][2] / (Dr[i][j][k][2]))
                                          - ((gas_mass[i][j][k] - gas_mass[i][j - 1][k]) * Diffusion_coefficient[i][j][k][3] / (
                                                Dr[i][j][k][3]))) / dy[i][j][k]) * dt + \
                                        ((((gas_mass[i + 1][j][k] - gas_mass[i][j][k]) * Diffusion_coefficient[i][j][k][0] / (Dr[i][j][k][0]))
                                          - ((gas_mass[i][j][k] - gas_mass[i - 1][j][k]) * Diffusion_coefficient[i][j][k][1] / (
-                                               Dr[i][j][k][1]))) / dz[i][j][k]) * dt + (p_sub[i][j][k] - pressure[i][j][k]) * np.sqrt(m_H2O/(2 * np.pi * k_Boltzmann * temperature[i][j][k]) * 3 * VFF/r_mono * dx[i][j][k] * dy[i][j][k] * dz[i][j][k])
+                                               Dr[i][j][k][1]))) / dz[i][j][k]) * dt + (p_sub[i][j][k] - pressure[i][j][k]) * np.sqrt(m_H2O/(2 * np.pi * k_Boltzmann * temperature[i][j][k]) * 3 * VFF[i][j][k]/r_mono * dx[i][j][k] * dy[i][j][k] * dz[i][j][k]) * dt
                     #Fourier_number[i][j][k] = np.max(Lambda[i][j][k]) / (density[i][j][k] * heat_capacity[i][j][k]) * dt * (1 / dx[i][j][k] ** 2 + 1 / dy[i][j][k] ** 2 + 1 / dz[i][j][k] ** 2)# [-]
                     #Latent_Heat_per_Layer[i] = - (j_leave[i] - j_inward[i]) * latent_heat_water * dt - (j_leave_co2[i] - j_inward_co2[i]) * latent_heat_co2 * dt
                     #Energy_Increase_per_Layer[i][j][k] = heat_capacity[i][j][k] * density[i][j][k] * dx[i][j][k] * dy[i][j][k] * dz[i][j][k] * delta_T[i][j][k]  # [J]
-    return delta_p, Energy_Increase_per_Layer, Latent_Heat_per_Layer, np.max(Fourier_number)
+    return delta_gm
 
 
 @njit
-def sinter_neck_calculation(r_n, dt, temperature, a_1, b_1, c_1, d_1, omega, surface_energy, R_gas, r_grain, alpha, m_mol, density, total_passed_time, pressure):
+def sinter_neck_calculation(r_n, dt, temperature, a_1, b_1, c_1, d_1, omega, surface_energy, R_gas, r_grain, alpha, m_mol, density, total_passed_time, pressure, m_H2O, k_B):
     #p_sub = 10 ** (a_1[0] + b_1[0] / temperature + c_1[0] * np.log10(temperature) + d_1[0] * temperature)
     #print(omega, surface_energy, r_grain, alpha, total_passed_time)
     p_sub = 3.23E12 * np.exp(-6134.6/temperature)
-    Z = (p_sub - pressure) * (1/np.sqrt(2 * np.pi * m_mol * R_gas * temperature))
-    r_p = r_grain - (r_grain/(r_grain - (2 * m_mol * surface_energy / (density * R_gas * temperature)))) * Z * m_mol * total_passed_time / density
+    #m_H2O, k_B Hertz-Knudsen_eq ausprobieren
+    #Z = (p_sub - pressure) * (1/np.sqrt(2 * np.pi * m_mol * R_gas * temperature))
+    Z = (p_sub - pressure) * np.sqrt(m_H2O/(2 * np.pi * k_B * temperature))
+    r_p = r_grain - (r_grain/(r_grain - (2 * m_mol * surface_energy / (density * R_gas * temperature)))) * Z * total_passed_time / density
     r_g = r_grain
     delta = r_n**2 / (2 * (r_p - r_n))
     d_s = r_g * (alpha/2 + np.arctan(r_g/(r_n + delta)) - np.pi/2)
-    rate = ((omega**2 * surface_energy * p_sub)/(R_gas * temperature) * 1/np.sqrt(2*np.pi * m_mol * R_gas * temperature) * d_s / (d_s + delta * np.arctan(r_g/(r_n + delta))) * (2/r_p + 1/delta - 1/r_n) - Z/density * m_mol)
+    rate = ((omega**2 * surface_energy * p_sub)/(R_gas * temperature) * 1/np.sqrt(2*np.pi * m_mol * R_gas * temperature) * d_s / (d_s + delta * np.arctan(r_g/(r_n + delta))) * (2/r_p + 1/delta - 1/r_n) - Z/density)
     r_n = r_n + dt * rate
     return r_n, rate, r_p
 
+
+@njit
+def sinter_neck_calculation_exp(r_n, dt, temperature_pa, temperature_su, temperature_mt, temperature_gas, a_1, b_1, c_1, d_1, omega, surface_energy, R_gas, r_grain, alpha, m_mol, density, total_passed_time, pressure, m_H2O, k_B):
+    #p_sub = 10 ** (a_1[0] + b_1[0] / temperature + c_1[0] * np.log10(temperature) + d_1[0] * temperature)
+    #print(omega, surface_energy, r_grain, alpha, total_passed_time)
+    p_sub_mt = 3.23E12 * np.exp(-6134.6/temperature_mt)
+    p_sub_pa = 3.23E12 * np.exp(-6134.6/temperature_pa)
+    p_sub_su = 3.23E12 * np.exp(-6134.6/temperature_su)
+    #m_H2O, k_B Hertz-Knudsen_eq ausprobieren
+    #Z = (p_sub - pressure) * (1/np.sqrt(2 * np.pi * m_mol * R_gas * temperature))
+    Z_pa = (p_sub_pa) * np.sqrt(m_H2O/(2 * np.pi * k_B * temperature_pa)) - (pressure) * np.sqrt(m_H2O/(2 * np.pi * k_B * temperature_gas))
+    Z_su = (p_sub_su) * np.sqrt(m_H2O/(2 * np.pi * k_B * temperature_su)) - (pressure) * np.sqrt(m_H2O/(2 * np.pi * k_B * temperature_gas))
+    r_p = r_grain - (r_grain/(r_grain - (2 * m_mol * surface_energy / (density * R_gas * temperature_pa)))) * Z_pa * total_passed_time / density
+    r_g = r_grain
+    delta = r_n**2 / (2 * (r_p - r_n))
+    d_s = r_g * (alpha/2 + np.arctan(r_g/(r_n + delta)) - np.pi/2)
+    rate = ((omega**2 * surface_energy * p_sub_mt)/(R_gas * temperature_mt) * 1/np.sqrt(2*np.pi * m_mol * R_gas * temperature_mt) * d_s / (d_s + delta * np.arctan(r_g/(r_n + delta))) * (2/r_p + 1/delta - 1/r_n) - Z_su/density)
+    r_n = r_n + dt * rate
+    return r_n, rate, r_p
 
 @njit
 def gas_mass_function(T, pressure, VFF, dx, dy, dz, target_mass):
