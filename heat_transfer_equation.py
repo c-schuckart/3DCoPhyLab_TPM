@@ -208,10 +208,10 @@ def update_thermal_arrays(n_x, n_y, n_z, temperature, uniform_water_mass,  delta
 
 
 #@njit(parallel=False)
-def update_thermal_arrays_diffusion(n_x, n_y, n_z, temperature, uniform_water_mass,  delta_T, Energy_Increase_per_Layer, sublimated_mass, resublimated_mass, dt, avogadro_constant, molar_mass_water, molar_mass_co2, heat_capacity, heat_capacity_water_ice, heat_capacity_co2_ice, EIpL_0, Latent_Heat_per_Layer, E_Lat_0, E_Rad, E_In, gas_mass, delta_gm, pressure, VFF, dx, dy, dz, a_1, b_1, c_1, d_1, m_H2O, k_Boltzmann, r_mono, sample_holder ):
+def update_thermal_arrays_diffusion(n_x, n_y, n_z, temperature, uniform_water_mass,  delta_T, Energy_Increase_per_Layer, sublimated_mass, resublimated_mass, dt, avogadro_constant, molar_mass_water, molar_mass_co2, heat_capacity, heat_capacity_water_ice, heat_capacity_co2_ice, EIpL_0, Latent_Heat_per_Layer, E_Lat_0, E_Rad, E_In, gas_mass, delta_gm, pressure, VFF, dx, dy, dz, a_1, b_1, c_1, d_1, m_H2O, k_Boltzmann, r_mono, sample_holder, temperature_ini):
     temperature_o = temperature + delta_T
     gas_mass = gas_mass + delta_gm
-    temperature_outgassing = np.zeros((n_z, n_y, n_x), dtype=np.float64)
+    temperature_outgassing = np.zeros((n_z, n_y, n_x), dtype=np.float64) + delta_T + sample_holder * temperature_ini
     pressure_outgassing = np.zeros((n_z, n_y, n_x), dtype=np.float64)
     sublimated_mass_outgassing = np.zeros((n_z, n_y, n_x), dtype=np.float64)
     Energy_Increase_per_Layer[0] = EIpL_0
@@ -247,15 +247,7 @@ def update_thermal_arrays_diffusion(n_x, n_y, n_z, temperature, uniform_water_ma
         heat_capacity[i] = heat_capacity_dust * (1 - dust_ice_ratio_per_layer[i]) + heat_capacity_water_ice * (
                     dust_ice_ratio_per_layer[i] * (1 - co2_h2o_ratio_per_layer[i])) + heat_capacity_co2_ice * (
                                        dust_ice_ratio_per_layer[i] * co2_h2o_ratio_per_layer[i])'''
-    reached_temps = np.linspace(const.temperature_ini - 10, 250, 200)
-    for i in range(2, n_z-1):
-        for j in range(1, n_y-1):
-            for k in range(1, n_x-1):
-                if temperature[i][j][k] > 0 and sample_holder[i][j][k] != 1:
-                    temperature_outgassing[i][j][k] = brentq(gas_mass_function, const.temperature_ini - 10, 250, args=(pressure[i][j][k], VFF[i][j][k], dx[i][j][k], dy[i][j][k], dz[i][j][k], gas_mass[i][j][k]))
-                    pressure_outgassing[i][j][k] = 10 ** (a_1[0] + b_1[0] / temperature_outgassing[i][j][k] + c_1[0] * np.log10(temperature_outgassing[i][j][k]) + d_1[0] * temperature_outgassing[i][j][k])
-                    sublimated_mass_outgassing = (pressure_outgassing[i][j][k] - pressure[i][j][k]) * np.sqrt(m_H2O / (2 * np.pi * k_Boltzmann * temperature[i][j][k]) * 3 * VFF[i][j][k] / r_mono * dx[i][j][k] * dy[i][j][k] * dz[i][j][k]) * dt
     Energy_Increase_Total_per_time_Step = np.sum(Energy_Increase_per_Layer)
     E_conservation = Energy_Increase_Total_per_time_Step - E_Rad - Latent_Heat_per_time_step - E_In
     # Set Energy Loss per Timestep = 0 -> Differential Counting of Energy Loss
-    return temperature_o, uniform_water_mass, heat_capacity, dust_ice_ratio_per_layer, co2_h2o_ratio_per_layer, E_conservation, Energy_Increase_Total_per_time_Step, E_Rad, Latent_Heat_per_time_step, E_In, temperature_outgassing, sublimated_mass_outgassing
+    return temperature_o, uniform_water_mass, heat_capacity, dust_ice_ratio_per_layer, co2_h2o_ratio_per_layer, E_conservation, Energy_Increase_Total_per_time_Step, E_Rad, Latent_Heat_per_time_step, E_In, gas_mass
