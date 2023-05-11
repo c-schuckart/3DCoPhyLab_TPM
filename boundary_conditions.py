@@ -226,3 +226,4 @@ def calculate_L_chamber_lamp_bd(Volt, sample_holder, n_x, n_y, n_z):
 	lamp_energy[:] = convolved
 	return lamp_energy
 
+

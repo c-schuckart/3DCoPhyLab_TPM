@@ -35,6 +35,32 @@ def create_equidistant_mesh(n_x, n_y, n_z, temperature_ini, dx, dy, dz):
     return mesh, dx_arr, dy_arr, dz_arr, Dr, a, (a_rad-1), b, (b_rad-1)
 
 
+def create_equidistant_mesh_gradient(n_x, n_y, n_z, temperature_ini, dx, dy, dz):
+    if sett.mesh_form == 1:
+        a = n_x//2
+        a_rad = (n_x - 2)//2
+        b = n_y//2
+        b_rad = (n_y - 2) // 2
+        x, y = np.ogrid[:n_x, :n_y]
+        mesh = np.zeros((n_z, n_y, n_x), dtype=np.float64)
+        slice = np.zeros((n_y, n_x), dtype=np.float64)
+        mask = ((x-a)/a_rad)**2 + ((y-b)/b_rad)**2 <= 1
+        slice[mask] = temperature_ini
+        for i in range(0, n_z-1):
+            if i != 0:
+                mesh[i] = slice + 100 * i/n_z-1
+    elif sett.mesh_form == 0:
+        mesh = np.full((n_z, n_y, n_x), temperature_ini)
+        a, a_rad, b, b_rad = 0, 0, 0, 0
+    else:
+        raise NotImplementedError
+    dx_arr = np.full((n_z, n_y, n_x), dx, dtype=np.float64)
+    dy_arr = np.full((n_z, n_y, n_x), dy, dtype=np.float64)
+    dz_arr = np.full((n_z, n_y, n_x), dz, dtype=np.float64)
+    Dr = np.full((n_z, n_y, n_x, 6), np.array([dz, dz, dy, dy, dx, dx]), dtype=np.float64)
+    return mesh, dx_arr, dy_arr, dz_arr, Dr, a, (a_rad-1), b, (b_rad-1)
+
+
 @njit
 def find_surface(n_x, n_y, n_z, limiter_x_start, limiter_y_start, limiter_z_start, limiter_x_end, limiter_y_end, limiter_z_end, mesh, surface, a, a_rad, b, b_rad, initiation):
     surface_elements = 0
@@ -207,3 +233,23 @@ def one_d_test(n_x, n_y, n_z, dx, dy,  dz, direction):
             Lambda[n_z // 2][n_y // 2][i][5] = const.lambda_constant
     Dr = np.full((n_z, n_y, n_x, 6), np.array([dz, dz, dy, dy, dx, dx]), dtype=np.float64)
     return mesh, dx_arr, dy_arr, dz_arr, Dr, Lambda
+
+
+def get_sample_holder_adjacency(n_x, n_y, n_z, sample_holder, temperature):
+    sh_adjacent_voxels = np.zeros((n_z, n_y, n_x, 6), dtype=np.float64)
+    for i in range(1, n_z-1):
+        for j in range(1, n_y-1):
+            for k in range(1, n_x-1):
+                if sample_holder[i+1][j][k] == 1 and temperature[i][j][k] > 0:
+                    sh_adjacent_voxels[i][j][k][0] = 1
+                if sample_holder[i-1][j][k] == 1 and temperature[i][j][k] > 0:
+                    sh_adjacent_voxels[i][j][k][1] = 1
+                if sample_holder[i][j+1][k] == 1 and temperature[i][j][k] > 0:
+                    sh_adjacent_voxels[i][j][k][2] = 1
+                if sample_holder[i][j-1][k] == 1 and temperature[i][j][k] > 0:
+                    sh_adjacent_voxels[i][j][k][3] = 1
+                if sample_holder[i][j][k+1] == 1 and temperature[i][j][k] > 0:
+                    sh_adjacent_voxels[i][j][k][4] = 1
+                if sample_holder[i][j][k-1] == 1 and temperature[i][j][k] > 0:
+                    sh_adjacent_voxels[i][j][k][5] = 1
+    return sh_adjacent_voxels

@@ -4,7 +4,7 @@ import numpy as np
 min_dx = 5E-6                      # Layer Thickness of smallest layer in x direction, Numerical Resolution  [m]
 min_dy = 5E-6                      # Layer Thickness of smallest layer in y direction, Numerical Resolution  [m]
 min_dz = 5E-6                      # Layer Thickness of smallest layer in z direction, Numerical Resolution  [m]
-dt = 0.00005                           # Timestep                               [s]
+dt = 0.5E-8                           # Timestep                               [s]
 n_x = 100                            # Number of Layers                       [-]
 n_y = 100
 n_z = 100
@@ -16,7 +16,7 @@ n_x = 38                           # Number of Layers                       [-]
 n_y = 38
 n_z = 53'''
 n = np.array([n_x, n_y, n_z])
-k = 360000 * 10                      # Number of Timesteps                    [-]
+k = 360000 * 1000                      # Number of Timesteps                    [-]
 
 #Definition of Physical Parameters
 #Material Properties
