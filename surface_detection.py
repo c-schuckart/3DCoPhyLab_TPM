@@ -45,10 +45,11 @@ def create_equidistant_mesh_gradient(n_x, n_y, n_z, temperature_ini, dx, dy, dz)
         mesh = np.zeros((n_z, n_y, n_x), dtype=np.float64)
         slice = np.zeros((n_y, n_x), dtype=np.float64)
         mask = ((x-a)/a_rad)**2 + ((y-b)/b_rad)**2 <= 1
-        slice[mask] = temperature_ini
+        slice[mask] = 1
         for i in range(0, n_z-1):
             if i != 0:
-                mesh[i] = slice + 100 * i/n_z-1
+                #mesh[i] = slice * (100 * i/n_z-1 + temperature_ini)
+                mesh[i] = slice * (100 + temperature_ini)
     elif sett.mesh_form == 0:
         mesh = np.full((n_z, n_y, n_x), temperature_ini)
         a, a_rad, b, b_rad = 0, 0, 0, 0

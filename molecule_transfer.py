@@ -216,13 +216,25 @@ def calculate_molecule_surface(n_x, n_y, n_z, temperature, pressure, a_1, b_1, c
 
 
 @njit(parallel=True)
-def diffusion_parameters(n_x, n_y, n_z, a_1, b_1, c_1, d_1, temperature, temps, m_mol, R_gas, VFF, r_mono, Phi, q, pressure, m_H2O, k_B, dx, dy, dz, dt, sample_holder):
+def diffusion_parameters(n_x, n_y, n_z, a_1, b_1, c_1, d_1, temperature, temps, m_mol, R_gas, VFF, r_mono, Phi, q, pressure, m_H2O, k_B, dx, dy, dz, Dr, dt, sample_holder):
     diffusion_coefficient = np.zeros((n_z, n_y, n_x, 6), dtype=np.float64)
     p_sub = np.zeros((n_z, n_y, n_x), dtype=np.float64)
     sublimated_mass = np.zeros((n_z, n_y, n_x), dtype=np.float64)
-    for i in prange(1, n_z-1):
+    for i in prange(0, n_z-1):
         for j in range(1, n_y-1):
             for k in range(1, n_x-1):
+                if temperature[i][j][k] == 0 and (sample_holder[i + 1][j][k] + sample_holder[i][j + 1][k] + sample_holder[i][j - 1][k] + sample_holder[i][j][k + 1] + sample_holder[i][j][k - 1]) == 0 and (temperature[i + 1][j][k] + temperature[i][j + 1][k] + temperature[i][j - 1][k] + temperature[i][j][k + 1] + temperature[i][j][k - 1]) != 0:
+                    temps[i][j][k][4] = temperature[i][j][k + 1] + (temperature[i][j][k] - temperature[i][j][k + 1]) / Dr[i][j][k][4] * 1/2 * dx[i][j][k + 1]
+                    temps[i][j][k][5] = temperature[i][j][k] + (temperature[i][j][k - 1] - temperature[i][j][k]) / Dr[i][j][k][5] * 1 / 2 * dx[i][j][k]
+                    temps[i][j][k][2] = temperature[i][j + 1][k] + (temperature[i][j][k] - temperature[i][j + 1][k]) / Dr[i][j][k][2] * 1 / 2 * dy[i][j + 1][k]
+                    temps[i][j][k][3] = temperature[i][j][k] + (temperature[i][j - 1][k] - temperature[i][j][k]) / Dr[i][j][k][3] * 1 / 2 * dy[i][j][k]
+                    temps[i][j][k][0] = temperature[i + 1][j][k] + (temperature[i][j][k] - temperature[i + 1][j][k]) / Dr[i][j][k][0] * 1 / 2 * dz[i + 1][j][k]
+                    for a in range(len(temps[i][j][k])):
+                        #diff_coeff = permeability * (porosity/(R*T))**-1
+                        if temps[i][j][k][a] == 0:
+                            diffusion_coefficient[i][j][k][a] = 0
+                        else:
+                            diffusion_coefficient[i][j][k][a] = ((1 - VFF[i][j][k])/(R_gas * temps[i][j][k][a]))**(-1) * 1/np.sqrt(2 * np.pi * m_mol * R_gas * temps[i][j][k][a]) * (1 - VFF[i][j][k])**2 * 2 * r_mono/(3 * (1 - (1 - VFF[i][j][k]))) * 4 / (Phi * q)
                 if temperature[i][j][k] > 0 and sample_holder[i][j][k] != 1:
                     p_sub[i][j][k] = 10 ** (a_1[0] + b_1[0] / temperature[i][j][k] + c_1[0] * np.log10(temperature[i][j][k]) + d_1[0] * temperature[i][j][k])
                     sublimated_mass[i][j][k] = (p_sub[i][j][k] - pressure[i][j][k]) * np.sqrt(m_H2O / (2 * np.pi * k_B * temperature[i][j][k])) * (3 * VFF[i][j][k] / r_mono * dx[i][j][k] * dy[i][j][k] * dz[i][j][k]) * dt
@@ -236,11 +248,22 @@ def diffusion_parameters(n_x, n_y, n_z, a_1, b_1, c_1, d_1, temperature, temps, 
 def de_calculate(n_x, n_y, n_z, sh_adjacent_voxels, sample_holder, delta_gm_0, gas_mass, temperature, p_sub, Diffusion_coefficient, Dr, dx, dy, dz, dt, pressure, m_H2O, k_Boltzmann, VFF, r_mono):
     delta_gm = np.zeros((n_z, n_y, n_x), dtype=np.float64) + delta_gm_0
     Fourier_number = np.zeros((n_z, n_y, n_x), dtype=np.float64)
+    outgassed_mass = 0
     #Reflexive Randbedingung muss eingebaut werden!!!
-    for i in prange(1, n_z-1):
+    for i in prange(0, n_z-1):
         for j in range(1, n_y-1):
             for k in range(1, n_x-1):
-                if temperature[i][j][k] > 0 and sample_holder[i][j][k] != 1: #and gas_mass[i][j][k] > 0:
+                if temperature[i][j][k] == 0 and (sample_holder[i+1][j][k] + sample_holder[i][j+1][k] + sample_holder[i][j-1][k] + sample_holder[i][j][k+1] + sample_holder[i][j][k-1]) == 0 and (temperature[i+1][j][k] + temperature[i][j+1][k] + temperature[i][j-1][k] + temperature[i][j][k+1] + temperature[i][j][k-1]) != 0:
+                    outgassed_mass += ((((gas_mass[i][j][k + 1] - gas_mass[i][j][k]) * Diffusion_coefficient[i][j][k][4] * (1 - sh_adjacent_voxels[i][j][k][4]) / (Dr[i][j][k][4])) - ((gas_mass[i][j][k] - gas_mass[i][j][k - 1]) * Diffusion_coefficient[i][j][k][5] * (1 - sh_adjacent_voxels[i][j][k][5]) / (Dr[i][j][k][5]))) / dx[i][j][k]) * dt + \
+                                        ((((gas_mass[i][j + 1][k] - gas_mass[i][j][k]) * Diffusion_coefficient[i][j][k][2] * (1 - sh_adjacent_voxels[i][j][k][2]) / (Dr[i][j][k][2]))
+                                          - ((gas_mass[i][j][k] - gas_mass[i][j - 1][k]) * Diffusion_coefficient[i][j][k][3] * ( 1 - sh_adjacent_voxels[i][j][k][3]) / (
+                                                 Dr[i][j][k][3]))) / dy[i][j][k]) * dt + \
+                                        ((((gas_mass[i + 1][j][k] - gas_mass[i][j][k]) * Diffusion_coefficient[i][j][k][0] * (1 - sh_adjacent_voxels[i][j][k][0]) / (Dr[i][j][k][0]))
+                                          - ((0) * Diffusion_coefficient[i][j][k][1] * (1 - sh_adjacent_voxels[i][j][k][1]) / (
+                                                 Dr[i][j][k][1]))) / dz[i][j][k]) * dt
+                    #outgassed_mass += delta_gm[i][j][k]
+                    #delta_gm[i][j][k] = 0
+                elif temperature[i][j][k] > 0 and sample_holder[i][j][k] != 1: #and gas_mass[i][j][k] > 0:
                     # Standard Thermal Diffusivity Equation 3D explicit
                     delta_gm[i][j][k] = ((((gas_mass[i][j][k + 1] - gas_mass[i][j][k]) * Diffusion_coefficient[i][j][k][4] * (1 - sh_adjacent_voxels[i][j][k][4]) / (Dr[i][j][k][4])) - ((gas_mass[i][j][k] - gas_mass[i][j][k - 1]) * Diffusion_coefficient[i][j][k][5] * (1 - sh_adjacent_voxels[i][j][k][5]) / (Dr[i][j][k][5]))) / dx[i][j][k]) * dt + \
                                        ((((gas_mass[i][j + 1][k] - gas_mass[i][j][k]) * Diffusion_coefficient[i][j][k][2] * (1 - sh_adjacent_voxels[i][j][k][2]) / (Dr[i][j][k][2]))
@@ -252,7 +275,7 @@ def de_calculate(n_x, n_y, n_z, sh_adjacent_voxels, sample_holder, delta_gm_0, g
                     #Fourier_number[i][j][k] = np.max(Lambda[i][j][k]) / (density[i][j][k] * heat_capacity[i][j][k]) * dt * (1 / dx[i][j][k] ** 2 + 1 / dy[i][j][k] ** 2 + 1 / dz[i][j][k] ** 2)# [-]
                     #Latent_Heat_per_Layer[i] = - (j_leave[i] - j_inward[i]) * latent_heat_water * dt - (j_leave_co2[i] - j_inward_co2[i]) * latent_heat_co2 * dt
                     #Energy_Increase_per_Layer[i][j][k] = heat_capacity[i][j][k] * density[i][j][k] * dx[i][j][k] * dy[i][j][k] * dz[i][j][k] * delta_T[i][j][k]  # [J]
-    return delta_gm
+    return delta_gm, outgassed_mass
 
 
 @njit
@@ -294,3 +317,14 @@ def sinter_neck_calculation_exp(r_n, dt, temperature_pa, temperature_su, tempera
 @njit
 def gas_mass_function(T, pressure, VFF, dx, dy, dz, target_mass):
     return ((10 ** (const.lh_a_1[0] + const.lh_b_1[0] / T + const.lh_c_1[0] * np.log10(T) + const.lh_d_1[0] * T)) - pressure) * np.sqrt(const.m_H2O / (2 * np.pi * const.k_boltzmann * T)) * (3 * VFF / const.r_mono * dx * dy * dz) * const.dt - target_mass
+
+
+@njit
+def pressure_calculation(n_x, n_y, n_z, temperature, gas_mass, k_boltzmann, m_H2O):
+    pressure = np.zeros((n_z, n_y, n_x), dtype=np.float64)
+    for a in range(0, n_z):
+        for b in range(0, n_y):
+            for c in range(0, n_x):
+                if temperature[a][b][c] > 0:
+                    pressure[a][b][c] = gas_mass[a][b][c] * np.sqrt(2 * np.pi * k_boltzmann * temperature[a][b][c] / m_H2O)
+    return pressure

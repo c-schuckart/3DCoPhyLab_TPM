@@ -42,37 +42,44 @@ def bar_chart_2D(dx, dy, scalars):
     return obj
 
 
-with open(getPath()) as json_file:
-#with open('test.json') as json_file:
+#with open(getPath()) as json_file:
+with open('test_gmt.json') as json_file:
     data_vis = json.load(json_file)
 
-sample = plot_3D(np.array(data_vis['Temperature'][len(data_vis['Temperature'])-1]))
+#sample = plot_3D(np.array(data_vis['Temperature'][len(data_vis['Temperature'])-1]))
 #print(np.sum([data_vis['Outgassing rate'][b] * const.dt for b in range(len(data_vis['Outgassing rate']))]))
-for i in range(0, const.n_z):
+'''for i in range(0, const.n_z):
     if data_vis['Temperature'][len(data_vis['Temperature'])-1][i][const.n_y//2][const.n_x//2] > 0:
         print(i-1)
-        break
+        break'''
 #sample = plot_3D(np.array(data_vis['Water content'][len(data_vis['Water content'])-2]))
 #sample = plot_3D(np.array(data_vis['Temperature'][2]))
-'''sample_and_surface = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
+sample_and_surface = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
+#sample_and_surface = np.array(data_vis['gas mass'][1])
 #surface = np.array(data_vis['Surface'])
 for i in range(0, const.n_z):
     for j in range(0, const.n_y):
         for k in range(0, const.n_x):
-            if data_vis['Sample holder'][i][j][k] == 1:
+            if data_vis['sh'][i][j][k] == 1:
                 sample_and_surface[i][j][k] = 50
-for each in data_vis['SuS']:
+            if data_vis['gas mass'][3][i][j][k] != 0:
+                sample_and_surface[i][j][k] = 100
+'''for each in data_vis['SuS']:
     sample_and_surface[each[2]][each[1]][each[0]] = 50
 #print(data_vis['RSurface'])
 for each in data_vis['Surface reduced']:
-    sample_and_surface[each[2]][each[1]][each[0]] = 100
-sample = plot_3D(sample_and_surface)'''
+    sample_and_surface[each[2]][each[1]][each[0]] = 100'''
+sample = plot_3D(sample_and_surface)
+print(data_vis['gas mass'][3][1][50][50])
+print(data_vis['gas mass'][3][0][50][50])
+'''
 #sample = bar_chart_2D(data_vis['dx'], data_vis['dy'], data_vis['Lamp Power'])
 #sample, x, y = bar_chart_2D(data_vis['dx'], data_vis['dy'], data_vis['Lamp Power'])
 #sample = mlab.barchart(np.array(data_vis['Lamp Power'][1])*1000)
 #nx, ny, nz = const.n_x * 1j, const.n_y * 1j, const.n_z * 1j
 #x, y = np.mgrid[-5:5:ny, -5:5:nx]
 #sample_2 = mlab.surf(y, x, twoD_gaussian(y, x, const.var_lamp_profile, 23610.30767673443), warp_scale=1000)
+'''
 '''sample_and_surface = np.abs(np.array(data_vis['temp_exp']) - np.array(data_vis['MSI_30']))
 print(np.array(data_vis['MSI_30'][2][5][2]))
 print(np.array(data_vis['temp_exp'][2][5][2]))
