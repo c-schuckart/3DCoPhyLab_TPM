@@ -76,6 +76,7 @@ def energy_input(r_H, albedo, dt, input_energy, sigma, epsilon, temperature, Lam
 	delta_T_0 = np.zeros(np.shape(delta_T))
 	E_Lat_in_surface = 0
 	E_cond_in_surface = 0
+	Energy_conduction_per_Layer = np.zeros((const.n_z, const.n_y, const.n_x, 6), dtype=np.float64)
 	for each in surface_reduced:
 		#input energy durch input_energy[each[2]][each[1]][each[0]] ersetzen, sobald genaue Abstrahlcharakteristik der Lampe berechnet
 		#E_In = input_energy[each[2]][each[1]][each[0]] / r_H ** 2 * (1 - albedo) * dt * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * surface[each[2]][each[1]][each[0]][1]
@@ -88,6 +89,7 @@ def energy_input(r_H, albedo, dt, input_energy, sigma, epsilon, temperature, Lam
 		E_Cond_y_neg = Lambda[each[2]][each[1]][each[0]][3] * (temperature[each[2]][each[1] - 1][each[0]] - temperature[each[2]][each[1]][each[0]]) / Dr[each[2]][each[1]][each[0]][3] * dt * dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (1 - surface[each[2]][each[1]][each[0]][3])
 		E_Cond_x_pos = Lambda[each[2]][each[1]][each[0]][4] * (temperature[each[2]][each[1]][each[0] + 1] - temperature[each[2]][each[1]][each[0]]) / Dr[each[2]][each[1]][each[0]][4] * dt * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (1 - surface[each[2]][each[1]][each[0]][4])
 		E_Cond_x_neg = Lambda[each[2]][each[1]][each[0]][5] * (temperature[each[2]][each[1]][each[0] - 1] - temperature[each[2]][each[1]][each[0]]) / Dr[each[2]][each[1]][each[0]][5] * dt * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (1 - surface[each[2]][each[1]][each[0]][5])
+		Energy_conduction_per_Layer[each[2]][each[1]][each[0]][0], Energy_conduction_per_Layer[each[2]][each[1]][each[0]][1], Energy_conduction_per_Layer[each[2]][each[1]][each[0]][2], Energy_conduction_per_Layer[each[2]][each[1]][each[0]][3],Energy_conduction_per_Layer[each[2]][each[1]][each[0]][4], Energy_conduction_per_Layer[each[2]][each[1]][each[0]][5] = E_Cond_z_pos, E_Cond_z_neg, E_Cond_y_pos, E_Cond_y_neg, E_Cond_x_pos, E_Cond_x_neg
 		E_Lat = - (sublimated_mass[each[2]][each[1]][each[0]] - resublimated_mass[each[2]][each[1]][each[0]]) * latent_heat_water[each[2]][each[1]][each[0]]
 		#E_Lat = 0
 		E_Energy_Increase = E_In + E_Rad + E_Cond_z_pos + E_Cond_z_neg + E_Cond_y_pos + E_Cond_y_neg + E_Cond_x_pos + E_Cond_x_neg + E_Lat
@@ -96,12 +98,14 @@ def energy_input(r_H, albedo, dt, input_energy, sigma, epsilon, temperature, Lam
 		E_In_in_surface += E_In
 		E_Rad_in_surface += E_Rad
 		E_Lat_in_surface += E_Lat
-		E_cond_in_surface += E_Cond_z_pos + E_Cond_z_neg + E_Cond_y_pos + E_Cond_y_neg + E_Cond_x_pos + E_Cond_x_neg
+		E_cond_in_surface += (E_Cond_z_pos + E_Cond_z_neg + E_Cond_y_pos + E_Cond_y_neg + E_Cond_x_pos + E_Cond_x_neg)
+		'''if each[2] == 1 and each[1] == 3 and each[0] == 49:
+			print('SURFACE IN: ', E_Cond_z_pos, E_Cond_z_neg, E_Cond_y_pos, E_Cond_y_neg, E_Cond_x_pos, E_Cond_x_neg)'''
 		'''if E_Cond_z_pos + E_Cond_z_neg + E_Cond_y_pos + E_Cond_y_neg + E_Cond_x_pos + E_Cond_x_neg != 0:
 			print('Position: ', each[2], each[1], each[0])
 			print(E_Cond_z_pos, E_Cond_z_neg, E_Cond_y_pos, E_Cond_y_neg, E_Cond_x_pos, E_Cond_x_neg)
 			print(temperature[each[2]][each[1]][each[0]], temperature[each[2] + 1][each[1]][each[0]], temperature[each[2] - 1][each[1]][each[0]], temperature[each[2]][each[1] + 1][each[0]], temperature[each[2]][each[1] - 1][each[0]], temperature[each[2]][each[1]][each[0] + 1], temperature[each[2]][each[1]][each[0] - 1])'''
-	return delta_T_0, Energy_Increase_in_surface, E_In_in_surface, E_Rad_in_surface, E_Lat_in_surface, E_cond_in_surface
+	return delta_T_0, Energy_Increase_in_surface, E_In_in_surface, E_Rad_in_surface, E_Lat_in_surface, E_cond_in_surface, Energy_conduction_per_Layer
 
 
 @jit
@@ -159,6 +163,28 @@ def sample_holder_data(n_x, n_y, n_z, sample_holder, temperature, temp_sample_ho
 					temperature[i][j][k] = temp_sample_holder
 	return temperature
 
+
+@njit
+def sample_holder_test(n_x, n_y, n_z, sample_holder, temperature):
+	for i in prange(0, n_z):
+		for j in range(0, n_y):
+			for k in range(0, n_x):
+				temps = np.zeros(6, dtype=np.float64)
+				if sample_holder[i][j][k] != 0:
+					if sample_holder[i+1][j][k] == 0 and temperature[i+1][j][k] != 0:
+						temps[0] = temperature[i+1][j][k]
+					if sample_holder[i-1][j][k] == 0 and temperature[i-1][j][k] != 0:
+						temps[1] = temperature[i-1][j][k]
+					if sample_holder[i][j+1][k] == 0 and temperature[i][j+1][k] != 0:
+						temps[2] = temperature[i][j+1][k]
+					if sample_holder[i][j-1][k] == 0 and temperature[i][j-1][k] != 0:
+						temps[3] = temperature[i][j-1][k]
+					if sample_holder[i][j][k+1] == 0 and temperature[i][j][k+1] != 0:
+						temps[4] = temperature[i][j][k+1]
+					if sample_holder[i][j][k-1] == 0 and temperature[i][j][k-1] != 0:
+						temps[5] = temperature[i][j][k-1]
+					temperature[i][j][k] = np.max(temps)
+	return temperature
 
 @njit
 def S_chamber_cal_curve(volt):

@@ -87,6 +87,8 @@ def hte_calculate(n_x, n_y, n_z, surface, delta_T_0, temperature, Lambda, Dr, dx
                     Fourier_number[i][j][k] = np.max(Lambda[i][j][k]) / (density[i][j][k] * heat_capacity[i][j][k]) * dt * (1 / dx[i][j][k] ** 2 + 1 / dy[i][j][k] ** 2 + 1 / dz[i][j][k] ** 2)# [-]
                     Latent_Heat_per_Layer[i][j][k] = - (sublimated_mass[i][j][k] - resublimated_mass[i][j][k]) * latent_heat_water[i][j][k]
                     Energy_Increase_per_Layer[i][j][k] = heat_capacity[i][j][k] * density[i][j][k] * dx[i][j][k] * dy[i][j][k] * dz[i][j][k] * delta_T[i][j][k]  # [J]
+                    #if i == 2 and j == 2 and k == 50:
+                        #print('E_INpL: ', Energy_Increase_per_Layer[i][j][k])
                 elif sample_holder[i][j][k] == 1:
                     pos = np.zeros(6, dtype=np.float64)
                     if temperature[i+1][j][k] != 0 and sample_holder[i+1][j][k] == 0:
@@ -147,9 +149,138 @@ def hte_calculate(n_x, n_y, n_z, surface, delta_T_0, temperature, Lambda, Dr, dx
                                 temperature[i][j][k - 1] - temperature[i][j][k]) / \
                                    Dr[i][j][k][5] * dt * dy[i][j][k] * \
                                    dz[i][j][k] * (pos[5])
-                    E_sample_holder += E_Cond_x_pos + E_Cond_x_neg + E_Cond_y_pos + E_Cond_y_neg + E_Cond_z_pos + E_Cond_z_neg
+                    E_sample_holder += (E_Cond_x_pos + E_Cond_x_neg + E_Cond_y_pos + E_Cond_y_neg + E_Cond_z_pos + E_Cond_z_neg)
+                    '''if (E_Cond_x_pos + E_Cond_x_neg + E_Cond_y_pos + E_Cond_y_neg + E_Cond_z_pos + E_Cond_z_neg) != 0 and i == 1:
+                        print(temperature[i-1:i+2, j-1:j+2, k-1:k+2])'''
+                    '''if i == 2 and j == 1 and k == 50:
+                        print('SAMPLE HOLDER: ', E_Cond_z_pos,E_Cond_z_neg, E_Cond_y_pos, E_Cond_y_neg, E_Cond_x_pos, E_Cond_x_neg)
+                        print(temperature[i][j][k], temperature[i][j+1][k])'''
     return delta_T, Energy_Increase_per_Layer, Latent_Heat_per_Layer, np.max(Fourier_number), E_sample_holder
 
+
+@njit
+def test_E_cond(n_x, n_y, n_z, surface, delta_T_0, temperature, Lambda, Dr, dx, dy, dz, dt, density, heat_capacity, sublimated_mass, resublimated_mass, latent_heat_water, sample_holder, Energy_conduction_per_Layer):
+    #Energy_conduction_per_Layer = np.zeros((n_z, n_y, n_x, 6), dtype=np.float64)
+    Delta_cond = 0
+    DCmax = 0
+    E_sample_holder = 0
+    for i in prange(1, n_z-1):
+        for j in range(1, n_y-1):
+            for k in range(1, n_x-1):
+                if np.sum(surface[i][j][k]) == 0 and temperature[i][j][k] > 0:
+                    Energy_conduction_per_Layer[i][j][k][0] = ((((temperature[i + 1][j][k] - temperature[i][j][k]) *
+                                                                 Lambda[i][j][k][0] / (Dr[i][j][k][0]))
+                                                                - ((0) * Lambda[i][j][k][1] / (
+                                Dr[i][j][k][1]))) / dz[i][j][k]) * dt / (
+                                                                      density[i][j][k] * heat_capacity[i][j][k]) * \
+                                                              density[i][j][k] * dx[i][j][k] * dy[i][j][k] * dz[i][j][
+                                                                  k] * heat_capacity[i][j][k]
+                    Energy_conduction_per_Layer[i][j][k][1] = ((((0) * Lambda[i][j][k][0] / (Dr[i][j][k][0]))
+                                                                - ((temperature[i][j][k] - temperature[i - 1][j][k]) *
+                                                                   Lambda[i][j][k][1] / (
+                                                                       Dr[i][j][k][1]))) / dz[i][j][k]) * dt / (
+                                                                      density[i][j][k] * heat_capacity[i][j][k]) * \
+                                                              density[i][j][k] * dx[i][j][k] * dy[i][j][k] * \
+                                                              dz[i][j][k] * heat_capacity[i][j][k]
+                    Energy_conduction_per_Layer[i][j][k][2] = ((((temperature[i][j + 1][k] - temperature[i][j][k]) *
+                                                                 Lambda[i][j][k][2] / (Dr[i][j][k][2]))
+                                                                - ((0) * Lambda[i][j][k][3] / (
+                                Dr[i][j][k][3]))) / dy[i][j][k]) * dt / (
+                                                                      density[i][j][k] * heat_capacity[i][j][k]) * \
+                                                              density[i][j][k] * dx[i][j][k] * dy[i][j][k] * dz[i][j][
+                                                                  k] * heat_capacity[i][j][k]
+                    Energy_conduction_per_Layer[i][j][k][3] = ((((0) * Lambda[i][j][k][2] / (Dr[i][j][k][2]))
+                                                                - ((temperature[i][j][k] - temperature[i][j - 1][k]) *
+                                                                   Lambda[i][j][k][3] / (
+                                                                       Dr[i][j][k][3]))) / dy[i][j][k]) * dt / (
+                                                                      density[i][j][k] * heat_capacity[i][j][k]) * \
+                                                              density[i][j][k] * dx[i][j][k] * dy[i][j][k] * dz[i][j][
+                                                                  k] * heat_capacity[i][j][k]
+                    Energy_conduction_per_Layer[i][j][k][4] = ((((temperature[i][j][k + 1] - temperature[i][j][k]) *
+                                                                 Lambda[i][j][k][4] / (Dr[i][j][k][4])) - (
+                                                                            (0) * Lambda[i][j][k][5] / (
+                                                                    Dr[i][j][k][5]))) / dx[i][j][k]) * dt / (
+                                                                      density[i][j][k] * heat_capacity[i][j][k]) * \
+                                                              density[i][j][k] * dx[i][j][k] * dy[i][j][k] * dz[i][j][
+                                                                  k] * heat_capacity[i][j][k]
+                    Energy_conduction_per_Layer[i][j][k][5] = ((((0) *
+                                                                 Lambda[i][j][k][4] / (Dr[i][j][k][4])) - ((temperature[
+                                                                                                                i][j][
+                                                                                                                k] -
+                                                                                                            temperature[
+                                                                                                                i][j][
+                                                                                                                k - 1]) *
+                                                                                                           Lambda[i][j][
+                                                                                                               k][5] / (
+                                                                                                           Dr[i][j][k][
+                                                                                                               5]))) /
+                                                               dx[i][j][k]) * dt / (
+                                                                      density[i][j][k] * heat_capacity[i][j][k]) * \
+                                                              density[i][j][k] * dx[i][j][k] * dy[i][j][k] * dz[i][j][
+                                                                  k] * heat_capacity[i][j][k]
+    for i in prange(1, n_z-1):
+        for j in range(1, n_y-1):
+            for k in range(1, n_x-1):
+                if sample_holder[i][j][k] == 1:
+                    pos = np.zeros(6, dtype=np.float64)
+                    if temperature[i + 1][j][k] != 0 and sample_holder[i + 1][j][k] == 0:
+                        pos[0] = 1
+                        # Lambda[i][j][k][0] = Lambda[i+1][j][k][1]
+                    if temperature[i - 1][j][k] != 0 and sample_holder[i - 1][j][k] == 0:
+                        pos[1] = 1
+                        # Lambda[i][j][k][1] = Lambda[i-1][j][k][0]
+                    if temperature[i][j + 1][k] != 0 and sample_holder[i][j + 1][k] == 0:
+                        pos[2] = 1
+                        # Lambda[i][j][k][2] = Lambda[i][j+1][k][3]
+                    if temperature[i][j - 1][k] != 0 and sample_holder[i][j - 1][k] == 0:
+                        pos[3] = 1
+                        # Lambda[i][j][k][3] = Lambda[i][j-1][k][2]
+                    if temperature[i][j][k + 1] != 0 and sample_holder[i][j][k + 1] == 0:
+                        pos[4] = 1
+                        # Lambda[i][j][k][4] = Lambda[i][j][k+1][5]
+                    if temperature[i][j][k - 1] != 0 and sample_holder[i][j][k - 1] == 0:
+                        pos[5] = 1
+                        # Lambda[i][j][k][5] = Lambda[i][j][k-1][4]
+                    E_Cond_z_pos = Lambda[i][j][k][0] * (
+                            temperature[i + 1][j][k] - temperature[i][j][k]) / \
+                                   Dr[i][j][k][0] * dt * dx[i][j][k] * \
+                                   dy[i][j][k] * (pos[0])
+                    E_Cond_z_neg = Lambda[i][j][k][1] * (
+                            temperature[i - 1][j][k] - temperature[i][j][k]) / \
+                                   Dr[i][j][k][1] * dt * dx[i][j][k] * \
+                                   dy[i][j][k] * (pos[1])
+                    E_Cond_y_pos = Lambda[i][j][k][2] * (
+                            temperature[i][j + 1][k] - temperature[i][j][k]) / \
+                                   Dr[i][j][k][2] * dt * dx[i][j][k] * \
+                                   dz[i][j][k] * (pos[2])
+                    E_Cond_y_neg = Lambda[i][j][k][3] * (
+                            temperature[i][j - 1][k] - temperature[i][j][k]) / \
+                                   Dr[i][j][k][3] * dt * dx[i][j][k] * \
+                                   dz[i][j][k] * (pos[3])
+                    E_Cond_x_pos = Lambda[i][j][k][4] * (
+                            temperature[i][j][k + 1] - temperature[i][j][k]) / \
+                                   Dr[i][j][k][4] * dt * dy[i][j][k] * \
+                                   dz[i][j][k] * (pos[4])
+                    E_Cond_x_neg = Lambda[i][j][k][5] * (
+                            temperature[i][j][k - 1] - temperature[i][j][k]) / \
+                                   Dr[i][j][k][5] * dt * dy[i][j][k] * \
+                                   dz[i][j][k] * (pos[5])
+                    Delta_cond_z_pos = E_Cond_z_pos + Energy_conduction_per_Layer[i+1][j][k][1]
+                    Delta_cond_z_neg = E_Cond_z_neg + Energy_conduction_per_Layer[i-1][j][k][0]
+                    Delta_cond_y_pos = E_Cond_y_pos + Energy_conduction_per_Layer[i][j+1][k][3]
+                    Delta_cond_y_neg = E_Cond_y_neg + Energy_conduction_per_Layer[i][j-1][k][2]
+                    Delta_cond_x_pos = E_Cond_x_pos + Energy_conduction_per_Layer[i][j][k+1][5]
+                    Delta_cond_x_neg = E_Cond_x_neg + Energy_conduction_per_Layer[i][j][k-1][4]
+                    E_sample_holder += (E_Cond_x_pos + E_Cond_x_neg + E_Cond_y_pos + E_Cond_y_neg + E_Cond_z_pos + E_Cond_z_neg)
+                    Delta_cond += (Delta_cond_z_pos + Delta_cond_z_neg + Delta_cond_y_pos + Delta_cond_y_neg + Delta_cond_x_pos + Delta_cond_x_neg)
+                    '''if (Delta_cond_z_pos + Delta_cond_z_neg + Delta_cond_y_pos + Delta_cond_y_neg + Delta_cond_x_pos + Delta_cond_x_neg) != 0:
+                        print(i,j,k)
+                        print(Delta_cond)
+                        print(E_Cond_z_pos, E_Cond_z_neg, E_Cond_y_pos, E_Cond_y_neg, E_Cond_x_pos, E_Cond_x_neg)
+                        print(Energy_conduction_per_Layer[i+1][j][k][1], Energy_conduction_per_Layer[i-1][j][k][0], Energy_conduction_per_Layer[i][j+1][k][3], Energy_conduction_per_Layer[i][j-1][k][2], Energy_conduction_per_Layer[i][j][k+1][5], Energy_conduction_per_Layer[i][j][k-1][4])
+                        break'''
+    print('Delta Cond: ', Delta_cond)
+    print('E_sh: ', E_sample_holder)
 '''
 Numerical implementation of the heat transfer equation in a finite differences, forward time centered space, explicit scheme.
 

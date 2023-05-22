@@ -6,8 +6,8 @@ from tqdm import tqdm
 import json
 from surface_detection import create_equidistant_mesh, DEBUG_print_3D_arrays, find_surface, surrounding_checker, update_surface_arrays
 from thermal_parameter_functions import lambda_constant, lambda_granular, calculate_heat_capacity, lambda_sand, calculate_latent_heat, calculate_density, thermal_functions, lambda_ice_block
-from boundary_conditions import energy_input, test, energy_input_data, sample_holder_data, amplitude_lamp, get_energy_input_lamp, calculate_L_chamber_lamp_bd
-from heat_transfer_equation import hte_calculate, update_thermal_arrays
+from boundary_conditions import energy_input, test, energy_input_data, sample_holder_data, amplitude_lamp, get_energy_input_lamp, calculate_L_chamber_lamp_bd, sample_holder_test
+from heat_transfer_equation import hte_calculate, update_thermal_arrays, test_E_cond
 from molecule_transfer import calculate_molecule_flux, calculate_molecule_surface
 from data_input import getPath, read_temperature_data, transform_temperature_data
 from save_and_load import data_store, data_store_sensors, data_save_sensors, data_save
@@ -91,7 +91,7 @@ Main Loop of the model. Comment out/Uncomment function calls to disable/enable f
 '''sample_holder = np.zeros((const.n_z, const.n_y, const.n_x))
 sample_holder[const.n_z-1][0][0] = 1
 surface = np.zeros((const.n_z, const.n_y, const.n_x, 6))'''
-temperature = sample_holder_data(const.n_x, const.n_y, const.n_z, sample_holder, temperature, 110)
+temperature = sample_holder_data(const.n_x, const.n_y, const.n_z, sample_holder, temperature, 77)
 #Lambda = lambda_sand(const.n_x, const.n_y, const.n_z, temperature, Dr, const.lambda_sand, sample_holder, const.lambda_sample_holder)
 #Lambda = lambda_granular(const.n_x, const.n_y, const.n_z, temperature, Dr, dx, dy, dz, const.lambda_water_ice, const.poisson_ratio_par, const.young_modulus_par, const.surface_energy_par, const.r_mono, const.f_1, const.f_2, var.VFF_pack, const.sigma, const.e_1, sample_holder, const.lambda_sample_holder)
 #print(Lambda[15][0][0])
@@ -110,16 +110,21 @@ for j in tqdm(range(0, 1000)):
     #Lambda = lambda_constant(const.n_x, const.n_y, const.n_z, const.lambda_constant)
     #sublimated_mass, resublimated_mass, pressure, outgassing_rate[j], empty_voxels = calculate_molecule_flux(const.n_x, const.n_y, const.n_z, temperature, pressure, const.lh_a_1, const.lh_b_1, const.lh_c_1, const.lh_d_1, const.m_mol, const.R, var.VFF_pack, const.r_mono, const.Phi, const.tortuosity, dx, dy, dz, const.dt, surface_reduced, const.avogadro_constant, const.k_boltzmann, sample_holder, uniform_water_masses, var.n_x_lr, var.n_y_lr, var.n_z_lr, Dr)
     #sublimated_mass, resublimated_mass, pressure, outgassing_rate[j], empty_voxels = calculate_molecule_surface(const.n_x, const.n_y, const.n_z, temperature, pressure, const.lh_a_1, const.lh_b_1, const.lh_c_1, const.lh_d_1, const.m_H2O, const.R, var.VFF_pack, const.r_mono, const.Phi, const.tortuosity, dx, dy, dz, const.dt, surface_reduced, const.avogadro_constant, const.k_boltzmann, sample_holder, uniform_water_masses, var.n_x_lr, var.n_y_lr, var.n_z_lr, Dr, const.surface_reduction_factor)
-    dT_0, EIis_0, E_In, E_Rad, E_Lat_0, Econd_0 = energy_input(const.r_H, const.albedo, const.dt, lamp_power, const.sigma, const.epsilon, temperature, Lambda, Dr, sublimated_mass, resublimated_mass, latent_heat_water, heat_capacity, density, dx, dy, dz, surface, surface_reduced, delta_T)
+    dT_0, EIis_0, E_In, E_Rad, E_Lat_0, Econd_0, Energy_conduction_per_Layer = energy_input(const.r_H, const.albedo, const.dt, lamp_power, const.sigma, const.epsilon, temperature, Lambda, Dr, sublimated_mass, resublimated_mass, latent_heat_water, heat_capacity, density, dx, dy, dz, surface, surface_reduced, delta_T)
     #dT_0, EIis_0, E_In, E_Rad, E_Lat_0 = energy_input_data(const.dt, surface_temp[j], const.sigma, const.epsilon, temperature, Lambda, Dr, const.n_x, const.n_y, const.n_z, heat_capacity, density, dx, dy, dz, surface, surface_reduced, delta_T)
-    temperature = sample_holder_data(const.n_x, const.n_y, const.n_z, sample_holder, temperature, 110)
+    #temperature = sample_holder_data(const.n_x, const.n_y, const.n_z, sample_holder, temperature, 110)
+    #temperature = sample_holder_test(const.n_x, const.n_y, const.n_z, sample_holder, temperature)
     delta_T, Energy_Increase_per_Layer, Latent_Heat_per_Layer, Max_Fourier_number[j], E_sh = hte_calculate(const.n_x, const.n_y, const.n_z, surface, dT_0, temperature, Lambda, Dr, dx, dy, dz, const.dt, density, heat_capacity, sublimated_mass, resublimated_mass, latent_heat_water, sample_holder)
+    #test_E_cond(const.n_x, const.n_y, const.n_z, surface, dT_0, temperature, Lambda, Dr, dx, dy, dz, const.dt, density, heat_capacity, sublimated_mass, resublimated_mass, latent_heat_water, sample_holder, Energy_conduction_per_Layer)
     temperature, uniform_water_masses, heat_capacity, dust_ice_ratio_per_layer, co2_h2o_ratio_per_layer, E_conservation[j], Energy_Increase_Total_per_time_Step_arr[j], E_Rad_arr[j], Latent_Heat_per_time_step_arr[j], E_In_arr[j] = update_thermal_arrays(const.n_x, const.n_y, const.n_z, temperature, uniform_water_masses, delta_T, Energy_Increase_per_Layer, sublimated_mass, resublimated_mass, const.dt, const.avogadro_constant, const.molar_mass_water, const.molar_mass_co2, heat_capacity, const.heat_capacity_water_ice, const.heat_capacity_co2_ice, EIis_0, Latent_Heat_per_Layer, E_Lat_0, E_Rad, E_In, E_sh)
+    #temperature = sample_holder_test(const.n_x, const.n_y, const.n_z, sample_holder, temperature)
+    #temperature = sample_holder_data(const.n_x, const.n_y, const.n_z, sample_holder, temperature, 77)
     #if len(empty_voxels) != 0:
         #surface, surface_reduced = update_surface_arrays(empty_voxels, surface, surface_reduced, temperature, const.n_x, const.n_y, const.n_z, a, a_rad, b, b_rad)
     sensor_10mm, sensor_20mm, sensor_35mm, sensor_55mm, sensor_90mm, temperature_save = data_store_sensors(j, const.n_x, const.n_y, const.n_z, temperature, sensor_10mm, sensor_20mm, sensor_35mm, sensor_55mm, sensor_90mm, sett.data_reduce, temperature_save)
     #pressure, pressure_co2, highest_pressure, highest_pressure_co2 = pressure_calculation(j_leave, j_leave_co2, pressure, pressure_co2, temperature, var.dx, const.a_H2O, const.b_H2O, const.a_CO2, const.b_CO2, const.b, highest_pressure, highest_pressure_co2)
     #temperature, pressure, pressure_co2, water_content_per_layer, co2_content_per_layer, dust_ice_ratio_per_layer, co2_h2o_ratio_per_layer, heat_capacity, total_ejection_events, ejection_times, drained_layers = check_drained_layers(const.n, temperature, pressure, pressure_co2, water_content_per_layer, co2_content_per_layer, dust_ice_ratio_per_layer, co2_h2o_ratio_per_layer, total_ejection_events, var.layer_strength, const.second_temp_layer, var.base_water_particle_number, var.base_co2_particle_number, const.dust_ice_ratio_global, const.co2_h2o_ratio_global, heat_capacity, const.heat_capacity_dust, const.heat_capacity_water_ice, const.heat_capacity_co2_ice, ejection_times, j, drained_layers)
+    #print('---------- STEP ' + str(j) + ' ----------')
     if Max_Fourier_number[j] > 1/2:
         print('Instability warning')
         print('Fourier number: ' + str(Max_Fourier_number[j]))
