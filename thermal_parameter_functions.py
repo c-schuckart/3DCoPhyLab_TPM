@@ -22,13 +22,17 @@ def lambda_granular(n_x, n_y, n_z, temperature, Dr, dx, dy, dz, lambda_water_ice
 					T_z_neg = temperature[i][j][k] + (temperature[i - 1][j][k] - temperature[i][j][k]) / Dr[i][j][k][1] * 1 / 2 * dz[i][j][k]
 					temps = np.array([T_z_pos, T_z_neg, T_y_pos, T_y_neg, T_x_pos, T_x_neg])
 					interface_temperatures[i][j][k] = temps
+					'''if i == 1 and j == 50 and k == 50:
+						print(T_x_pos)
+					if i == 1 and j == 50 and k == 51:
+						print(T_x_neg)'''
 					if r_n[i][j][k] == 0:
 						lambda_grain = (lambda_water_ice / temps) * (9 * np.pi / 4 * (1 - poisson_ratio_par ** 2) / young_modulus_par * surface_energy_par * r_mono ** 2) ** (1 / 3) * f_1 * np.exp(f_2 * VFF_pack[i][j][k]) / r_mono
 					else:
 						lambda_grain = (lambda_water_ice / temps) * (3 / 4 * (1 - poisson_ratio_par ** 2) / young_modulus_par * np.sqrt(3/2 * np.pi * surface_energy_par * 2/3 * young_modulus_par * 1/(1 - poisson_ratio_par**2))) ** (1 / 3) * f_1 * np.exp(f_2 * VFF_pack[i][j][k]) * r_n[i][j][k]**(1/2) / r_mono**(2/3)
 					lambda_cond = lambda_grain
 					for a in range(0, len(lambda_grain)):
-						if sample_holder[i + var.n_z_lr[a]][j + var.n_y_lr[a]][k + var.n_x_lr[a]] == 1:
+						if sample_holder[i + var.n_z_lr[a]][j + var.n_y_lr[a]][k + var.n_x_lr[a]] == 1 or sample_holder[i][j][k] == 1:
 							lambda_cond[a] = ((lambda_grain[a] / (Dr[i][j][k][a] / 2) * lambda_sample_holder / (Dr[i][j][k][a] / 2)) / (lambda_grain[a] / (Dr[i][j][k][a] / 2) + lambda_sample_holder / (Dr[i][j][k][a] / 2))) * Dr[i][j][k][a]
 						lambda_total[i][j][k][a] = lambda_cond[a] + 16 / 3 * sigma * temps[a] ** 3 * e_1 * (1 - VFF_pack[i][j][k]) / VFF_pack[i][j][k] * r_mono
 	return lambda_total, interface_temperatures

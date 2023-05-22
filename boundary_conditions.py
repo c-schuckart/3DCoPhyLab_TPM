@@ -75,6 +75,7 @@ def energy_input(r_H, albedo, dt, input_energy, sigma, epsilon, temperature, Lam
 	E_Rad_in_surface = 0
 	delta_T_0 = np.zeros(np.shape(delta_T))
 	E_Lat_in_surface = 0
+	E_cond_in_surface = 0
 	for each in surface_reduced:
 		#input energy durch input_energy[each[2]][each[1]][each[0]] ersetzen, sobald genaue Abstrahlcharakteristik der Lampe berechnet
 		#E_In = input_energy[each[2]][each[1]][each[0]] / r_H ** 2 * (1 - albedo) * dt * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * surface[each[2]][each[1]][each[0]][1]
@@ -95,7 +96,12 @@ def energy_input(r_H, albedo, dt, input_energy, sigma, epsilon, temperature, Lam
 		E_In_in_surface += E_In
 		E_Rad_in_surface += E_Rad
 		E_Lat_in_surface += E_Lat
-	return delta_T_0, Energy_Increase_in_surface, E_In_in_surface, E_Rad_in_surface, E_Lat_in_surface
+		E_cond_in_surface += E_Cond_z_pos + E_Cond_z_neg + E_Cond_y_pos + E_Cond_y_neg + E_Cond_x_pos + E_Cond_x_neg
+		'''if E_Cond_z_pos + E_Cond_z_neg + E_Cond_y_pos + E_Cond_y_neg + E_Cond_x_pos + E_Cond_x_neg != 0:
+			print('Position: ', each[2], each[1], each[0])
+			print(E_Cond_z_pos, E_Cond_z_neg, E_Cond_y_pos, E_Cond_y_neg, E_Cond_x_pos, E_Cond_x_neg)
+			print(temperature[each[2]][each[1]][each[0]], temperature[each[2] + 1][each[1]][each[0]], temperature[each[2] - 1][each[1]][each[0]], temperature[each[2]][each[1] + 1][each[0]], temperature[each[2]][each[1] - 1][each[0]], temperature[each[2]][each[1]][each[0] + 1], temperature[each[2]][each[1]][each[0] - 1])'''
+	return delta_T_0, Energy_Increase_in_surface, E_In_in_surface, E_Rad_in_surface, E_Lat_in_surface, E_cond_in_surface
 
 
 @jit
