@@ -187,6 +187,15 @@ def sample_holder_test(n_x, n_y, n_z, sample_holder, temperature):
 	return temperature
 
 @njit
+def sample_holder_test_2(n_x, n_y, n_z, sample_holder, temperature, target_temp, target_height):
+	for i in prange(target_height, target_height+1):
+		for j in range(0, n_y):
+			for k in range(0, n_x):
+				if sample_holder[i][j][k] != 0:
+					temperature[i][j][k] = target_temp
+	return temperature
+
+@njit
 def S_chamber_cal_curve(volt):
 	return - 0.11726 + 0.19387*volt + 0.02832*volt**2		# [kW/m^2]
 

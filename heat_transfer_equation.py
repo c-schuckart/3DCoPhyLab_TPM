@@ -68,6 +68,7 @@ def hte_calculate(n_x, n_y, n_z, surface, delta_T_0, temperature, Lambda, Dr, dx
     Energy_Increase_per_Layer = np.zeros((n_z, n_y, n_x), dtype=np.float64)
     Latent_Heat_per_Layer = np.zeros((n_z, n_y, n_x), dtype=np.float64)
     Fourier_number = np.zeros((n_z, n_y, n_x), dtype=np.float64)
+    EcoPL = np.zeros((n_z, n_y, n_x, 6), dtype=np.float64)
     E_sample_holder = 0
     for i in prange(1, n_z-1):
         for j in range(1, n_y-1):
@@ -110,7 +111,7 @@ def hte_calculate(n_x, n_y, n_z, surface, delta_T_0, temperature, Lambda, Dr, dx
                         pos[5] = 1
                         #Lambda[i][j][k][5] = Lambda[i][j][k-1][4]
                     '''if Lambda[i][j][k][4] != Lambda[i][j][k+1][5] and pos[4] == 1:
-                        print(i, j, k)'''
+                                            print(i, j, k)'''
                     '''dT_energy_cons = ((((temperature[i][j][k + 1] - temperature[i][j][k]) * Lambda[i][j][k][4] / (Dr[i][j][k][4])) * pos[4] - ((temperature[i][j][k] - temperature[i][j][k - 1]) * Lambda[i][j][k][5] / (Dr[i][j][k][5])) * pos[5]) / dx[i][j][k]) * dt / (
                                                density[i][j][k] * heat_capacity[i][j][k]) + \
                                        ((((temperature[i][j + 1][k] - temperature[i][j][k]) * Lambda[i][j][k][2] / (
@@ -150,12 +151,13 @@ def hte_calculate(n_x, n_y, n_z, surface, delta_T_0, temperature, Lambda, Dr, dx
                                    Dr[i][j][k][5] * dt * dy[i][j][k] * \
                                    dz[i][j][k] * (pos[5])
                     E_sample_holder += (E_Cond_x_pos + E_Cond_x_neg + E_Cond_y_pos + E_Cond_y_neg + E_Cond_z_pos + E_Cond_z_neg)
-                    '''if (E_Cond_x_pos + E_Cond_x_neg + E_Cond_y_pos + E_Cond_y_neg + E_Cond_z_pos + E_Cond_z_neg) != 0 and i == 1:
+                    EcoPL[i][j][k][0], EcoPL[i][j][k][1], EcoPL[i][j][k][2], EcoPL[i][j][k][3], EcoPL[i][j][k][4], EcoPL[i][j][k][5] = E_Cond_z_pos, E_Cond_z_neg, E_Cond_y_pos, E_Cond_y_neg, E_Cond_x_pos, E_Cond_x_neg
+                '''if (E_Cond_x_pos + E_Cond_x_neg + E_Cond_y_pos + E_Cond_y_neg + E_Cond_z_pos + E_Cond_z_neg) != 0 and i == 1:
                         print(temperature[i-1:i+2, j-1:j+2, k-1:k+2])'''
-                    '''if i == 2 and j == 1 and k == 50:
+                '''if i == 2 and j == 1 and k == 50:
                         print('SAMPLE HOLDER: ', E_Cond_z_pos,E_Cond_z_neg, E_Cond_y_pos, E_Cond_y_neg, E_Cond_x_pos, E_Cond_x_neg)
                         print(temperature[i][j][k], temperature[i][j+1][k])'''
-    return delta_T, Energy_Increase_per_Layer, Latent_Heat_per_Layer, np.max(Fourier_number), E_sample_holder
+    return delta_T, Energy_Increase_per_Layer, Latent_Heat_per_Layer, np.max(Fourier_number), E_sample_holder, EcoPL
 
 
 @njit
@@ -163,7 +165,9 @@ def test_E_cond(n_x, n_y, n_z, surface, delta_T_0, temperature, Lambda, Dr, dx, 
     #Energy_conduction_per_Layer = np.zeros((n_z, n_y, n_x, 6), dtype=np.float64)
     Delta_cond = 0
     DCmax = 0
+    DCmax_pos = np.zeros(3, dtype=np.int32)
     E_sample_holder = 0
+    Delta_cond_fl = 0
     for i in prange(1, n_z-1):
         for j in range(1, n_y-1):
             for k in range(1, n_x-1):
@@ -272,15 +276,58 @@ def test_E_cond(n_x, n_y, n_z, surface, delta_T_0, temperature, Lambda, Dr, dx, 
                     Delta_cond_x_pos = E_Cond_x_pos + Energy_conduction_per_Layer[i][j][k+1][5]
                     Delta_cond_x_neg = E_Cond_x_neg + Energy_conduction_per_Layer[i][j][k-1][4]
                     E_sample_holder += (E_Cond_x_pos + E_Cond_x_neg + E_Cond_y_pos + E_Cond_y_neg + E_Cond_z_pos + E_Cond_z_neg)
+                    Delta_cond_step = (Delta_cond_z_pos + Delta_cond_z_neg + Delta_cond_y_pos + Delta_cond_y_neg + Delta_cond_x_pos + Delta_cond_x_neg)
                     Delta_cond += (Delta_cond_z_pos + Delta_cond_z_neg + Delta_cond_y_pos + Delta_cond_y_neg + Delta_cond_x_pos + Delta_cond_x_neg)
+                    if i == 98:
+                        Delta_cond_fl += Delta_cond_step
+                    if np.abs(Delta_cond_step) > DCmax:
+                        DCmax = np.abs(Delta_cond_step)
+                        DCmax_pos[0], DCmax_pos[1], DCmax_pos[2] = k, j, i
+                    if (i == 50 and j == 1 and k == 50) or (i == 50 and j == 2 and k == 49) or (i == 50 and j == 2 and k == 51):
+                        #print(temperature[i][j][k], temperature[i-1][j][k], Lambda[i][j][k], Lambda[i-1][j][k])
+                        print(i, j, k)
+                        print(E_Cond_z_pos, E_Cond_z_neg, E_Cond_y_pos, E_Cond_y_neg, E_Cond_x_pos, E_Cond_x_neg)
+                        print(Energy_conduction_per_Layer[i + 1][j][k][1], Energy_conduction_per_Layer[i - 1][j][k][0],
+                              Energy_conduction_per_Layer[i][j + 1][k][3], Energy_conduction_per_Layer[i][j - 1][k][2],
+                              Energy_conduction_per_Layer[i][j][k + 1][5], Energy_conduction_per_Layer[i][j][k - 1][4])
                     '''if (Delta_cond_z_pos + Delta_cond_z_neg + Delta_cond_y_pos + Delta_cond_y_neg + Delta_cond_x_pos + Delta_cond_x_neg) != 0:
                         print(i,j,k)
                         print(Delta_cond)
                         print(E_Cond_z_pos, E_Cond_z_neg, E_Cond_y_pos, E_Cond_y_neg, E_Cond_x_pos, E_Cond_x_neg)
                         print(Energy_conduction_per_Layer[i+1][j][k][1], Energy_conduction_per_Layer[i-1][j][k][0], Energy_conduction_per_Layer[i][j+1][k][3], Energy_conduction_per_Layer[i][j-1][k][2], Energy_conduction_per_Layer[i][j][k+1][5], Energy_conduction_per_Layer[i][j][k-1][4])
                         break'''
-    print('Delta Cond: ', Delta_cond)
-    print('E_sh: ', E_sample_holder)
+    #print('Delta Cond: ', Delta_cond, DCmax_pos, Delta_cond_fl, DCmax)
+    #print('E_sh: ', E_sample_holder)
+    return Delta_cond
+
+
+@njit
+def test_e_cond_2(n_x, n_y, n_z, Energy_Increase_per_layer, EcoPL, target_height, sample_holder):
+    EcoPl_ges = np.zeros((n_z, n_y, n_y), dtype=np.float64)
+    for i in range(1, n_z-1):
+        for j in range(1, n_y-1):
+            for k in range(1, n_x-1):
+                if sample_holder[i+1][j][k] == 1:
+                    EcoPl_ges[i][j][k] += EcoPL[i+1][j][k][1]
+                if sample_holder[i-1][j][k] == 1:
+                    EcoPl_ges[i][j][k] += EcoPL[i-1][j][k][0]
+                if sample_holder[i][j+1][k] == 1:
+                    EcoPl_ges[i][j][k] += EcoPL[i][j+1][k][3]
+                if sample_holder[i][j-1][k] == 1:
+                    EcoPl_ges[i][j][k] += EcoPL[i][j-1][k][2]
+                if sample_holder[i][j][k+1] == 1:
+                    EcoPl_ges[i][j][k] += EcoPL[i][j][k+1][5]
+                if sample_holder[i][j][k-1] == 1:
+                    EcoPl_ges[i][j][k] += EcoPL[i][j][k-1][4]
+    Delta_ges = 0
+    for i in range(target_height, target_height+1):
+        for j in range(1, n_y-1):
+            for k in range(1,n_x-1):
+                if np.abs(Energy_Increase_per_layer[i][j][k] + EcoPl_ges[i][j][k]) > 1E-17:
+                    print(i, j, k)
+                    print(EcoPl_ges[i][j][k], Energy_Increase_per_layer[i][j][k])
+                    Delta_ges += np.abs(Energy_Increase_per_layer[i][j][k] - EcoPl_ges[i][j][k])
+    print('DELTA: ', Delta_ges)
 '''
 Numerical implementation of the heat transfer equation in a finite differences, forward time centered space, explicit scheme.
 
