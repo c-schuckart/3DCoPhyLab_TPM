@@ -87,5 +87,6 @@ solar_constant = 1367             # Solar Constant                         [W/m^
 k_boltzmann = 1.38E-23            # Boltzmann's Constant                   [m^2 kg / (s^2 K)]
 avogadro_constant = 6.022E23      # Avogadro constant                      [1/mol]
 R = 8.31447                         # Gas constant                            [J/(mol * K)]
-Phi = 2.18                        # Geometrical constant factor from Asaeda et al. 1973
+Phi_Asaeda = 2.18                        # Geometrical constant factor from Asaeda et al. 1973
+Phi_Guettler = 13/6
 var_lamp_profile = 9/4 * 1E-3            # Variance of the gaussian distribution of the lamp profile   [m]
