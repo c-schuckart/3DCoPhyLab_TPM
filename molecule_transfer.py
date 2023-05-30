@@ -281,24 +281,27 @@ def de_calculate(n_x, n_y, n_z, sh_adjacent_voxels, sample_holder, delta_gm_0, g
 
 
 @njit
-def sinter_neck_calculation(r_n, dt, temperature, a_1, b_1, c_1, d_1, omega, surface_energy, R_gas, r_grain, alpha, m_mol, density, total_passed_time, pressure, m_H2O, k_B):
+def sinter_neck_calculation(r_n, dt, temperature, a_1, b_1, c_1, d_1, omega, surface_energy, R_gas, r_grain, alpha, m_mol, density, total_passed_time, pressure, m_H2O, k_B, k_factor):
     #p_sub = 10 ** (a_1[0] + b_1[0] / temperature + c_1[0] * np.log10(temperature) + d_1[0] * temperature)
     #print(omega, surface_energy, r_grain, alpha, total_passed_time)
     p_sub = 3.23E12 * np.exp(-6134.6/temperature)
     #m_H2O, k_B Hertz-Knudsen_eq ausprobieren
     #Z = (p_sub - pressure) * (1/np.sqrt(2 * np.pi * m_mol * R_gas * temperature))
     Z = (p_sub - pressure) * np.sqrt(m_H2O/(2 * np.pi * k_B * temperature))
-    r_p = r_grain - (r_grain/(r_grain - (2 * m_mol * surface_energy / (density * R_gas * temperature)))) * Z * total_passed_time / density
-    r_g = r_grain
-    delta = r_n**2 / (2 * (r_p - r_n))
-    d_s = r_g * (alpha/2 + np.arctan(r_g/(r_n + delta)) - np.pi/2)
-    rate = ((omega**2 * surface_energy * p_sub)/(R_gas * temperature) * 1/np.sqrt(2*np.pi * m_mol * R_gas * temperature) * d_s / (d_s + delta * np.arctan(r_g/(r_n + delta))) * (2/r_p + 1/delta - 1/r_n) - Z/density)
+    r_c = 2 * m_mol * surface_energy / (density * R_gas * temperature)
+    r_p = r_grain - (r_grain/(r_grain - r_c)) * Z * total_passed_time / density
+    delta = r_n**2 / (2 * (r_p - r_n)) * k_factor
+    #if total_passed_time == 1000 * dt:
+        #print(delta)
+    d_s = r_p * (alpha/2 + np.arctan(r_p/(r_n + delta)) - np.pi/2)
+    #rate = ((omega**2 * surface_energy * p_sub)/(R_gas * temperature) * 1/np.sqrt(2*np.pi * m_mol * R_gas * temperature) * d_s / (d_s + delta * np.arctan(r_p/(r_n + delta))) * (2/r_p + 1/delta - 1/r_n) - Z/density * np.exp(- r_c/(r_n * 0.01)))
+    rate = ((omega ** 2 * surface_energy * p_sub) / (R_gas * temperature) * 1 / np.sqrt(2 * np.pi * m_mol * R_gas * temperature) * d_s / (d_s + delta * np.arctan(r_p / (r_n + delta))) * (2 / r_p + 1 / delta - 1 / r_n) - Z / density * np.exp(- r_c / (delta * k_factor)))
     r_n = r_n + dt * rate
     return r_n, rate, r_p
 
 
 @njit
-def sinter_neck_calculation_exp(r_n, dt, temperature_pa, temperature_su, temperature_mt, temperature_gas, a_1, b_1, c_1, d_1, omega, surface_energy, R_gas, r_grain, alpha, m_mol, density, total_passed_time, pressure, m_H2O, k_B):
+def sinter_neck_calculation_exp(r_n, dt, temperature_pa, temperature_su, temperature_mt, temperature_gas, a_1, b_1, c_1, d_1, omega, surface_energy, R_gas, r_grain, alpha, m_mol, density, total_passed_time, pressure, m_H2O, k_B, k_factor):
     #p_sub = 10 ** (a_1[0] + b_1[0] / temperature + c_1[0] * np.log10(temperature) + d_1[0] * temperature)
     #print(omega, surface_energy, r_grain, alpha, total_passed_time)
     p_sub_mt = 3.23E12 * np.exp(-6134.6/temperature_mt)
@@ -307,12 +310,12 @@ def sinter_neck_calculation_exp(r_n, dt, temperature_pa, temperature_su, tempera
     #m_H2O, k_B Hertz-Knudsen_eq ausprobieren
     #Z = (p_sub - pressure) * (1/np.sqrt(2 * np.pi * m_mol * R_gas * temperature))
     Z_pa = (p_sub_pa) * np.sqrt(m_H2O/(2 * np.pi * k_B * temperature_pa)) - (pressure) * np.sqrt(m_H2O/(2 * np.pi * k_B * temperature_gas))
-    Z_su = (p_sub_su) * np.sqrt(m_H2O/(2 * np.pi * k_B * temperature_su)) - (pressure) * np.sqrt(m_H2O/(2 * np.pi * k_B * temperature_gas))
+    Z_su = (p_sub_su) * np.sqrt(m_H2O/(2 * np.pi * k_B * temperature_su)) - (pressure) * np.sqrt(m_H2O/(2 * np.pi * k_B * 160))
     r_p = r_grain - (r_grain/(r_grain - (2 * m_mol * surface_energy / (density * R_gas * temperature_pa)))) * Z_pa * total_passed_time / density
-    r_g = r_grain
-    delta = r_n**2 / (2 * (r_p - r_n))
-    d_s = r_g * (alpha/2 + np.arctan(r_g/(r_n + delta)) - np.pi/2)
-    rate = ((omega**2 * surface_energy * p_sub_mt)/(R_gas * temperature_mt) * 1/np.sqrt(2*np.pi * m_mol * R_gas * temperature_mt) * d_s / (d_s + delta * np.arctan(r_g/(r_n + delta))) * (2/r_p + 1/delta - 1/r_n) - Z_su/density)
+    delta = r_n**2 / (2 * (r_p - r_n)) #* k_factor
+    d_s = r_p * (alpha/2 + np.arctan(r_p/(r_n + delta)) - np.pi/2)
+    #rate = ((omega**2 * surface_energy * p_sub_mt)/(R_gas * temperature_mt) * 1/np.sqrt(2*np.pi * m_mol * R_gas * temperature_mt) * d_s / (d_s + delta * np.arctan(r_p/(r_n + delta))) * (2/r_p + 1/delta - 1/r_n) - Z_su/density * np.exp(- (2 * m_mol * surface_energy / (density * R_gas * temperature_su)) / (delta * k_factor)))
+    rate = ((omega ** 2 * surface_energy * p_sub_mt) / (R_gas * temperature_mt) * 1 / np.sqrt(2 * np.pi * m_mol * R_gas * temperature_mt) * d_s / (d_s + delta * np.arctan(r_p / (r_n + delta))) * (2 / r_p + 1 / delta - 1 / r_n) - Z_su / density * np.exp(- (2 * m_mol * surface_energy / (density * R_gas * temperature_su)) / (r_n * k_factor)))
     r_n = r_n + dt * rate
     return r_n, rate, r_p
 

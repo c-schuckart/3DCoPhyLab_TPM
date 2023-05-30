@@ -94,22 +94,22 @@ def hte_calculate(n_x, n_y, n_z, surface, delta_T_0, temperature, Lambda, Dr, dx
                     pos = np.zeros(6, dtype=np.float64)
                     if temperature[i+1][j][k] != 0 and sample_holder[i+1][j][k] == 0:
                         pos[0] = 1
-                        #Lambda[i][j][k][0] = Lambda[i+1][j][k][1]
+                        Lambda[i][j][k][0] = Lambda[i+1][j][k][1]
                     if temperature[i-1][j][k] != 0 and sample_holder[i-1][j][k] == 0:
                         pos[1] = 1
-                        #Lambda[i][j][k][1] = Lambda[i-1][j][k][0]
+                        Lambda[i][j][k][1] = Lambda[i-1][j][k][0]
                     if temperature[i][j+1][k] != 0 and sample_holder[i][j+1][k] == 0:
                         pos[2] = 1
-                        #Lambda[i][j][k][2] = Lambda[i][j+1][k][3]
+                        Lambda[i][j][k][2] = Lambda[i][j+1][k][3]
                     if temperature[i][j-1][k] != 0 and sample_holder[i][j-1][k] == 0:
                         pos[3] = 1
-                        #Lambda[i][j][k][3] = Lambda[i][j-1][k][2]
+                        Lambda[i][j][k][3] = Lambda[i][j-1][k][2]
                     if temperature[i][j][k+1] != 0 and sample_holder[i][j][k+1] == 0:
                         pos[4] = 1
-                        #Lambda[i][j][k][4] = Lambda[i][j][k+1][5]
+                        Lambda[i][j][k][4] = Lambda[i][j][k+1][5]
                     if temperature[i][j][k-1] != 0 and sample_holder[i][j][k-1] == 0:
                         pos[5] = 1
-                        #Lambda[i][j][k][5] = Lambda[i][j][k-1][4]
+                        Lambda[i][j][k][5] = Lambda[i][j][k-1][4]
                     '''if Lambda[i][j][k][4] != Lambda[i][j][k+1][5] and pos[4] == 1:
                                             print(i, j, k)'''
                     '''dT_energy_cons = ((((temperature[i][j][k + 1] - temperature[i][j][k]) * Lambda[i][j][k][4] / (Dr[i][j][k][4])) * pos[4] - ((temperature[i][j][k] - temperature[i][j][k - 1]) * Lambda[i][j][k][5] / (Dr[i][j][k][5])) * pos[5]) / dx[i][j][k]) * dt / (
@@ -229,22 +229,22 @@ def test_E_cond(n_x, n_y, n_z, surface, delta_T_0, temperature, Lambda, Dr, dx, 
                     pos = np.zeros(6, dtype=np.float64)
                     if temperature[i + 1][j][k] != 0 and sample_holder[i + 1][j][k] == 0:
                         pos[0] = 1
-                        # Lambda[i][j][k][0] = Lambda[i+1][j][k][1]
+                        #Lambda[i][j][k][0] = Lambda[i+1][j][k][1]
                     if temperature[i - 1][j][k] != 0 and sample_holder[i - 1][j][k] == 0:
                         pos[1] = 1
-                        # Lambda[i][j][k][1] = Lambda[i-1][j][k][0]
+                        #Lambda[i][j][k][1] = Lambda[i-1][j][k][0]
                     if temperature[i][j + 1][k] != 0 and sample_holder[i][j + 1][k] == 0:
                         pos[2] = 1
-                        # Lambda[i][j][k][2] = Lambda[i][j+1][k][3]
+                        #Lambda[i][j][k][2] = Lambda[i][j+1][k][3]
                     if temperature[i][j - 1][k] != 0 and sample_holder[i][j - 1][k] == 0:
                         pos[3] = 1
-                        # Lambda[i][j][k][3] = Lambda[i][j-1][k][2]
+                        #Lambda[i][j][k][3] = Lambda[i][j-1][k][2]
                     if temperature[i][j][k + 1] != 0 and sample_holder[i][j][k + 1] == 0:
                         pos[4] = 1
-                        # Lambda[i][j][k][4] = Lambda[i][j][k+1][5]
+                        #Lambda[i][j][k][4] = Lambda[i][j][k+1][5]
                     if temperature[i][j][k - 1] != 0 and sample_holder[i][j][k - 1] == 0:
                         pos[5] = 1
-                        # Lambda[i][j][k][5] = Lambda[i][j][k-1][4]
+                        #Lambda[i][j][k][5] = Lambda[i][j][k-1][4]
                     E_Cond_z_pos = Lambda[i][j][k][0] * (
                             temperature[i + 1][j][k] - temperature[i][j][k]) / \
                                    Dr[i][j][k][0] * dt * dx[i][j][k] * \
