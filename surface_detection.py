@@ -31,6 +31,7 @@ def create_equidistant_mesh(n_x, n_y, n_z, temperature_ini, dx, dy, dz):
     dx_arr = np.full((n_z, n_y, n_x), dx, dtype=np.float64)
     dy_arr = np.full((n_z, n_y, n_x), dy, dtype=np.float64)
     dz_arr = np.full((n_z, n_y, n_x), dz, dtype=np.float64)
+    dz_arr[1] = np.full((n_y, n_x,), dz / 2, dtype=np.float64)
     Dr = np.full((n_z, n_y, n_x, 6), np.array([dz, dz, dy, dy, dx, dx]), dtype=np.float64)
     return mesh, dx_arr, dy_arr, dz_arr, Dr, a, (a_rad-1), b, (b_rad-1)
 
@@ -49,7 +50,7 @@ def create_equidistant_mesh_gradient(n_x, n_y, n_z, temperature_ini, dx, dy, dz)
         for i in range(0, n_z-1):
             if i != 0:
                 #mesh[i] = slice * (100 * i/n_z-1 + temperature_ini)
-                mesh[i] = slice * (100 + temperature_ini)
+                mesh[i] = slice * (100 * (n_z-1-i)/n_z-1 + temperature_ini)
     elif sett.mesh_form == 0:
         mesh = np.full((n_z, n_y, n_x), temperature_ini)
         a, a_rad, b, b_rad = 0, 0, 0, 0

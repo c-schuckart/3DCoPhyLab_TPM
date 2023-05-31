@@ -98,14 +98,14 @@ def energy_input(r_H, albedo, dt, input_energy, sigma, epsilon, temperature, Lam
 		E_In_in_surface += E_In
 		E_Rad_in_surface += E_Rad
 		E_Lat_in_surface += E_Lat
-		E_cond_in_surface += (E_Cond_z_pos + E_Cond_z_neg + E_Cond_y_pos + E_Cond_y_neg + E_Cond_x_pos + E_Cond_x_neg)
+		#E_cond_in_surface += (E_Cond_z_pos + E_Cond_z_neg + E_Cond_y_pos + E_Cond_y_neg + E_Cond_x_pos + E_Cond_x_neg)
 		'''if each[2] == 1 and each[1] == 3 and each[0] == 49:
 			print('SURFACE IN: ', E_Cond_z_pos, E_Cond_z_neg, E_Cond_y_pos, E_Cond_y_neg, E_Cond_x_pos, E_Cond_x_neg)'''
 		'''if E_Cond_z_pos + E_Cond_z_neg + E_Cond_y_pos + E_Cond_y_neg + E_Cond_x_pos + E_Cond_x_neg != 0:
 			print('Position: ', each[2], each[1], each[0])
 			print(E_Cond_z_pos, E_Cond_z_neg, E_Cond_y_pos, E_Cond_y_neg, E_Cond_x_pos, E_Cond_x_neg)
 			print(temperature[each[2]][each[1]][each[0]], temperature[each[2] + 1][each[1]][each[0]], temperature[each[2] - 1][each[1]][each[0]], temperature[each[2]][each[1] + 1][each[0]], temperature[each[2]][each[1] - 1][each[0]], temperature[each[2]][each[1]][each[0] + 1], temperature[each[2]][each[1]][each[0] - 1])'''
-	return delta_T_0, Energy_Increase_in_surface, E_In_in_surface, E_Rad_in_surface, E_Lat_in_surface, E_cond_in_surface, Energy_conduction_per_Layer
+	return delta_T_0, Energy_Increase_in_surface, E_In_in_surface, E_Rad_in_surface, E_Lat_in_surface, Energy_conduction_per_Layer
 
 
 @jit

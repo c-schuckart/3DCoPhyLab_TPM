@@ -94,22 +94,16 @@ def hte_calculate(n_x, n_y, n_z, surface, delta_T_0, temperature, Lambda, Dr, dx
                     pos = np.zeros(6, dtype=np.float64)
                     if temperature[i+1][j][k] != 0 and sample_holder[i+1][j][k] == 0:
                         pos[0] = 1
-                        Lambda[i][j][k][0] = Lambda[i+1][j][k][1]
                     if temperature[i-1][j][k] != 0 and sample_holder[i-1][j][k] == 0:
                         pos[1] = 1
-                        Lambda[i][j][k][1] = Lambda[i-1][j][k][0]
                     if temperature[i][j+1][k] != 0 and sample_holder[i][j+1][k] == 0:
                         pos[2] = 1
-                        Lambda[i][j][k][2] = Lambda[i][j+1][k][3]
                     if temperature[i][j-1][k] != 0 and sample_holder[i][j-1][k] == 0:
                         pos[3] = 1
-                        Lambda[i][j][k][3] = Lambda[i][j-1][k][2]
                     if temperature[i][j][k+1] != 0 and sample_holder[i][j][k+1] == 0:
                         pos[4] = 1
-                        Lambda[i][j][k][4] = Lambda[i][j][k+1][5]
                     if temperature[i][j][k-1] != 0 and sample_holder[i][j][k-1] == 0:
                         pos[5] = 1
-                        Lambda[i][j][k][5] = Lambda[i][j][k-1][4]
                     '''if Lambda[i][j][k][4] != Lambda[i][j][k+1][5] and pos[4] == 1:
                                             print(i, j, k)'''
                     '''dT_energy_cons = ((((temperature[i][j][k + 1] - temperature[i][j][k]) * Lambda[i][j][k][4] / (Dr[i][j][k][4])) * pos[4] - ((temperature[i][j][k] - temperature[i][j][k - 1]) * Lambda[i][j][k][5] / (Dr[i][j][k][5])) * pos[5]) / dx[i][j][k]) * dt / (
@@ -447,7 +441,7 @@ def update_thermal_arrays(n_x, n_y, n_z, temperature, uniform_water_mass,  delta
 
 
 #@njit(parallel=False)
-def update_thermal_arrays_diffusion(n_x, n_y, n_z, temperature, uniform_water_mass,  delta_T, Energy_Increase_per_Layer, sublimated_mass, resublimated_mass, dt, avogadro_constant, molar_mass_water, molar_mass_co2, heat_capacity, heat_capacity_water_ice, heat_capacity_co2_ice, EIpL_0, Latent_Heat_per_Layer, E_Lat_0, E_Rad, E_In, gas_mass, delta_gm, pressure, VFF, dx, dy, dz, a_1, b_1, c_1, d_1, m_H2O, k_Boltzmann, r_mono, sample_holder, temperature_ini):
+def update_thermal_arrays_diffusion(n_x, n_y, n_z, temperature, uniform_water_mass,  delta_T, Energy_Increase_per_Layer, sublimated_mass, resublimated_mass, dt, avogadro_constant, molar_mass_water, molar_mass_co2, heat_capacity, heat_capacity_water_ice, heat_capacity_co2_ice, EIpL_0, Latent_Heat_per_Layer, E_Lat_0, E_Rad, E_In, E_sh, gas_mass, delta_gm, pressure, VFF, dx, dy, dz, a_1, b_1, c_1, d_1, m_H2O, k_Boltzmann, r_mono, sample_holder, temperature_ini):
     temperature_o = temperature + delta_T
     gas_mass = gas_mass + delta_gm
     temperature_outgassing = np.zeros((n_z, n_y, n_x), dtype=np.float64) + delta_T + sample_holder * temperature_ini
@@ -455,7 +449,6 @@ def update_thermal_arrays_diffusion(n_x, n_y, n_z, temperature, uniform_water_ma
     sublimated_mass_outgassing = np.zeros((n_z, n_y, n_x), dtype=np.float64)
     pressure = gas_mass * np.sqrt(2 * np.pi * k_Boltzmann * temperature_o / m_H2O)
     Energy_Increase_Total_per_time_Step = 0
-    Latent_Heat_per_time_step = np.sum(Latent_Heat_per_Layer) + E_Lat_0
     dust_ice_ratio_per_layer = 0
     co2_h2o_ratio_per_layer = 0
     uniform_water_mass = uniform_water_mass - sublimated_mass
@@ -486,6 +479,7 @@ def update_thermal_arrays_diffusion(n_x, n_y, n_z, temperature, uniform_water_ma
                     dust_ice_ratio_per_layer[i] * (1 - co2_h2o_ratio_per_layer[i])) + heat_capacity_co2_ice * (
                                        dust_ice_ratio_per_layer[i] * co2_h2o_ratio_per_layer[i])'''
     Energy_Increase_Total_per_time_Step = np.sum(Energy_Increase_per_Layer) + EIpL_0
-    E_conservation = Energy_Increase_Total_per_time_Step - E_Rad - Latent_Heat_per_time_step - E_In
+    Latent_Heat_per_time_step = np.sum(Latent_Heat_per_Layer) + E_Lat_0
+    E_conservation = Energy_Increase_Total_per_time_Step - E_Rad - Latent_Heat_per_time_step - E_In + E_sh
     # Set Energy Loss per Timestep = 0 -> Differential Counting of Energy Loss
     return temperature_o, uniform_water_mass, heat_capacity, dust_ice_ratio_per_layer, co2_h2o_ratio_per_layer, E_conservation, Energy_Increase_Total_per_time_Step, E_Rad, Latent_Heat_per_time_step, E_In, gas_mass, pressure

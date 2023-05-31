@@ -4,17 +4,17 @@ import variables_and_arrays as var
 import settings as sett
 from tqdm import tqdm
 import json
-from surface_detection import create_equidistant_mesh, DEBUG_print_3D_arrays, find_surface, surrounding_checker, update_surface_arrays
+from surface_detection import create_equidistant_mesh, DEBUG_print_3D_arrays, find_surface, surrounding_checker, update_surface_arrays, create_equidistant_mesh_gradient
 from thermal_parameter_functions import lambda_constant, lambda_granular, calculate_heat_capacity, lambda_sand, calculate_latent_heat, calculate_density, thermal_functions, lambda_ice_block
 from boundary_conditions import energy_input, test, energy_input_data, sample_holder_data, amplitude_lamp, get_energy_input_lamp, calculate_L_chamber_lamp_bd, sample_holder_test, sample_holder_test_2
 from heat_transfer_equation import hte_calculate, update_thermal_arrays, test_E_cond, test_e_cond_2
-from molecule_transfer import calculate_molecule_flux, calculate_molecule_surface
+from molecule_transfer import calculate_molecule_flux_test, calculate_molecule_surface
 from data_input import getPath, read_temperature_data, transform_temperature_data
 from save_and_load import data_store, data_store_sensors, data_save_sensors, data_save
 
 
 #work arrays and mesh creation + surface detection
-temperature, dx, dy, dz, Dr, a, a_rad, b, b_rad = create_equidistant_mesh(const.n_x, const.n_y, const.n_z, const.temperature_ini, const.min_dx, const.min_dy, const.min_dz)
+temperature, dx, dy, dz, Dr, a, a_rad, b, b_rad = create_equidistant_mesh_gradient(const.n_x, const.n_y, const.n_z, const.temperature_ini, const.min_dx, const.min_dy, const.min_dz)
 #temperature, dx, dy, dz, Dr, Lambda = one_d_test(const.n_x, const.n_y, const.n_z, const.min_dx, const.min_dy, const.min_dz, 'y')
 heat_capacity = var.heat_capacity
 density = var.density * const.VFF_pack_const
@@ -108,9 +108,10 @@ for j in tqdm(range(0, 1000)):
     latent_heat_water = calculate_latent_heat(temperature, const.lh_b_1, const.lh_c_1, const.lh_d_1, const.R, const.m_mol)'''
     heat_capacity, latent_heat_water, density_grain, density = thermal_functions(temperature, const.lh_b_1, const.lh_c_1, const.lh_d_1, const.R, const.m_mol, const.VFF_pack_const)
     #sublimated_mass, resublimated_mass, pressure, outgassing_rate[j], empty_voxels = calculate_molecule_flux(const.n_x, const.n_y, const.n_z, temperature, pressure, const.lh_a_1, const.lh_b_1, const.lh_c_1, const.lh_d_1, const.m_mol, const.R, var.VFF_pack, const.r_mono, const.Phi, const.tortuosity, dx, dy, dz, const.dt, surface_reduced, const.avogadro_constant, const.k_boltzmann, sample_holder, uniform_water_masses, var.n_x_lr, var.n_y_lr, var.n_z_lr, Dr)
-    sublimated_mass, resublimated_mass, pressure, outgassing_rate[j], empty_voxels = calculate_molecule_surface(const.n_x, const.n_y, const.n_z, temperature, pressure, const.lh_a_1, const.lh_b_1, const.lh_c_1, const.lh_d_1, const.m_H2O, const.R, var.VFF_pack, const.r_mono, const.Phi_Asaeda, const.tortuosity, dx, dy, dz, const.dt, surface_reduced, const.avogadro_constant, const.k_boltzmann, sample_holder, uniform_water_masses, var.n_x_lr, var.n_y_lr, var.n_z_lr, Dr, const.surface_reduction_factor)
+    #sublimated_mass, resublimated_mass, pressure, outgassing_rate[j], empty_voxels = calculate_molecule_surface(const.n_x, const.n_y, const.n_z, temperature, pressure, const.lh_a_1, const.lh_b_1, const.lh_c_1, const.lh_d_1, const.m_H2O, const.R, var.VFF_pack, const.r_mono, const.Phi_Asaeda, const.tortuosity, dx, dy, dz, const.dt, surface_reduced, const.avogadro_constant, const.k_boltzmann, sample_holder, uniform_water_masses, var.n_x_lr, var.n_y_lr, var.n_z_lr, Dr, const.surface_reduction_factor)
+    sublimated_mass, resublimated_mass, pressure, outgassing_rate[j], empty_voxels = calculate_molecule_flux_test(const.n_x, const.n_y, const.n_z, temperature, pressure, const.lh_a_1, const.lh_b_1, const.lh_c_1, const.lh_d_1, const.m_H2O, const.R, var.VFF_pack, const.r_mono, const.Phi_Asaeda, const.tortuosity, dx, dy, dz, const.dt, surface_reduced, const.avogadro_constant, const.k_boltzmann, sample_holder, uniform_water_masses, var.n_x_lr, var.n_y_lr, var.n_z_lr, Dr, const.surface_reduction_factor, surface, 3)
     #temperature = sample_holder_test_2(const.n_x, const.n_y, const.n_z, sample_holder, temperature, 110, 50)
-    dT_0, EIis_0, E_In, E_Rad, E_Lat_0, Econd_0, Energy_conduction_per_Layer = energy_input(const.r_H, const.albedo, const.dt, lamp_power, const.sigma, const.epsilon, temperature, Lambda, Dr, sublimated_mass, resublimated_mass, latent_heat_water, heat_capacity, density, dx, dy, dz, surface, surface_reduced, delta_T)
+    dT_0, EIis_0, E_In, E_Rad, E_Lat_0, Energy_conduction_per_Layer = energy_input(const.r_H, const.albedo, const.dt, lamp_power, const.sigma, const.epsilon, temperature, Lambda, Dr, sublimated_mass, resublimated_mass, latent_heat_water, heat_capacity, density, dx, dy, dz, surface, surface_reduced, delta_T)
     #dT_0, EIis_0, E_In, E_Rad, E_Lat_0 = energy_input_data(const.dt, surface_temp[j], const.sigma, const.epsilon, temperature, Lambda, Dr, const.n_x, const.n_y, const.n_z, heat_capacity, density, dx, dy, dz, surface, surface_reduced, delta_T)
     #temperature = sample_holder_data(const.n_x, const.n_y, const.n_z, sample_holder, temperature, 110)
     #temperature = sample_holder_test(const.n_x, const.n_y, const.n_z, sample_holder, temperature)
@@ -131,7 +132,7 @@ for j in tqdm(range(0, 1000)):
         print('Fourier number: ' + str(Max_Fourier_number[j]))
         break
     if j % 50 == 0:
-        print(E_conservation[j], E_In_arr[j], E_Rad_arr[j], Latent_Heat_per_time_step_arr[j], Energy_Increase_Total_per_time_Step_arr[j], EIis_0, E_sh, Econd_0)
+        print(E_conservation[j], E_In_arr[j], E_Rad_arr[j], Latent_Heat_per_time_step_arr[j], Energy_Increase_Total_per_time_Step_arr[j], EIis_0, E_sh)
         temperature_save[0] = temperature
         #print(temperature[1, 1:20, 40:60])
         #print(temperature[2, 1:20, 40:60])
