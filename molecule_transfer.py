@@ -329,10 +329,8 @@ def sinter_neck_calculation(r_n, dt, temperature, a_1, b_1, c_1, d_1, omega, sur
     r_c = 2 * m_mol * surface_energy / (density * R_gas * temperature)
     r_p = r_grain - (r_grain/(r_grain - r_c)) * Z * total_passed_time / density
     delta = r_n**2 / (2 * (r_p - r_n)) * k_factor
-    #if total_passed_time == 1000 * dt:
-        #print(delta)
     d_s = r_p * (alpha/2 + np.arctan(r_p/(r_n + delta)) - np.pi/2)
-    #rate = ((omega**2 * surface_energy * p_sub)/(R_gas * temperature) * 1/np.sqrt(2*np.pi * m_mol * R_gas * temperature) * d_s / (d_s + delta * np.arctan(r_p/(r_n + delta))) * (2/r_p + 1/delta - 1/r_n) - Z/density * np.exp(- r_c/(r_n * 0.01)))
+    #rate = ((omega**2 * surface_energy * p_sub)/(R_gas * temperature) * 1/np.sqrt(2*np.pi * m_mol * R_gas * temperature) * d_s / (d_s + delta * np.arctan(r_p/(r_n + delta))) * (2/r_p + 1/delta - 1/r_n) - Z/density * np.exp(- r_c/(r_n * 0.001)))
     rate = ((omega ** 2 * surface_energy * p_sub) / (R_gas * temperature) * 1 / np.sqrt(2 * np.pi * m_mol * R_gas * temperature) * d_s / (d_s + delta * np.arctan(r_p / (r_n + delta))) * (2 / r_p + 1 / delta - 1 / r_n) - Z / density * np.exp(- r_c / (delta * k_factor)))
     r_n = r_n + dt * rate
     return r_n, rate, r_p
