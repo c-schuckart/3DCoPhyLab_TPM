@@ -84,7 +84,7 @@ def hte_calculate(n_x, n_y, n_z, surface, delta_T_0, temperature, Lambda, Dr, dx
                                        ((((temperature[i + 1][j][k] - temperature[i][j][k]) * Lambda[i][j][k][0] / (Dr[i][j][k][0]))
                                          - ((temperature[i][j][k] - temperature[i - 1][j][k]) * Lambda[i][j][k][1] / (
                                                Dr[i][j][k][1]))) / dz[i][j][k]) * dt / (
-                                               density[i][j][k] * heat_capacity[i][j][k]) - (sublimated_mass[i][j][k] - resublimated_mass[i][j][k]) * latent_heat_water[i][j][k] * 1 / (density[i][j][k] * heat_capacity[i][j][k])
+                                               density[i][j][k] * heat_capacity[i][j][k]) - (sublimated_mass[i][j][k] - resublimated_mass[i][j][k]) * latent_heat_water[i][j][k] * 1 / (density[i][j][k] * heat_capacity[i][j][k] * dx[i][j][k] * dy[i][j][k] * dz[i][j][k])
                     Fourier_number[i][j][k] = np.max(Lambda[i][j][k]) / (density[i][j][k] * heat_capacity[i][j][k]) * dt * (1 / dx[i][j][k] ** 2 + 1 / dy[i][j][k] ** 2 + 1 / dz[i][j][k] ** 2)# [-]
                     Latent_Heat_per_Layer[i][j][k] = - (sublimated_mass[i][j][k] - resublimated_mass[i][j][k]) * latent_heat_water[i][j][k]
                     Energy_Increase_per_Layer[i][j][k] = heat_capacity[i][j][k] * density[i][j][k] * dx[i][j][k] * dy[i][j][k] * dz[i][j][k] * delta_T[i][j][k]  # [J]

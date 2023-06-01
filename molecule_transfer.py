@@ -215,7 +215,7 @@ def calculate_molecule_surface(n_x, n_y, n_z, temperature, pressure, a_1, b_1, c
     return sublimated_mass, resublimated_mass, pressure, outgassed_mass/dt, empty_voxels[0:empty_voxel_count]
 
 @njit
-def calculate_molecule_flux_test(n_x, n_y, n_z, temperature, pressure, a_1, b_1, c_1, d_1, m_H2O, R_gas, VFF, r_grain, Phi, tortuosity, dx, dy, dz, dt, surface_reduced, avogadro_constant, k_B, sample_holder, water_mass_per_layer, n_x_lr, n_y_lr, n_z_lr, Dr, surface_reduction_factor, surface, limiter):
+def calculate_molecule_flux_test(n_x, n_y, n_z, temperature, pressure, a_1, b_1, c_1, d_1, m_H2O, R_gas, VFF, r_grain, Phi, tortuosity, dx, dy, dz, dt, surface_reduced, avogadro_constant, k_B, sample_holder, water_mass_per_layer, n_x_lr, n_y_lr, n_z_lr, Dr, surface_reduction_factor, surface):
     p_sub = np.zeros(np.shape(temperature), dtype=np.float64)
     sublimated_mass = np.zeros(np.shape(temperature), dtype=np.float64)
     resublimated_mass = np.zeros((n_z, n_y, n_x), dtype=np.float64)
@@ -235,7 +235,7 @@ def calculate_molecule_flux_test(n_x, n_y, n_z, temperature, pressure, a_1, b_1,
             empty_voxel_count += 1
         outgassed_mass += sublimated_mass[each[2]][each[1]][each[0]]
         mass_flux[each[2]][each[1]][each[0]] = sublimated_mass[each[2]][each[1]][each[0]]
-    for i in range(1, limiter):
+    for i in range(1, n_z-1):
         for j in range(1, n_y-1):
             for k in range(1, n_x-1):
                 if np.sum(surface[i][j][k]) == 0 and temperature[i][j][k] > 0:
@@ -259,7 +259,7 @@ def diffusion_parameters(n_x, n_y, n_z, a_1, b_1, c_1, d_1, temperature, temps, 
     p_sub = np.zeros((n_z, n_y, n_x), dtype=np.float64)
     sublimated_mass = np.zeros((n_z, n_y, n_x), dtype=np.float64)
     #Using Güttler et al. 2023 calculation for q together with Phi = 13/6
-    q = 1.60- 0.73 * VFF
+    q = 1.60 - 0.73 * VFF
     for i in prange(0, n_z-1):
         for j in range(1, n_y-1):
             for k in range(1, n_x-1):
