@@ -16,7 +16,7 @@ def calibration(OS):
     OFF = 1.95976821
     return B/(np.log((R/(OS-OFF))+F))
 
-
+@njit
 def GCD(a, b):
     if a == 0:
         return b
@@ -29,9 +29,9 @@ def GCD(a, b):
             b = h
         return a
 
-#@njit
-def convolve(Surface_temperatures, length, size, width):
-    convolved = np.zeros((const.n_y, const.n_x), dtype=np.float64)
+@njit
+def convolve(Surface_temperatures, length, size, width, n_x, n_y):
+    convolved = np.zeros((n_y, n_x), dtype=np.float64)
     im2_scaled = np.zeros((length * size, length * size), dtype=np.float64)
     factor = length*size//width
     for j in range(0, length * size):
@@ -43,8 +43,52 @@ def convolve(Surface_temperatures, length, size, width):
     return convolved, im2_scaled
 
 
-#im = np.array(PIL.Image.open('D:/Laboratoy_data/IR/screenshots/2023_04_02_00h_55m_33s.png').convert('L'))
-'''im = np.array(PIL.Image.open('D:/Masterarbeit_data/IR/ice_block/2023_02_22_11h_35m_12s.png').convert('L'))
+@njit
+def replace_values(array, repl_val, goal_val):
+    a, b = np.shape(array)
+    for i in range(0, a):
+        for j in range(0, b):
+            if array[i][j] == repl_val:
+                array[i][j] = goal_val
+    return array
+
+
+@njit
+def calculate_temperature_deltas(k, n_x, n_y, current_surface_temp_scaled, next_surface_temp_scaled, dt, t_deltas):
+    surface_temperature_section = np.zeros((k, n_y, n_x), dtype=np.float64)
+    for t in range(0, k):
+        for j in range(0, n_y):
+            for k in range(0, n_x):
+                surface_temperature_section[t][j][k] = current_surface_temp_scaled[j][k] + (next_surface_temp_scaled[j][k] - current_surface_temp_scaled[j][k]) * t * dt/t_deltas
+    return surface_temperature_section
+
+#@njit
+def get_surface_temperatures_csv(n_x, n_y, file_list, current_file, time_cur, current_surface_temp_scaled, dt, next_segment_time, start_up):
+    if start_up:
+        time_cur = np.datetime64(file_list[current_file][0:4] + '-' + file_list[current_file][5:7] + '-' + file_list[current_file][8:10] + ' ' + file_list[current_file][11:13] + ':' + file_list[current_file][15:17] + ':' + file_list[current_file][19:21])
+        current_surface_temp = np.genfromtxt('D:/Masterarbeit_data/Sand_no_tubes/temp_profile/temp_profile/' + file_list[current_file] , dtype=np.float64, delimiter=',')
+        current_surface_temp = replace_values(current_surface_temp[1:200, 1:200], 200.0, 0.0)
+        width, height = np.shape(current_surface_temp)
+        ggT = GCD(n_x, width)
+        length = width // ggT
+        current_surface_temp_scaled = convolve(current_surface_temp, length, n_x-1, width, n_x, n_y)[0]
+        print(file_list[current_file])
+    current_file += 1
+    time_next = np.datetime64(file_list[current_file][0:4] + '-' + file_list[current_file][5:7] + '-' + file_list[current_file][8:10] + ' ' + file_list[current_file][11:13] + ':' + file_list[current_file][15:17] + ':' + file_list[current_file][19:21])
+    next_surface_temp = np.genfromtxt('D:/Masterarbeit_data/Sand_no_tubes/temp_profile/temp_profile/' + file_list[current_file] , dtype=np.float64, delimiter=',')
+    next_surface_temp = replace_values(next_surface_temp[1:200, 1:200], 200.0, 0.0)
+    width, height = np.shape(next_surface_temp)
+    ggT = GCD(n_x, width)
+    length = width // ggT
+    next_surface_temp_scaled = convolve(next_surface_temp, length, n_x-1, width, n_x, n_y)[0]
+    k = int((time_next.astype(int) - time_cur.astype(int))/dt)
+    surface_temperature_section = calculate_temperature_deltas(k, n_x, n_y, current_surface_temp_scaled, next_surface_temp_scaled, dt, (time_next.astype(int) - time_cur.astype(int)))
+    next_segment_time += (time_next.astype(int) - time_cur.astype(int))
+    return surface_temperature_section, current_file, time_next, next_surface_temp_scaled, next_segment_time
+
+
+'''#im = np.array(PIL.Image.open('D:/Laboratoy_data/IR/screenshots/2023_04_02_00h_55m_33s.png').convert('L'))
+im = np.array(PIL.Image.open('D:/Masterarbeit_data/IR/ice_block/2023_02_22_11h_35m_12s.png').convert('L'))
 images = ImageSequence('D:/Masterarbeit_data/IR/ice_block/2023_02_*.png')
 filenames = listdir('D:/Masterarbeit_data/IR/ice_block')
 x=626
@@ -106,10 +150,17 @@ for j in range(0, 611):
                     
                 else:
                     adaptive_convolution[a][b] = 0'''
-#convolved, im2_scaled = convolve(Surface_temperatures, length, const.n_x-2)
-'''fig, (ax1, ax2, ax3) = plt.subplots(1, 3)
-ax3.imshow(convolved[1:const.n_x-2-1, 1:const.n_x-2-1])
-ax1.imshow(Surface_temperatures)
+
+'''current_surface_temp = np.genfromtxt('D:/Masterarbeit_data/Sand_no_tubes/temp_profile/temp_profile/2023_03_05_17h_51m_11s.csv', dtype=np.float64, delimiter=',')
+current_surface_temp = replace_values(current_surface_temp[1:200, 1:200], 200.0, 0.0)
+width, height = np.shape(current_surface_temp)
+ggT = GCD(const.n_x-2, width)
+length = width//ggT
+convolved, im2_scaled = convolve(current_surface_temp, length, const.n_x-2, width)
+fig, (ax1, ax2, ax3) = plt.subplots(1, 3)
+#ax3.imshow(convolved[1:const.n_x-2-1, 1:const.n_x-2-1])
+ax3.imshow(convolved)
+ax1.imshow(current_surface_temp)
 ax2.imshow(im2_scaled)
 plt.show()'''
 

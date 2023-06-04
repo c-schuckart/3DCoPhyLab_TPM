@@ -4,20 +4,23 @@ import variables_and_arrays as var
 import settings as sett
 from tqdm import tqdm
 import json
+from os import listdir
 from surface_detection import create_equidistant_mesh, DEBUG_print_3D_arrays, find_surface, surrounding_checker, update_surface_arrays, create_equidistant_mesh_gradient
 from thermal_parameter_functions import lambda_constant, lambda_granular, calculate_heat_capacity, lambda_sand, calculate_latent_heat, calculate_density, thermal_functions, lambda_ice_block
 from boundary_conditions import energy_input, test, energy_input_data, sample_holder_data, amplitude_lamp, get_energy_input_lamp, calculate_L_chamber_lamp_bd, sample_holder_test, sample_holder_test_2
 from heat_transfer_equation import hte_calculate, update_thermal_arrays, test_E_cond, test_e_cond_2
 from molecule_transfer import calculate_molecule_flux_test, calculate_molecule_surface
-from data_input import getPath, read_temperature_data, transform_temperature_data
+from data_input import getPath, read_temperature_data, transform_temperature_data, read_temperature_data_partial, transform_temperature_data_partial
 from save_and_load import data_store, data_store_sensors, data_save_sensors, data_save
+from read_images import get_surface_temperatures_csv
 
 
 #work arrays and mesh creation + surface detection
 temperature, dx, dy, dz, Dr, a, a_rad, b, b_rad = create_equidistant_mesh(const.n_x, const.n_y, const.n_z, 170, const.min_dx, const.min_dy, const.min_dz)
 #temperature, dx, dy, dz, Dr, Lambda = one_d_test(const.n_x, const.n_y, const.n_z, const.min_dx, const.min_dy, const.min_dz, 'y')
-heat_capacity = var.heat_capacity
-density = var.density * const.VFF_pack_const
+heat_capacity = var.heat_capacity_sand
+#density = var.density * const.VFF_pack_const
+density = var.density_sand
 delta_T = var.delta_T
 print(np.shape(temperature))
 #DEBUG_print_3D_arrays(const.n_x, const.n_y, const.n_z, temperature)
@@ -57,26 +60,33 @@ E_In_arr = var.E_In_arr
 #max_k, surface_temp = transform_temperature_data(const.k, const.dt, np.array(time_deltas_data_surface), [], surface_temp)
 
 #lamp_power = calculate_L_chamber_lamp_bd(15.33, 'M', const.n_x, const.n_y, const.n_z)
-lamp_power = np.full((const.n_z, const.n_y, const.n_x), const.solar_constant*const.min_dx*const.min_dy, dtype=np.float64)
+'''lamp_power = np.full((const.n_z, const.n_y, const.n_x), const.solar_constant*const.min_dx*const.min_dy, dtype=np.float64)'''
 max_k = const.k
-time_deltas_data_interior, sample_holder_temp = read_temperature_data('D:/Laboratory_data/temps_ice.txt', '2023-02-22 11:27:02', '2023-02-22 13:00:56', [6], [])
-max_k_2, sample_holder_temp = transform_temperature_data(const.k, const.dt, np.array(time_deltas_data_interior), [], sample_holder_temp)
+'''time_deltas_data_interior, sample_holder_temp = read_temperature_data('D:/Laboratory_data/temps_ice.txt', '2023-03-04 17:52:03', '2023-03-04 22:00:02', [6], [])
+max_k_2, sample_holder_temp = transform_temperature_data(const.k, const.dt, np.array(time_deltas_data_interior), [], sample_holder_temp)'''
 
-temperature_save = np.zeros((min(const.k, max_k, max_k_2)//sett.data_reduce + 1, const.n_z, const.n_y, const.n_x))
-sensor_10mm = np.zeros(min(const.k, max_k, max_k_2), dtype=np.float64)
-sensor_20mm = np.zeros(min(const.k, max_k, max_k_2), dtype=np.float64)
-sensor_35mm = np.zeros(min(const.k, max_k, max_k_2), dtype=np.float64)
-sensor_55mm = np.zeros(min(const.k, max_k, max_k_2), dtype=np.float64)
-sensor_90mm = np.zeros(min(const.k, max_k, max_k_2), dtype=np.float64)
+file_list = listdir('D:/Masterarbeit_data/Sand_no_tubes/temp_profile/temp_profile')
+csv_file = open('D:/Masterarbeit_data/Sand_no_tubes/sand_temps(no_tubes).txt', 'r')
+surface_temperature_section, current_file, time_cur, current_surface_temp_scaled, next_segment_time = get_surface_temperatures_csv(const.n_x, const.n_y, file_list, 5, 0, np.zeros(1, dtype=np.float64), const.dt, 0, True)
+time_deltas_data_interior, current_index, next_segment_time_sh, sample_holder_temp = read_temperature_data_partial(csv_file, '2023-03-04 17:52:03', [6], True, 0, 0, [])
+max_k_2, sample_holder_temp = transform_temperature_data_partial(int(time_deltas_data_interior.astype(int)/const.dt), const.dt, time_deltas_data_interior.astype(int), [], sample_holder_temp)
+
+temperature_save = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
+sensor_10mm = 0
+sensor_20mm = 0
+sensor_35mm = 0
+sensor_55mm = 0
+sensor_90mm = 0
 #max_k, max_k_2 = const.k, const.k
 #temperature_save = np.zeros((min(const.k, max_k, max_k_2)//sett.data_reduce + 1, const.n_z, const.n_y, const.n_x))
-water_content_save = np.zeros((min(const.k, max_k, max_k_2)//sett.data_reduce + 1, const.n_z, const.n_y, const.n_x))
-sublimated_mass_save = np.zeros((min(const.k, max_k, max_k_2)//sett.data_reduce + 1, const.n_z, const.n_y, const.n_x))
-Max_Fourier_number = np.zeros(min(const.k, max_k, max_k_2), dtype=np.float64)
-surface_temp = np.full(const.k, 201, dtype=np.float64)
+water_content_save = np.zeros((const.k//sett.data_reduce + 1, const.n_z, const.n_y, const.n_x), dtype=np.float64)
+sublimated_mass_save = np.zeros((const.k//sett.data_reduce + 1, const.n_z, const.n_y, const.n_x), dtype=np.float64)
+Max_Fourier_number = np.zeros(const.k, dtype=np.float64)
+#surface_temp = np.full(const.k, 201, dtype=np.float64)
 r_n = np.zeros((const.n_x, const.n_y, const.n_x), dtype=np.float64)
 #sample_holder_temp = np.full(const.k, 140, dtype=np.float64)
-
+previous_section_time = 0
+previous_section_time_sh = 0
 '''with open('lamp_input_S_chamber.json') as json_file:
     data_e_in = json.load(json_file)
 lamp_power = np.array(data_e_in['Lamp Power'])
@@ -96,23 +106,32 @@ temperature = sample_holder_data(const.n_x, const.n_y, const.n_z, sample_holder,
 #Lambda = lambda_granular(const.n_x, const.n_y, const.n_z, temperature, Dr, dx, dy, dz, const.lambda_water_ice, const.poisson_ratio_par, const.young_modulus_par, const.surface_energy_par, const.r_mono, const.f_1, const.f_2, var.VFF_pack, const.sigma, const.e_1, sample_holder, const.lambda_sample_holder)
 #print(Lambda[15][0][0])
 Delta_cond_ges = 0
+file = open('D:/Masterarbeit_data/Sand_no_tubes/Results/sensor_data_lambda_test.csv', 'a')
 
 #for j in tqdm(range(0, min(const.k, max_k, max_k_2))):
-for j in tqdm(range(0, 1000)):
-    Lambda = lambda_granular(const.n_x, const.n_y, const.n_z, temperature, Dr, dx, dy, dz, const.lambda_water_ice, const.poisson_ratio_par, const.young_modulus_par, const.surface_energy_par, const.r_mono, const.f_1, const.f_2, var.VFF_pack, const.sigma, const.e_1, sample_holder, const.lambda_sample_holder, r_n)[0] * const.lambda_scaling_factor
+for j in tqdm(range(0, const.k)):
+    if j * const.dt >= next_segment_time:
+        previous_section_time = next_segment_time
+        surface_temperature_section, current_file, time_cur, current_surface_temp_scaled, next_segment_time = get_surface_temperatures_csv(const.n_x, const.n_y, file_list, current_file, time_cur, current_surface_temp_scaled, const.dt, next_segment_time, False)
+    if j * const.dt >= next_segment_time_sh:
+        previous_section_time_sh = next_segment_time_sh
+        csv_file = open('D:/Masterarbeit_data/Sand_no_tubes/sand_temps(no_tubes).txt', 'r')
+        time_deltas_data_interior, current_index, next_segment_time_sh, sample_holder_temp = read_temperature_data_partial(csv_file, '2023-03-04 17:52:03', [6], False, current_index, next_segment_time_sh, [])
+        max_k_2, sample_holder_temp = transform_temperature_data_partial(int(time_deltas_data_interior.astype(int)/const.dt), const.dt, time_deltas_data_interior.astype(int), [], sample_holder_temp)
+    #Lambda = lambda_granular(const.n_x, const.n_y, const.n_z, temperature, Dr, dx, dy, dz, const.lambda_water_ice, const.poisson_ratio_par, const.young_modulus_par, const.surface_energy_par, const.r_mono, const.f_1, const.f_2, var.VFF_pack, const.sigma, const.e_1, sample_holder, const.lambda_sample_holder, r_n)[0] * const.lambda_scaling_factor
     #Lambda = lambda_ice_block(const.n_x, const.n_y, const.n_z, temperature, Dr, dx, dy, dz, const.lambda_water_ice, const.r_mono, var.VFF_pack, const.sigma, const.e_1, sample_holder, const.lambda_sample_holder) * const.lambda_scaling_factor
-    #Lambda = lambda_sand(const.n_x, const.n_y, const.n_z, temperature, Dr, const.lambda_sand, sample_holder, const.lambda_sample_holder)
+    Lambda = lambda_sand(const.n_x, const.n_y, const.n_z, temperature, Dr, const.lambda_sand, sample_holder, const.lambda_sample_holder)
     #Lambda = lambda_constant(const.n_x, const.n_y, const.n_z, const.lambda_constant)
     '''density = calculate_density(temperature, const.VFF_pack_const)[1]
     heat_capacity = calculate_heat_capacity(temperature)
     latent_heat_water = calculate_latent_heat(temperature, const.lh_b_1, const.lh_c_1, const.lh_d_1, const.R, const.m_mol)'''
-    heat_capacity, latent_heat_water, density_grain, density = thermal_functions(temperature, const.lh_b_1, const.lh_c_1, const.lh_d_1, const.R, const.m_mol, const.VFF_pack_const)
+    #heat_capacity, latent_heat_water, density_grain, density = thermal_functions(temperature, const.lh_b_1, const.lh_c_1, const.lh_d_1, const.R, const.m_mol, const.VFF_pack_const)
     #sublimated_mass, resublimated_mass, pressure, outgassing_rate[j], empty_voxels = calculate_molecule_flux(const.n_x, const.n_y, const.n_z, temperature, pressure, const.lh_a_1, const.lh_b_1, const.lh_c_1, const.lh_d_1, const.m_mol, const.R, var.VFF_pack, const.r_mono, const.Phi, const.tortuosity, dx, dy, dz, const.dt, surface_reduced, const.avogadro_constant, const.k_boltzmann, sample_holder, uniform_water_masses, var.n_x_lr, var.n_y_lr, var.n_z_lr, Dr)
     #sublimated_mass, resublimated_mass, pressure, outgassing_rate[j], empty_voxels = calculate_molecule_surface(const.n_x, const.n_y, const.n_z, temperature, pressure, const.lh_a_1, const.lh_b_1, const.lh_c_1, const.lh_d_1, const.m_H2O, const.R, var.VFF_pack, const.r_mono, const.Phi_Asaeda, const.tortuosity, dx, dy, dz, const.dt, surface_reduced, const.avogadro_constant, const.k_boltzmann, sample_holder, uniform_water_masses, var.n_x_lr, var.n_y_lr, var.n_z_lr, Dr, const.surface_reduction_factor)
-    sublimated_mass, resublimated_mass, pressure, outgassing_rate[j], empty_voxels = calculate_molecule_flux_test(const.n_x, const.n_y, const.n_z, temperature, pressure, const.lh_a_1, const.lh_b_1, const.lh_c_1, const.lh_d_1, const.m_H2O, const.R, var.VFF_pack, const.r_mono, const.Phi_Asaeda, const.tortuosity, dx, dy, dz, const.dt, surface_reduced, const.avogadro_constant, const.k_boltzmann, sample_holder, uniform_water_masses, var.n_x_lr, var.n_y_lr, var.n_z_lr, Dr, const.surface_reduction_factor, surface)
+    #sublimated_mass, resublimated_mass, pressure, outgassing_rate[j], empty_voxels = calculate_molecule_flux_test(const.n_x, const.n_y, const.n_z, temperature, pressure, const.lh_a_1, const.lh_b_1, const.lh_c_1, const.lh_d_1, const.m_H2O, const.R, var.VFF_pack, const.r_mono, const.Phi_Asaeda, const.tortuosity, dx, dy, dz, const.dt, surface_reduced, const.avogadro_constant, const.k_boltzmann, sample_holder, uniform_water_masses, var.n_x_lr, var.n_y_lr, var.n_z_lr, Dr, const.surface_reduction_factor, surface)
     #temperature = sample_holder_test_2(const.n_x, const.n_y, const.n_z, sample_holder, temperature, 110, 50)
-    dT_0, EIis_0, E_In, E_Rad, E_Lat_0, Energy_conduction_per_Layer = energy_input(const.r_H, const.albedo, const.dt, lamp_power, const.sigma, const.epsilon, temperature, Lambda, Dr, sublimated_mass, resublimated_mass, latent_heat_water, heat_capacity, density, dx, dy, dz, surface, surface_reduced, delta_T)
-    #dT_0, EIis_0, E_In, E_Rad, E_Lat_0 = energy_input_data(const.dt, surface_temp[j], const.sigma, const.epsilon, temperature, Lambda, Dr, const.n_x, const.n_y, const.n_z, heat_capacity, density, dx, dy, dz, surface, surface_reduced, delta_T)
+    #dT_0, EIis_0, E_In, E_Rad, E_Lat_0, Energy_conduction_per_Layer = energy_input(const.r_H, const.albedo, const.dt, lamp_power, const.sigma, const.epsilon, temperature, Lambda, Dr, sublimated_mass, resublimated_mass, latent_heat_water, heat_capacity, density, dx, dy, dz, surface, surface_reduced, delta_T)
+    dT_0, EIis_0, E_In, E_Rad, E_Lat_0 = energy_input_data(const.dt, surface_temperature_section[j - int(previous_section_time/const.dt)], const.sigma, const.epsilon, temperature, Lambda, Dr, const.n_x, const.n_y, const.n_z, heat_capacity, density, dx, dy, dz, surface, surface_reduced, delta_T)
     #temperature = sample_holder_data(const.n_x, const.n_y, const.n_z, sample_holder, temperature, 110)
     #temperature = sample_holder_test(const.n_x, const.n_y, const.n_z, sample_holder, temperature)
     delta_T, Energy_Increase_per_Layer, Latent_Heat_per_Layer, Max_Fourier_number[j], E_sh, EcoPL = hte_calculate(const.n_x, const.n_y, const.n_z, surface, dT_0, temperature, Lambda, Dr, dx, dy, dz, const.dt, density, heat_capacity, sublimated_mass, resublimated_mass, latent_heat_water, sample_holder)
@@ -124,7 +143,7 @@ for j in tqdm(range(0, 1000)):
     #temperature = sample_holder_data(const.n_x, const.n_y, const.n_z, sample_holder, temperature, 77)
     #if len(empty_voxels) != 0:
         #surface, surface_reduced = update_surface_arrays(empty_voxels, surface, surface_reduced, temperature, const.n_x, const.n_y, const.n_z, a, a_rad, b, b_rad)
-    sensor_10mm, sensor_20mm, sensor_35mm, sensor_55mm, sensor_90mm, temperature_save = data_store_sensors(j, const.n_x, const.n_y, const.n_z, temperature, sensor_10mm, sensor_20mm, sensor_35mm, sensor_55mm, sensor_90mm, sett.data_reduce, temperature_save)
+    sensor_10mm, sensor_20mm, sensor_35mm, sensor_55mm, sensor_90mm = data_store_sensors(j, const.n_x, const.n_y, const.n_z, temperature, sensor_10mm, sensor_20mm, sensor_35mm, sensor_55mm, sensor_90mm, sett.data_reduce)
     #pressure, pressure_co2, highest_pressure, highest_pressure_co2 = pressure_calculation(j_leave, j_leave_co2, pressure, pressure_co2, temperature, var.dx, const.a_H2O, const.b_H2O, const.a_CO2, const.b_CO2, const.b, highest_pressure, highest_pressure_co2)
     #temperature, pressure, pressure_co2, water_content_per_layer, co2_content_per_layer, dust_ice_ratio_per_layer, co2_h2o_ratio_per_layer, heat_capacity, total_ejection_events, ejection_times, drained_layers = check_drained_layers(const.n, temperature, pressure, pressure_co2, water_content_per_layer, co2_content_per_layer, dust_ice_ratio_per_layer, co2_h2o_ratio_per_layer, total_ejection_events, var.layer_strength, const.second_temp_layer, var.base_water_particle_number, var.base_co2_particle_number, const.dust_ice_ratio_global, const.co2_h2o_ratio_global, heat_capacity, const.heat_capacity_dust, const.heat_capacity_water_ice, const.heat_capacity_co2_ice, ejection_times, j, drained_layers)
     #print('---------- STEP ' + str(j) + ' ----------')
@@ -132,36 +151,32 @@ for j in tqdm(range(0, 1000)):
         print('Instability warning')
         print('Fourier number: ' + str(Max_Fourier_number[j]))
         break
-    if j % 50 == 0:
+    '''if j % 50 == 0:
         print(E_conservation[j], E_In_arr[j], E_Rad_arr[j], Latent_Heat_per_time_step_arr[j], Energy_Increase_Total_per_time_Step_arr[j], EIis_0, E_sh)
         temperature_save[0] = temperature
         #print(temperature[1, 1:20, 40:60])
-        #print(temperature[2, 1:20, 40:60])
-    '''if j % sett.data_reduce == 0 or j == 0:
+        #print(temperature[2, 1:20, 40:60])'''
+    if j % sett.data_reduce == 0 or j == 0:
+        data_save_sensors(j * const.dt, sensor_10mm, sensor_20mm, sensor_35mm, sensor_55mm, sensor_90mm, file)
         #temperature_save, water_content_save, co2_content_save, outgassing_save, outgassing_co2_save = data_store(j, temperature, water_content_per_layer, co2_content_per_layer, outgassed_molecules_per_time_step/const.dt, outgassed_molecules_per_time_step_co2/const.dt, temperature_save, water_content_save, co2_content_save, outgassing_save, outgassing_co2_save, sett.data_reduction)
         #sensor_10mm, sensor_20mm, sensor_35mm, sensor_55mm, sensor_90mm, temperature_save = data_store_sensors(j, const.n_x, const.n_y, const.n_z, temperature, sensor_10mm, sensor_20mm, sensor_35mm, sensor_55mm, sensor_90mm, sett.data_reduce, temperature_save)
-        temperature_save[j//sett.data_reduce] = temperature
-        water_content_save[j // sett.data_reduce] = uniform_water_masses
-        sublimated_mass_save[j // sett.data_reduce] = sublimated_mass'''
+        #temperature_save[j//sett.data_reduce] = temperature
+        #water_content_save[j // sett.data_reduce] = uniform_water_masses
+        #sublimated_mass_save[j // sett.data_reduce] = sublimated_mass
 
 #Data saving and output
 #save_current_arrays(temperature, water_content_per_layer, co2_content_per_layer, dust_ice_ratio_per_layer, co2_h2o_ratio_per_layer, heat_capacity, highest_pressure, highest_pressure_co2, ejection_times, var.time_passed + const.dt * const.k)
-temperature_save[len(temperature_save)-1] = temperature
-water_content_save[len(water_content_save)-1] = uniform_water_masses
-sublimated_mass_save[len(sublimated_mass_save)-1] = sublimated_mass
-#data_save(temperature_save, water_content_save, outgassing_rate, sublimated_mass_save, 'D:/Masterarbeit_data/' + 'Albedo_' + str(albedo) + '_just_surface_area')
-#data_save(np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64), water_content_save, outgassing_rate, sublimated_mass_save,'D:/Masterarbeit_data/' + 'Albedo_0.80_Lambda_wi_' + str(lambda_water_ice) + '_lamp_test')
-#print('Albedo: ' + str(albedo) + '\n Outgassed mass: ')
-#print(np.sum([outgassing_rate[b] * const.dt for b in range(len(outgassing_rate))]))
-#if np.sum([outgassing_rate[b] * const.dt for b in range(len(outgassing_rate))]) < 0.006E-3:
-    #fac = -1
-#print(sensor_10mm[1000:1100])
-#data_save_sensors(temperature_save, sensor_10mm, sensor_20mm, sensor_35mm, sensor_55mm, sensor_90mm, 'D:/Masterarbeit_data/3D_temps_lamp_test_Albedo_0.80_Lambda_wi_' + str(lambda_water_ice), 'D:/Masterarbeit_data/sensor_temp_lamp_test_Albedo_0.80_Lambda_wi_' + str(lambda_water_ice))
-data_dict = {'Temperature': temperature_save.tolist(), 'Surface': surface.tolist(), 'RSurface': surface_reduced.tolist(), 'HC': Lambda.tolist(), 'SH': sample_holder.tolist()}
+data_dict = {'Temperature': temperature.tolist()}
+with open('D:/Masterarbeit_data/Sand_no_tubes/Results/temperature_data_lambda_test.json', 'w') as outfile:
+    json.dump(data_dict, outfile)
+
+data_save_sensors(const.k * const.dt, sensor_10mm, sensor_20mm, sensor_35mm, sensor_55mm, sensor_90mm, file)
+file.close()
+'''data_dict = {'Temperature': temperature_save.tolist(), 'Surface': surface.tolist(), 'RSurface': surface_reduced.tolist(), 'HC': Lambda.tolist(), 'SH': sample_holder.tolist()}
 with open('test_ec.json', 'w') as outfile:
     json.dump(data_dict, outfile)
 print(np.max(Max_Fourier_number))
-print('done')
+print('done')'''
 
 
 

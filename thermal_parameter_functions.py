@@ -168,7 +168,7 @@ def lambda_sand(n_x, n_y, n_z, temperature, Dr, lambda_sand, sample_holder, lamb
 			for k in range(1, n_x-1):
 				if temperature[i][j][k] > 0:
 					for a in range(0, len(lambda_s)):
-						if sample_holder[i + var.n_z_lr[a]][j + var.n_y_lr[a]][k + var.n_x_lr[a]] == 1:
+						if sample_holder[i + var.n_z_lr[a]][j + var.n_y_lr[a]][k + var.n_x_lr[a]] == 1 or sample_holder[i][j][k] == 1:
 							lambda_total[i][j][k][a] = (lambda_s[a] / (Dr[i][j][k][a] / 2) * lambda_sample_holder / (Dr[i][j][k][a] / 2) / (lambda_s[a] / (Dr[i][j][k][a] / 2) + lambda_sample_holder / (Dr[i][j][k][a] / 2))) * Dr[i][j][k][a]
 						else:
 							lambda_total[i][j][k][a] = lambda_s[a]

@@ -1,20 +1,20 @@
 import numpy as np
 
 #Definition of Simulation Parameters
-min_dx = 5E-6                      # Layer Thickness of smallest layer in x direction, Numerical Resolution  [m]
+'''min_dx = 5E-6                      # Layer Thickness of smallest layer in x direction, Numerical Resolution  [m]
 min_dy = 5E-6                      # Layer Thickness of smallest layer in y direction, Numerical Resolution  [m]
 min_dz = 5E-6                      # Layer Thickness of smallest layer in z direction, Numerical Resolution  [m]
 dt = 0.5E-8                           # Timestep                               [s]
 n_x = 101                            # Number of Layers                       [-]
 n_y = 101
-n_z = 100
-'''min_dx = 2E-3                      # Layer Thickness of the smallest layer in x direction, Numerical Resolution  [m]
+n_z = 100'''
+min_dx = 2E-3                      # Layer Thickness of the smallest layer in x direction, Numerical Resolution  [m]
 min_dy = 2E-3                      # Layer Thickness of the smallest layer in y direction, Numerical Resolution  [m]
 min_dz = 2E-3                      # Layer Thickness of the smallest layer in z direction, Numerical Resolution  [m]
 dt = 0.005                           # Timestep                               [s]
-n_x = 38                           # Number of Layers                       [-]
-n_y = 38
-n_z = 53'''
+n_x = 39                           # Number of Layers                       [-]
+n_y = 39
+n_z = 53
 n = np.array([n_x, n_y, n_z])
 #k = 360000 * 1000                      # Number of Timesteps                    [-]
 k = 36000                     # Number of Timesteps                    [-]
