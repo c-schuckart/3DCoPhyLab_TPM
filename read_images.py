@@ -63,24 +63,24 @@ def calculate_temperature_deltas(k, n_x, n_y, current_surface_temp_scaled, next_
     return surface_temperature_section
 
 #@njit
-def get_surface_temperatures_csv(n_x, n_y, file_list, current_file, time_cur, current_surface_temp_scaled, dt, next_segment_time, start_up):
+def get_surface_temperatures_csv(n_x, n_y, directory, file_list, current_file, time_cur, current_surface_temp_scaled, dt, next_segment_time, start_up):
     if start_up:
         time_cur = np.datetime64(file_list[current_file][0:4] + '-' + file_list[current_file][5:7] + '-' + file_list[current_file][8:10] + ' ' + file_list[current_file][11:13] + ':' + file_list[current_file][15:17] + ':' + file_list[current_file][19:21])
-        current_surface_temp = np.genfromtxt('D:/Masterarbeit_data/Sand_no_tubes/temp_profile/temp_profile/' + file_list[current_file] , dtype=np.float64, delimiter=',')
+        current_surface_temp = np.genfromtxt(directory + file_list[current_file] , dtype=np.float64, delimiter=',')
         current_surface_temp = replace_values(current_surface_temp[1:200, 1:200], 200.0, 0.0)
         width, height = np.shape(current_surface_temp)
         ggT = GCD(n_x, width)
         length = width // ggT
-        current_surface_temp_scaled = convolve(current_surface_temp, length, n_x-1, width, n_x, n_y)[0]
+        current_surface_temp_scaled = convolve(current_surface_temp, length, n_x-2, width, n_x, n_y)[0]
         print(file_list[current_file])
     current_file += 1
     time_next = np.datetime64(file_list[current_file][0:4] + '-' + file_list[current_file][5:7] + '-' + file_list[current_file][8:10] + ' ' + file_list[current_file][11:13] + ':' + file_list[current_file][15:17] + ':' + file_list[current_file][19:21])
-    next_surface_temp = np.genfromtxt('D:/Masterarbeit_data/Sand_no_tubes/temp_profile/temp_profile/' + file_list[current_file] , dtype=np.float64, delimiter=',')
+    next_surface_temp = np.genfromtxt(directory + file_list[current_file] , dtype=np.float64, delimiter=',')
     next_surface_temp = replace_values(next_surface_temp[1:200, 1:200], 200.0, 0.0)
     width, height = np.shape(next_surface_temp)
     ggT = GCD(n_x, width)
     length = width // ggT
-    next_surface_temp_scaled = convolve(next_surface_temp, length, n_x-1, width, n_x, n_y)[0]
+    next_surface_temp_scaled = convolve(next_surface_temp, length, n_x-2, width, n_x, n_y)[0]
     k = int((time_next.astype(int) - time_cur.astype(int))/dt)
     surface_temperature_section = calculate_temperature_deltas(k, n_x, n_y, current_surface_temp_scaled, next_surface_temp_scaled, dt, (time_next.astype(int) - time_cur.astype(int)))
     next_segment_time += (time_next.astype(int) - time_cur.astype(int))
@@ -151,12 +151,12 @@ for j in range(0, 611):
                 else:
                     adaptive_convolution[a][b] = 0'''
 
-'''current_surface_temp = np.genfromtxt('D:/Masterarbeit_data/Sand_no_tubes/temp_profile/temp_profile/2023_03_05_17h_51m_11s.csv', dtype=np.float64, delimiter=',')
+'''current_surface_temp = np.genfromtxt('D:/Laboratory_data/Sand_without_tubes/temp_profile/temp_profile/2023_03_05_18h_53m_55s.csv', dtype=np.float64, delimiter=',')
 current_surface_temp = replace_values(current_surface_temp[1:200, 1:200], 200.0, 0.0)
 width, height = np.shape(current_surface_temp)
 ggT = GCD(const.n_x-2, width)
 length = width//ggT
-convolved, im2_scaled = convolve(current_surface_temp, length, const.n_x-2, width)
+convolved, im2_scaled = convolve(current_surface_temp, length, const.n_x-2, width, const.n_x, const.n_y)
 fig, (ax1, ax2, ax3) = plt.subplots(1, 3)
 #ax3.imshow(convolved[1:const.n_x-2-1, 1:const.n_x-2-1])
 ax3.imshow(convolved)

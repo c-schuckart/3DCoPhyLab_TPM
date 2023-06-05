@@ -36,11 +36,11 @@ def data_store(j, temperature, water_content_per_layer, co2_content_per_layer, o
 
 
 def data_store_sensors(j, n_x, n_y, n_z, temperature, sensor_10mm, sensor_20mm, sensor_35mm, sensor_55mm, sensor_90mm, data_reduction):
-    sensor_10mm = (temperature[4][n_y//2][n_x//2] + temperature[5][n_y//2][n_x//2])/2
-    sensor_20mm = (temperature[9][n_y//2][n_x//2] + temperature[10][n_y//2][n_x//2])/2
-    sensor_35mm = temperature[17][n_y//2][n_x//2]
-    sensor_55mm = temperature[27][n_y//2][n_x//2]
-    sensor_90mm = (temperature[44][n_y//2][n_x//2] + temperature[45][n_y//2][n_x//2])/2
+    sensor_10mm = temperature[5][n_y//2][n_x//2]
+    sensor_20mm = temperature[10][n_y//2][n_x//2]
+    sensor_35mm = (temperature[17][n_y//2][n_x//2] + temperature[18][n_y//2][n_x//2])/2
+    sensor_55mm = (temperature[27][n_y//2][n_x//2] + temperature[28][n_y//2][n_x//2])/2
+    sensor_90mm = temperature[45][n_y//2][n_x//2]
     return sensor_10mm, sensor_20mm, sensor_35mm, sensor_55mm, sensor_90mm
 
 

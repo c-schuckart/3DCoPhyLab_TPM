@@ -153,6 +153,7 @@ def energy_input_data(dt, input_temperature, sigma, epsilon, temperature, Lambda
 		#Wouldn't work for a sample with dissolving surface voxels, once an exposed voxel would be covered by another one on top - Not a problem for sand of course
 		delta_T_0[each[2]][each[1]][each[0]] = input_temperature[each[1]][each[0]] - temperature[each[2]][each[1]][each[0]]
 		Energy_Increase_in_surface += delta_T_0[each[2]][each[1]][each[0]] * (heat_capacity[each[2]][each[1]][each[0]] * density[each[2]][each[1]][each[0]] * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]])
+		E_In_in_surface += delta_T_0[each[2]][each[1]][each[0]] * (heat_capacity[each[2]][each[1]][each[0]] * density[each[2]][each[1]][each[0]] * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]])
 	return delta_T_0, Energy_Increase_in_surface, E_In_in_surface, E_Rad_in_surface, E_Lat_in_surface
 
 
