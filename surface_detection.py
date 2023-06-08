@@ -24,8 +24,9 @@ def create_equidistant_mesh(n_x, n_y, n_z, temperature_ini, dx, dy, dz):
             if i != 0:
                 mesh[i] = slice
     elif sett.mesh_form == 0:
-        mesh = np.full((n_z, n_y, n_x), temperature_ini)
-        a, a_rad, b, b_rad = 0, 0, 0, 0
+        mesh = np.zeros((n_z, n_y, n_x), dtype=np.float64)
+        mesh[1:n_z-1, 1:n_y-1, 1:n_x-1] = np.full((n_z-2, n_y-2, n_x-2), temperature_ini, dtype=np.float64)
+        a, a_rad, b, b_rad = 0, np.infty, 0, np.infty
     else:
         raise NotImplementedError
     dx_arr = np.full((n_z, n_y, n_x), dx, dtype=np.float64)
@@ -53,7 +54,7 @@ def create_equidistant_mesh_gradient(n_x, n_y, n_z, temperature_ini, dx, dy, dz)
                 mesh[i] = slice * (100 * (n_z-1-i)/n_z-1 + temperature_ini)
     elif sett.mesh_form == 0:
         mesh = np.full((n_z, n_y, n_x), temperature_ini)
-        a, a_rad, b, b_rad = 0, 0, 0, 0
+        a, a_rad, b, b_rad = 0, np.infty, 0, np.infty
     else:
         raise NotImplementedError
     dx_arr = np.full((n_z, n_y, n_x), dx, dtype=np.float64)
@@ -90,10 +91,14 @@ def find_surface(n_x, n_y, n_z, limiter_x_start, limiter_y_start, limiter_z_star
                     # Check if it is a surface in negative x direction
                     if mesh[i][j][k-1] == 0:
                         surface[i][j][k][5] = 1
-                    if ((k - a) / a_rad) ** 2 + ((j - b) / b_rad) ** 2 <= 1 and sum(surface[i][j][k] != 0) and i < n_z - 2:
-                        surface_elements += 1
-                    if (not (((k - a) / a_rad) ** 2 + ((j - b) / b_rad) ** 2 <= 1) and np.sum(surface[i][j][k]) != 0) or (np.sum(surface[i][j][k]) != 0 and i >= n_z-2):
-                        sample_holder[i][j][k] = 1
+                    if sett.mesh_form == 1:
+                        if ((k - a) / a_rad) ** 2 + ((j - b) / b_rad) ** 2 <= 1 and sum(surface[i][j][k] != 0) and i < n_z - 2:
+                            surface_elements += 1
+                        if (not (((k - a) / a_rad) ** 2 + ((j - b) / b_rad) ** 2 <= 1) and np.sum(surface[i][j][k]) != 0) or (np.sum(surface[i][j][k]) != 0 and i >= n_z-2):
+                            sample_holder[i][j][k] = 1
+                    else:
+                        if np.sum(surface[i][j][k]) != 0:
+                            surface_elements += 1
     if initiation:
         sample_holder, misplaced_voxels = fix_rim(n_x, n_y, limiter_x_start, limiter_y_start, a, a_rad, b, b_rad, sample_holder)
     else:
@@ -108,6 +113,59 @@ def find_surface(n_x, n_y, n_z, limiter_x_start, limiter_y_start, limiter_z_star
                                          misplaced_voxels)
     return surface, surface_reduced, sample_holder
 
+
+@njit
+def find_surface_periodic(n_x, n_y, n_z, limiter_x_start, limiter_y_start, limiter_z_start, limiter_x_end, limiter_y_end, limiter_z_end, mesh, surface, a, a_rad, b, b_rad, initiation):
+    surface_elements = 0
+    sample_holder = np.zeros((n_z, n_y, n_x), dtype=np.int32)
+    for i in range(limiter_z_start, limiter_z_end-2):
+        for j in range(limiter_y_start, limiter_y_end):
+            for k in range(limiter_x_start, limiter_x_end):
+                surface[i][j][k] = np.zeros(6, dtype=np.int32)
+                if mesh[i][j][k] != 0:
+                    #Check if it is a surface in positive z direction
+                    if mesh[i+1][j][k] == 0:
+                        surface[i][j][k][0] = 1
+                    # Check if it is a surface in negative z direction
+                    if mesh[i-1][j][k] == 0:
+                        surface[i][j][k][1] = 1
+                    # Check if it is a surface in positive y direction
+                    if mesh[i][j+1][k] == 0:
+                        if j == n_y-2 and mesh[i][1][k] == 0:
+                            surface[i][j][k][2] = 1
+                    # Check if it is a surface in negative y direction
+                    if mesh[i][j-1][k] == 0:
+                        if j == 1 and mesh[i][n_y-2][k] == 0:
+                            surface[i][j][k][3] = 1
+                    # Check if it is a surface in positive x direction
+                    if mesh[i][j][k+1] == 0:
+                        if j == n_x-2 and mesh[i][j][1] == 0:
+                            surface[i][j][k][4] = 1
+                    # Check if it is a surface in negative x direction
+                    if mesh[i][j][k-1] == 0:
+                        if j == 1 and mesh[i][j][n_x-2] == 0:
+                            surface[i][j][k][5] = 1
+                    if sett.mesh_form == 1:
+                        if ((k - a) / a_rad) ** 2 + ((j - b) / b_rad) ** 2 <= 1 and sum(surface[i][j][k] != 0) and i < n_z - 2:
+                            surface_elements += 1
+                        if (not (((k - a) / a_rad) ** 2 + ((j - b) / b_rad) ** 2 <= 1) and np.sum(surface[i][j][k]) != 0) or (np.sum(surface[i][j][k]) != 0 and i >= n_z-2):
+                            sample_holder[i][j][k] = 1
+                    else:
+                        if np.sum(surface[i][j][k]) != 0:
+                            surface_elements += 1
+    if initiation:
+        sample_holder, misplaced_voxels = fix_rim(n_x, n_y, limiter_x_start, limiter_y_start, a, a_rad, b, b_rad, sample_holder)
+    else:
+        misplaced_voxels = np.empty((0, 0), dtype=np.int32)
+    surface_elements += len(misplaced_voxels)
+    if initiation:
+        surface_reduced = reduce_surface(n_x, n_y, n_z, limiter_x_start, limiter_y_start, limiter_z_start, limiter_x_end, limiter_y_end, limiter_z_end, surface, np.zeros((surface_elements, 3), dtype=np.int32), a, a_rad, b, b_rad, misplaced_voxels)
+    else:
+        surface_reduced = reduce_surface(n_x, n_y, n_z, limiter_x_start, limiter_y_start, limiter_z_start,
+                                         limiter_x_end, limiter_y_end, limiter_z_end, surface,
+                                         np.zeros((surface_elements, 3), dtype=np.int32), a, a_rad, b, b_rad,
+                                         misplaced_voxels)
+    return surface, surface_reduced, sample_holder
 
 @jit
 def reduce_surface(n_x, n_y, n_z, limiter_x, limiter_y, limiter_z, limiter_x_end, limiter_y_end, limiter_z_end, surface, surface_reduced, a, a_rad, b, b_rad, misplaced_voxels):

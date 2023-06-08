@@ -63,7 +63,7 @@ x_0 = 5E-2                        # Length scaling factor used to calculate the 
 gravitational_pressure = 0        #Placeholder! [Pa]
 surface_reduction_factor = 1
 #Thermal Properties
-temperature_ini = 285.75             # Start Temperature                      [K]
+temperature_ini = 77             # Start Temperature                      [K]
 sample_holder_starting_temp = 110  # Starting temperature of the sample holder [K]
 Input_Intensity = 6500             # Intensity of the Light Source (Sun)    [W/m^2]
 epsilon = 1                       # Emissivity                             [-]

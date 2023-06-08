@@ -154,6 +154,45 @@ def hte_calculate(n_x, n_y, n_z, surface, delta_T_0, temperature, Lambda, Dr, dx
     return delta_T, Energy_Increase_per_Layer, Latent_Heat_per_Layer, np.max(Fourier_number), E_sample_holder, EcoPL
 
 
+@njit(parallel=True)
+def hte_calculate_periodic(n_x, n_y, n_z, surface, delta_T_0, temperature, Lambda, Dr, dx, dy, dz, dt, density, heat_capacity, sublimated_mass, resublimated_mass, latent_heat_water, sample_holder):
+    delta_T = np.zeros((n_z, n_y, n_x), dtype=np.float64) + delta_T_0
+    Energy_Increase_per_Layer = np.zeros((n_z, n_y, n_x), dtype=np.float64)
+    Latent_Heat_per_Layer = np.zeros((n_z, n_y, n_x), dtype=np.float64)
+    Fourier_number = np.zeros((n_z, n_y, n_x), dtype=np.float64)
+    EcoPL = np.zeros((n_z, n_y, n_x, 6), dtype=np.float64)
+    E_sample_holder = 0
+    for i in prange(1, n_z-2):
+        for j in range(1, n_y-1):
+            for k in range(1, n_x-1):
+                y_pos_period, y_neg_period, x_pos_period, x_neg_period = 0, 0, 0, 0
+                if j == 1:
+                    y_neg_period = 1
+                if j == n_y-2:
+                    y_pos_period = 1
+                if k == 1:
+                    x_neg_period = 1
+                if k == n_x-2:
+                    x_pos_period = 1
+                if np.sum(surface[i][j][k]) == 0 and temperature[i][j][k] > 0:
+                    # Standard Thermal Diffusivity Equation 3D explicit
+                    delta_T[i][j][k] = (((((temperature[i][j][k + 1] - temperature[i][j][k]) * (1- x_pos_period) + (temperature[i][j][1] - temperature[i][j][k]) * x_pos_period)* Lambda[i][j][k][4] / (Dr[i][j][k][4])) - (((temperature[i][j][k] - temperature[i][j][k - 1]) * (1 - x_neg_period) + (temperature[i][j][k] - temperature[i][j][n_x-2]) * x_neg_period)* Lambda[i][j][k][5] / (Dr[i][j][k][5]))) / dx[i][j][k]) * dt / (
+                                         density[i][j][k] * heat_capacity[i][j][k]) + \
+                                   (((((temperature[i][j + 1][k] - temperature[i][j][k]) * (1 - y_pos_period) + (temperature[i][1][k] - temperature[i][j][k]) * y_pos_period)* Lambda[i][j][k][2] / (Dr[i][j][k][2]))
+                                     - (((temperature[i][j][k] - temperature[i][j - 1][k]) * (1 - y_neg_period) + (temperature[i][j][k] - temperature[i][n_y-2][k]) * y_neg_period) * Lambda[i][j][k][3] / (
+                                           Dr[i][j][k][3]))) / dy[i][j][k]) * dt / (
+                                           density[i][j][k] * heat_capacity[i][j][k]) + \
+                                   ((((temperature[i + 1][j][k] - temperature[i][j][k]) * Lambda[i][j][k][0] / (Dr[i][j][k][0]))
+                                     - ((temperature[i][j][k] - temperature[i - 1][j][k]) * Lambda[i][j][k][1] / (
+                                           Dr[i][j][k][1]))) / dz[i][j][k]) * dt / (
+                                           density[i][j][k] * heat_capacity[i][j][k]) - (sublimated_mass[i][j][k] - resublimated_mass[i][j][k]) * latent_heat_water[i][j][k] * 1 / (density[i][j][k] * heat_capacity[i][j][k] * dx[i][j][k] * dy[i][j][k] * dz[i][j][k])
+                    Fourier_number[i][j][k] = np.max(Lambda[i][j][k]) / (density[i][j][k] * heat_capacity[i][j][k]) * dt * (1 / dx[i][j][k] ** 2 + 1 / dy[i][j][k] ** 2 + 1 / dz[i][j][k] ** 2)# [-]
+                    Latent_Heat_per_Layer[i][j][k] = - (sublimated_mass[i][j][k] - resublimated_mass[i][j][k]) * latent_heat_water[i][j][k]
+                    Energy_Increase_per_Layer[i][j][k] = heat_capacity[i][j][k] * density[i][j][k] * dx[i][j][k] * dy[i][j][k] * dz[i][j][k] * delta_T[i][j][k]  # [J]
+                    #if i == 2 and j == 2 and k == 50:
+                        #print('E_INpL: ', Energy_Increase_per_Layer[i][j][k])
+    return delta_T, Energy_Increase_per_Layer, Latent_Heat_per_Layer, np.max(Fourier_number), E_sample_holder, EcoPL
+
 @njit
 def test_E_cond(n_x, n_y, n_z, surface, delta_T_0, temperature, Lambda, Dr, dx, dy, dz, dt, density, heat_capacity, sublimated_mass, resublimated_mass, latent_heat_water, sample_holder, Energy_conduction_per_Layer):
     #Energy_conduction_per_Layer = np.zeros((n_z, n_y, n_x, 6), dtype=np.float64)

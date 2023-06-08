@@ -68,7 +68,59 @@ Returns:
 	E_In : float
 		Energy increase of the system due to solar radiation
 '''
-@jit
+@njit
+def energy_input_periodic(r_H, albedo, dt, input_energy, sigma, epsilon, temperature, Lambda, Dr, sublimated_mass, resublimated_mass, latent_heat_water, heat_capacity, density, dx, dy, dz, surface, surface_reduced, delta_T, n_x, n_y):
+	Energy_Increase_in_surface = 0
+	E_In_in_surface = 0
+	E_Rad_in_surface = 0
+	delta_T_0 = np.zeros(np.shape(delta_T))
+	E_Lat_in_surface = 0
+	E_cond_in_surface = 0
+	Energy_conduction_per_Layer = np.zeros((const.n_z, const.n_y, const.n_x, 6), dtype=np.float64)
+	for each in surface_reduced:
+		#input energy durch input_energy[each[2]][each[1]][each[0]] ersetzen, sobald genaue Abstrahlcharakteristik der Lampe berechnet
+		#E_In = input_energy[each[2]][each[1]][each[0]] / r_H ** 2 * (1 - albedo) * dt * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * surface[each[2]][each[1]][each[0]][1]
+		E_In = input_energy[each[2]][each[1]][each[0]] / r_H ** 2 * (1 - albedo) * dt * surface[each[2]][each[1]][each[0]][1]
+		#E_In = input_energy * dt
+		E_Rad = - sigma * epsilon * temperature[each[2]][each[1]][each[0]]**4 * dt * (dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][0] + surface[each[2]][each[1]][each[0]][1]) + dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][2] + surface[each[2]][each[1]][each[0]][3]) + dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][4] + surface[each[2]][each[1]][each[0]][5])) # [J/(m^2)]
+		E_Cond_z_pos = Lambda[each[2]][each[1]][each[0]][0] * (temperature[each[2] + 1][each[1]][each[0]] - temperature[each[2]][each[1]][each[0]]) / Dr[each[2]][each[1]][each[0]][0] * dt * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * (1 - surface[each[2]][each[1]][each[0]][0])
+		E_Cond_z_neg = Lambda[each[2]][each[1]][each[0]][1] * (temperature[each[2] - 1][each[1]][each[0]] - temperature[each[2]][each[1]][each[0]]) / Dr[each[2]][each[1]][each[0]][1] * dt * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * (1 - surface[each[2]][each[1]][each[0]][1])
+		if each[1] == 1:
+			E_Cond_y_neg = Lambda[each[2]][each[1]][each[0]][3] * (temperature[each[2]][n_y - 2][each[0]] - temperature[each[2]][each[1]][each[0]]) / Dr[each[2]][each[1]][each[0]][3] * dt * dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (1 - surface[each[2]][each[1]][each[0]][3])
+		else:
+			E_Cond_y_neg = Lambda[each[2]][each[1]][each[0]][3] * (temperature[each[2]][each[1] - 1][each[0]] - temperature[each[2]][each[1]][each[0]]) / Dr[each[2]][each[1]][each[0]][3] * dt * dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (1 - surface[each[2]][each[1]][each[0]][3])
+		if each[1] == n_y-2:
+			E_Cond_y_pos = Lambda[each[2]][each[1]][each[0]][2] * (temperature[each[2]][1][each[0]] - temperature[each[2]][each[1]][each[0]]) / Dr[each[2]][each[1]][each[0]][2] * dt * dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (1 - surface[each[2]][each[1]][each[0]][2])
+		else:
+			E_Cond_y_pos = Lambda[each[2]][each[1]][each[0]][2] * (temperature[each[2]][each[1] + 1][each[0]] - temperature[each[2]][each[1]][each[0]]) / Dr[each[2]][each[1]][each[0]][2] * dt * dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (1 - surface[each[2]][each[1]][each[0]][2])
+		if each[0] == 1:
+			E_Cond_x_neg = Lambda[each[2]][each[1]][each[0]][5] * (temperature[each[2]][each[1]][n_x - 2] - temperature[each[2]][each[1]][each[0]]) / Dr[each[2]][each[1]][each[0]][5] * dt * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (1 - surface[each[2]][each[1]][each[0]][5])
+		else:
+			E_Cond_x_neg = Lambda[each[2]][each[1]][each[0]][5] * (temperature[each[2]][each[1]][each[0] - 1] - temperature[each[2]][each[1]][each[0]]) / Dr[each[2]][each[1]][each[0]][5] * dt * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (1 - surface[each[2]][each[1]][each[0]][5])
+		if each[0] == n_x-2:
+			E_Cond_x_pos = Lambda[each[2]][each[1]][each[0]][4] * (temperature[each[2]][each[1]][1] - temperature[each[2]][each[1]][each[0]]) / Dr[each[2]][each[1]][each[0]][4] * dt * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (1 - surface[each[2]][each[1]][each[0]][4])
+		else:
+			E_Cond_x_pos = Lambda[each[2]][each[1]][each[0]][4] * (temperature[each[2]][each[1]][each[0] + 1] - temperature[each[2]][each[1]][each[0]]) / Dr[each[2]][each[1]][each[0]][4] * dt * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (1 - surface[each[2]][each[1]][each[0]][4])
+		Energy_conduction_per_Layer[each[2]][each[1]][each[0]][0], Energy_conduction_per_Layer[each[2]][each[1]][each[0]][1], Energy_conduction_per_Layer[each[2]][each[1]][each[0]][2], Energy_conduction_per_Layer[each[2]][each[1]][each[0]][3],Energy_conduction_per_Layer[each[2]][each[1]][each[0]][4], Energy_conduction_per_Layer[each[2]][each[1]][each[0]][5] = E_Cond_z_pos, E_Cond_z_neg, E_Cond_y_pos, E_Cond_y_neg, E_Cond_x_pos, E_Cond_x_neg
+		E_Lat = - (sublimated_mass[each[2]][each[1]][each[0]] - resublimated_mass[each[2]][each[1]][each[0]]) * latent_heat_water[each[2]][each[1]][each[0]]
+		#E_Lat = 0
+		E_Energy_Increase = E_In + E_Rad + E_Cond_z_pos + E_Cond_z_neg + E_Cond_y_pos + E_Cond_y_neg + E_Cond_x_pos + E_Cond_x_neg + E_Lat
+		delta_T_0[each[2]][each[1]][each[0]] = E_Energy_Increase / (heat_capacity[each[2]][each[1]][each[0]] * density[each[2]][each[1]][each[0]] * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]])
+		Energy_Increase_in_surface += E_Energy_Increase
+		E_In_in_surface += E_In
+		E_Rad_in_surface += E_Rad
+		E_Lat_in_surface += E_Lat
+		#E_cond_in_surface += (E_Cond_z_pos + E_Cond_z_neg + E_Cond_y_pos + E_Cond_y_neg + E_Cond_x_pos + E_Cond_x_neg)
+		'''if each[2] == 1 and each[1] == 3 and each[0] == 49:
+			print('SURFACE IN: ', E_Cond_z_pos, E_Cond_z_neg, E_Cond_y_pos, E_Cond_y_neg, E_Cond_x_pos, E_Cond_x_neg)'''
+		'''if E_Cond_z_pos + E_Cond_z_neg + E_Cond_y_pos + E_Cond_y_neg + E_Cond_x_pos + E_Cond_x_neg != 0:
+			print('Position: ', each[2], each[1], each[0])
+			print(E_Cond_z_pos, E_Cond_z_neg, E_Cond_y_pos, E_Cond_y_neg, E_Cond_x_pos, E_Cond_x_neg)
+			print(temperature[each[2]][each[1]][each[0]], temperature[each[2] + 1][each[1]][each[0]], temperature[each[2] - 1][each[1]][each[0]], temperature[each[2]][each[1] + 1][each[0]], temperature[each[2]][each[1] - 1][each[0]], temperature[each[2]][each[1]][each[0] + 1], temperature[each[2]][each[1]][each[0] - 1])'''
+	return delta_T_0, Energy_Increase_in_surface, E_In_in_surface, E_Rad_in_surface, E_Lat_in_surface, Energy_conduction_per_Layer
+
+
+@njit
 def energy_input(r_H, albedo, dt, input_energy, sigma, epsilon, temperature, Lambda, Dr, sublimated_mass, resublimated_mass, latent_heat_water, heat_capacity, density, dx, dy, dz, surface, surface_reduced, delta_T):
 	Energy_Increase_in_surface = 0
 	E_In_in_surface = 0
@@ -106,7 +158,6 @@ def energy_input(r_H, albedo, dt, input_energy, sigma, epsilon, temperature, Lam
 			print(E_Cond_z_pos, E_Cond_z_neg, E_Cond_y_pos, E_Cond_y_neg, E_Cond_x_pos, E_Cond_x_neg)
 			print(temperature[each[2]][each[1]][each[0]], temperature[each[2] + 1][each[1]][each[0]], temperature[each[2] - 1][each[1]][each[0]], temperature[each[2]][each[1] + 1][each[0]], temperature[each[2]][each[1] - 1][each[0]], temperature[each[2]][each[1]][each[0] + 1], temperature[each[2]][each[1]][each[0] - 1])'''
 	return delta_T_0, Energy_Increase_in_surface, E_In_in_surface, E_Rad_in_surface, E_Lat_in_surface, Energy_conduction_per_Layer
-
 
 @jit
 def test(r_H, albedo, dt, input_energy, dx, dy, surface, surface_reduced):

@@ -43,10 +43,10 @@ def bar_chart_2D(dx, dy, scalars):
 
 
 #with open(getPath()) as json_file:
-with open('D:/Masterarbeit_data/Sand_no_tubes/Results/temperature_data_lambda_test.json') as json_file:
+with open('test_periodic.json') as json_file:
     data_vis = json.load(json_file)
 
-sample = plot_3D(np.array(data_vis['Temperature']))
+sample = plot_3D(np.array(data_vis['Temperature'][-1]))
 #sample = plot_3D(np.array(data_vis['Temperature'][-1]))
 #print(np.sum([data_vis['Outgassing rate'][b] * const.dt for b in range(len(data_vis['Outgassing rate']))]))
 '''for i in range(0, const.n_z):
@@ -55,26 +55,28 @@ sample = plot_3D(np.array(data_vis['Temperature']))
         break'''
 #sample = plot_3D(np.array(data_vis['Water content'][len(data_vis['Water content'])-2]))
 #sample = plot_3D(np.array(data_vis['Temperature'][2]))
+#sample_and_surface = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
 '''sample_and_surface = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
 #sample_and_surface = np.array(data_vis['gas mass'][1])
 #surface = np.array(data_vis['Surface'])
 for i in range(0, const.n_z):
     for j in range(0, const.n_y):
         for k in range(0, const.n_x):
-            if data_vis['SH'][i][j][k] == 1:
-                sample_and_surface[i][j][k] = 50
-            if data_vis['SH'][i][j][k] == 1 and np.sum(data_vis['Surface'][i][j][k]) != 0:
-                sample_and_surface[i][j][k] = 2'''
+            #if data_vis['SH'][i][j][k] == 1:
+                #sample_and_surface[i][j][k] = 50
+            #if np.sum(data_vis['Surface'][i][j][k]) != 0:
+            if data_vis['Surface'][i][j][k][0] != 0 or data_vis['Surface'][i][j][k][1] != 0:
+                sample_and_surface[i][j][k] = 1
             #if data_vis['Surface'][3][i][j][k] != 0:
-                #sample_and_surface[i][j][k] = 100
+                #sample_and_surface[i][j][k] = 100'''
 '''for each in data_vis['SuS']:
     sample_and_surface[each[2]][each[1]][each[0]] = 50'''
 #print(data_vis['RSurface'])
 '''for each in data_vis['RSurface']:
-    sample_and_surface[each[2]][each[1]][each[0]] = 100
-    if np.sum(data_vis['Surface'][each[2]][each[1]][each[0]]) != 0:
-        sample_and_surface[each[2]][each[1]][each[0]] = 1
-sample = plot_3D(sample_and_surface)'''
+    sample_and_surface[each[2]][each[1]][each[0]] = 100'''
+    #if np.sum(data_vis['Surface'][each[2]][each[1]][each[0]]) != 0:
+        #sample_and_surface[each[2]][each[1]][each[0]] = 1
+#sample = plot_3D(sample_and_surface)
 #print(data_vis['gas mass'][3][1][50][50])
 #print(data_vis['gas mass'][3][0][50][50])
 '''

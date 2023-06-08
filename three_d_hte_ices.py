@@ -109,7 +109,8 @@ for lambda_sand_val in np.linspace(const.lambda_sand * 0.5, const.lambda_sand * 
     #print(Lambda[15][0][0])
     Delta_cond_ges = 0
 
-    file = open('D:/Masterarbeit_data/Sand_no_tubes/Results/sensor_data_lambda_' + str(round(lambda_sand_val, 5)) + '.csv', 'a')
+    #file = open('D:/Masterarbeit_data/Sand_no_tubes/Results/sensor_data_lambda_' + str(round(lambda_sand_val, 5)) + '.csv', 'a')
+    file = open('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/Sand(no_tubes)/sensor_data_lambda_' + str(round(lambda_sand_val, 5)) + '.csv', 'a')
     Lambda = lambda_sand(const.n_x, const.n_y, const.n_z, temperature, Dr, lambda_sand_val, sample_holder, const.lambda_sample_holder)
     #for j in tqdm(range(0, min(const.k, max_k, max_k_2))):
     for j in tqdm(range(0, const.k)):
@@ -172,7 +173,8 @@ for lambda_sand_val in np.linspace(const.lambda_sand * 0.5, const.lambda_sand * 
     #Data saving and output
     #save_current_arrays(temperature, water_content_per_layer, co2_content_per_layer, dust_ice_ratio_per_layer, co2_h2o_ratio_per_layer, heat_capacity, highest_pressure, highest_pressure_co2, ejection_times, var.time_passed + const.dt * const.k)
     data_dict = {'Temperature': temperature.tolist()}
-    with open('D:/Masterarbeit_data/Sand_no_tubes/Results/temperature_data_lambda_' + str(round(lambda_sand_val, 5)) + '.json', 'w') as outfile:
+    #with open('D:/Masterarbeit_data/Sand_no_tubes/Results/temperature_data_lambda_' + str(round(lambda_sand_val, 5)) + '.json', 'w') as outfile:
+    with open('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/Sand(no_tubes)/temperature_data_lambda_' + str(round(lambda_sand_val, 5)) + '.json', 'w') as outfile:
         json.dump(data_dict, outfile)
 
     data_save_sensors(const.k * const.dt, sensor_10mm, sensor_20mm, sensor_35mm, sensor_55mm, sensor_90mm, file)
