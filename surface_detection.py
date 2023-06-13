@@ -313,3 +313,15 @@ def get_sample_holder_adjacency(n_x, n_y, n_z, sample_holder, temperature):
                 if sample_holder[i][j][k-1] == 1 and temperature[i][j][k] > 0:
                     sh_adjacent_voxels[i][j][k][5] = 1
     return sh_adjacent_voxels
+
+@njit
+def viewfactor_calculation(reduced_surface, surface, ):
+    viewfactor_matrix = np.zeros((len(reduced_surface), len(reduced_surface)), dtype=np.float64)
+    for a in range(0, len(reduced_surface)):
+        a_x, a_y, a_z = reduced_surface[a][0], reduced_surface[a][1], reduced_surface[a][2]
+        for b in range(a+1, len(reduced_surface)):
+            b_x, b_y, b_z = reduced_surface[b][0], reduced_surface[b][1], reduced_surface[b][2]
+            if surface[a_z][a_y][a_x][0] == 1:
+                if b_z > a_z and np.sum(surface[b_z][b_y][b_x][1:6]) != 0:
+                    pass
+

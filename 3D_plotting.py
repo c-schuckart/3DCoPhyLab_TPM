@@ -3,6 +3,9 @@ import time
 import numpy as np
 import constants as const
 from mayavi import mlab
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from data_input import getPath
 from boundary_conditions import twoD_gaussian
 
@@ -43,10 +46,10 @@ def bar_chart_2D(dx, dy, scalars):
 
 
 #with open(getPath()) as json_file:
-with open('test_periodic.json') as json_file:
+'''with open('test_periodic.json') as json_file:
     data_vis = json.load(json_file)
 
-sample = plot_3D(np.array(data_vis['Temperature'][-1]))
+sample = plot_3D(np.array(data_vis['Temperature'][-1]))'''
 #sample = plot_3D(np.array(data_vis['Temperature'][-1]))
 #print(np.sum([data_vis['Outgassing rate'][b] * const.dt for b in range(len(data_vis['Outgassing rate']))]))
 '''for i in range(0, const.n_z):
@@ -130,6 +133,23 @@ def animate_rotate():
         mlab.pitch(1)
         yield
 #animate_rotate()
-mlab.show()
+#mlab.show()
 
 #slice_3D(data_vis['Temperature'][0])
+
+fig = plt.figure()
+ax = Axes3D(fig, auto_add_to_figure=False)
+fig.add_axes(ax)
+x_1, x_2 = [-0.5, -0.5, 0.5, 0.5], [0.5, 0.5, 0.5, 0.5]
+y_1, y_2 = [-0.5, 0.5, 0.5, -0.5,], [0.5, 0.5, -0.5, -0.5]
+z_1, z_2 = [0.5, 0.5, 0.5, 0.5], [0.5, -0.5, -0.5, 0.5]
+face = Poly3DCollection([list(zip(x_1, y_1, z_1))])
+face.set_color('red')
+ax.add_collection3d(face)
+face = Poly3DCollection([list(zip(x_2, y_2, z_2))])
+face.set_color('blue')
+ax.add_collection3d(face)
+#plt.savefig('test.png', dpi=600)
+plt.show()
+
+
