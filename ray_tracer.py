@@ -31,11 +31,14 @@ def generate_topology(surface, reduced_surface, dx, dy, dz):
 
 @njit
 def intersect_plane(ray_origin, ray_direction, plane_point, plane_normal):
-    d = np.dot((plane_point - ray_origin), plane_normal) / np.dot(ray_direction, plane_normal) #d is only the distance if ray_direction is normalised
+    if np.dot(ray_direction, plane_normal) == 0:
+        return np.infty
+    else:
+        d = np.dot((plane_point - ray_origin), plane_normal) / np.dot(ray_direction, plane_normal) #d is only the distance if ray_direction is normalised
     if d < 0:
         return np.infty
     p = ray_origin + ray_direction * d #Point of intersection between ray and infinite plane
-    L = np.linalg.norm(p - plane_point, ord='inf')
+    L = np.linalg.norm(p - plane_point, ord=np.inf)
     if L >= 0.5:
         return np.infty
     else:
@@ -46,18 +49,24 @@ def intersect_plane(ray_origin, ray_direction, plane_point, plane_normal):
 def trace_rays(polygon_list):
     view_factor_matrix = np.zeros((len(polygon_list), len(polygon_list)), dtype=np.float64)
     for i in range(0, len(polygon_list)):
-        ray_origin = polygon_list[i][0]
+        ray_origin = polygon_list[i][0] + 1/2 * polygon_list[i][1]
         for j in range(i+1, len(polygon_list)):
-            distances = np.zeros((len(polygon_list)), dtype=np.float64)
-            ray_direction = polygon_list[i][0] - polygon_list[j][0] / np.linalg.norm(polygon_list[i][0] - polygon_list[j][0]) #Normalized ray direction
+            distances = np.full((len(polygon_list)), np.infty, dtype=np.float64)
+            ray_direction = ((polygon_list[j][0] + + 1/2 * polygon_list[j][1]) - (polygon_list[i][0] + 1/2 * polygon_list[i][1])) / np.linalg.norm((polygon_list[i][0] + 1/2 * polygon_list[i][1]) - (polygon_list[j][0] + 1/2 * polygon_list[j][1])) #Normalized ray direction
             for a in range(0, len(polygon_list)):
-                plane_point = polygon_list[a][0]
+                plane_point = polygon_list[a][0] + 1/2 * polygon_list[a][1]
                 plane_normal = polygon_list[a][1]
-                distances[a] = intersect_plane(ray_origin, ray_direction, plane_point, plane_normal)
-            if np.min(distances) == np.linalg.norm(polygon_list[i][0] - polygon_list[j][0]):
-                view_factor_matrix[i][j] = np.dot(polygon_list[i][1], ray_direction)/(np.linalg.norm(polygon_list[i][1]) * np.linalg.norm(ray_direction)) * np.dot(polygon_list[j][1], ray_direction)/(np.linalg.norm(polygon_list[j][1]) * np.linalg.norm(ray_direction)) / (np.pi * np.linalg.norm(polygon_list[i][0] - polygon_list[j][0]) * np.linalg.norm(polygon_list[j][1]))
+                d = intersect_plane(ray_origin, ray_direction, plane_point, plane_normal)
+                if d == 0:
+                    pass
+                else:
+                    distances[a] = d
+            if round(np.min(distances), 8) == round(np.linalg.norm((polygon_list[i][0] + 1/2 * polygon_list[i][1]) - (polygon_list[j][0] + 1/2 * polygon_list[j][1])), 8):
+                view_factor_matrix[i][j] = np.dot(polygon_list[i][1], ray_direction)/(np.linalg.norm(polygon_list[i][1]) * np.linalg.norm(ray_direction)) * np.abs(np.dot(polygon_list[j][1], ray_direction)/(np.linalg.norm(polygon_list[j][1]) * np.linalg.norm(ray_direction))) / (np.pi * np.linalg.norm(polygon_list[i][0] +1/2 * polygon_list[i][1] - polygon_list[j][0] + 1/2 * polygon_list[j][1]) * np.linalg.norm(polygon_list[j][1]))
+                view_factor_matrix[j][i] = view_factor_matrix[i][j]
             else:
                 view_factor_matrix[i][j] = 0
+                view_factor_matrix[j][i] = view_factor_matrix[i][j]
     return view_factor_matrix
 
 

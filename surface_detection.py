@@ -133,17 +133,25 @@ def find_surface_periodic(n_x, n_y, n_z, limiter_x_start, limiter_y_start, limit
                     if mesh[i][j+1][k] == 0:
                         if j == n_y-2 and mesh[i][1][k] == 0:
                             surface[i][j][k][2] = 1
+                        if j != n_y-2:
+                            surface[i][j][k][2] = 1
                     # Check if it is a surface in negative y direction
                     if mesh[i][j-1][k] == 0:
                         if j == 1 and mesh[i][n_y-2][k] == 0:
                             surface[i][j][k][3] = 1
+                        if j != 1:
+                            surface[i][j][k][3] = 1
                     # Check if it is a surface in positive x direction
                     if mesh[i][j][k+1] == 0:
-                        if j == n_x-2 and mesh[i][j][1] == 0:
+                        if k == n_x-2 and mesh[i][j][1] == 0:
+                            surface[i][j][k][4] = 1
+                        if k != n_x-2:
                             surface[i][j][k][4] = 1
                     # Check if it is a surface in negative x direction
                     if mesh[i][j][k-1] == 0:
-                        if j == 1 and mesh[i][j][n_x-2] == 0:
+                        if k == 1 and mesh[i][j][n_x-2] == 0:
+                            surface[i][j][k][5] = 1
+                        if k != 1:
                             surface[i][j][k][5] = 1
                     if sett.mesh_form == 1:
                         if ((k - a) / a_rad) ** 2 + ((j - b) / b_rad) ** 2 <= 1 and sum(surface[i][j][k] != 0) and i < n_z - 2:
@@ -314,14 +322,5 @@ def get_sample_holder_adjacency(n_x, n_y, n_z, sample_holder, temperature):
                     sh_adjacent_voxels[i][j][k][5] = 1
     return sh_adjacent_voxels
 
-@njit
-def viewfactor_calculation(reduced_surface, surface, ):
-    viewfactor_matrix = np.zeros((len(reduced_surface), len(reduced_surface)), dtype=np.float64)
-    for a in range(0, len(reduced_surface)):
-        a_x, a_y, a_z = reduced_surface[a][0], reduced_surface[a][1], reduced_surface[a][2]
-        for b in range(a+1, len(reduced_surface)):
-            b_x, b_y, b_z = reduced_surface[b][0], reduced_surface[b][1], reduced_surface[b][2]
-            if surface[a_z][a_y][a_x][0] == 1:
-                if b_z > a_z and np.sum(surface[b_z][b_y][b_x][1:6]) != 0:
-                    pass
+
 
