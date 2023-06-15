@@ -209,9 +209,9 @@ def polygon_3D(polygon_list, file):
     #plt.show()
 
 
-def polygon_3D_ray_traced(polygon_list, view_factor_matrix, target_polygon, file):
+def polygon_3D_ray_traced(polygon_list, view_factor_matrix, target_polygon, elev, azim, file):
     fig = plt.figure()
-    ax = Axes3D(fig, auto_add_to_figure=False)
+    ax = Axes3D(fig, auto_add_to_figure=False, elev=elev, azim=azim)
     fig.add_axes(ax)
     non_normal_1 = np.array([-0.5, -0.5, 0.5, 0.5], dtype=np.float64)
     non_normal_2 = np.array([-0.5, 0.5, 0.5, -0.5], dtype=np.float64)
@@ -265,8 +265,11 @@ def polygon_3D_ray_traced(polygon_list, view_factor_matrix, target_polygon, file
         else:
             red = hex(int((view_factor_matrix[target_polygon][i] - view_factor_min) / view_factor_max * 191))
             green = hex(int(-(view_factor_matrix[target_polygon][i] - view_factor_min) / view_factor_max * (226 - 140) + 226))
-            face.set_alpha('#' + str(red)[2:4] + str(green)[2:4] + 'ff' )
-            face.set_alpha(1.0)
+            if len(red) == 3:
+                face.set_color('#0' + str(red)[2:3] + str(green)[2:4] + 'ff' )
+            else:
+                face.set_color('#' + str(red)[2:4] + str(green)[2:4] + 'ff' )
+            face.set_alpha(0.4)
             ax.add_collection3d(face)
         if np.max(-x) > max_x:
             max_x = np.max(-x)
@@ -281,6 +284,10 @@ def polygon_3D_ray_traced(polygon_list, view_factor_matrix, target_polygon, file
         if np.min(-z) < min_z:
             min_z = np.min(-z)
     max = np.max([max_x, max_y, max_z, np.abs(min_y), np.abs(min_y), np.abs(min_z)])
+    '''xs = np.array([polygon_list[240][0][0] + 1/2 * np.sign(polygon_list[240][1][0]), polygon_list[75][0][0] + 1/2 * np.sign(polygon_list[75][1][0])])
+    ys = np.array([polygon_list[240][0][1] + 1/2 * np.sign(polygon_list[240][1][1]), polygon_list[75][0][1] + 1/2 * np.sign(polygon_list[75][1][1])])
+    zs = np.array([polygon_list[240][0][2] + 1/2 * np.sign(polygon_list[240][1][2]), polygon_list[75][0][2] + 1/2 * np.sign(polygon_list[75][1][2])])
+    ax.plot(-xs, -ys, -zs, color='black', lw=2)'''
     '''ax.set_xlim(-max-0.5, max+0.5)
     ax.set_ylim(-max-0.5, max+0.5)
     ax.set_zlim(-max-0.5, max+0.5)'''
