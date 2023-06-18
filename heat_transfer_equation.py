@@ -63,12 +63,13 @@ Returns:
 
 
 @njit(parallel=True)
-def hte_calculate(n_x, n_y, n_z, surface, delta_T_0, temperature, Lambda, Dr, dx, dy, dz, dt, density, heat_capacity, sublimated_mass, resublimated_mass, latent_heat_water, sample_holder):
+def hte_calculate(n_x, n_y, n_z, surface, delta_T_0, temperature, Lambda, Dr, dx, dy, dz, dt, density, heat_capacity, sublimated_mass, resublimated_mass, latent_heat_water, sample_holder, Q):
     delta_T = np.zeros((n_z, n_y, n_x), dtype=np.float64) + delta_T_0
     Energy_Increase_per_Layer = np.zeros((n_z, n_y, n_x), dtype=np.float64)
     Latent_Heat_per_Layer = np.zeros((n_z, n_y, n_x), dtype=np.float64)
     Fourier_number = np.zeros((n_z, n_y, n_x), dtype=np.float64)
     EcoPL = np.zeros((n_z, n_y, n_x, 6), dtype=np.float64)
+    Energy_source_sink = 0
     E_sample_holder = 0
     for i in prange(1, n_z-1):
         for j in range(1, n_y-1):
@@ -84,10 +85,11 @@ def hte_calculate(n_x, n_y, n_z, surface, delta_T_0, temperature, Lambda, Dr, dx
                                        ((((temperature[i + 1][j][k] - temperature[i][j][k]) * Lambda[i][j][k][0] / (Dr[i][j][k][0]))
                                          - ((temperature[i][j][k] - temperature[i - 1][j][k]) * Lambda[i][j][k][1] / (
                                                Dr[i][j][k][1]))) / dz[i][j][k]) * dt / (
-                                               density[i][j][k] * heat_capacity[i][j][k]) - (sublimated_mass[i][j][k] - resublimated_mass[i][j][k]) * latent_heat_water[i][j][k] * 1 / (density[i][j][k] * heat_capacity[i][j][k] * dx[i][j][k] * dy[i][j][k] * dz[i][j][k])
+                                               density[i][j][k] * heat_capacity[i][j][k]) - (sublimated_mass[i][j][k] - resublimated_mass[i][j][k]) * latent_heat_water[i][j][k] * 1 / (density[i][j][k] * heat_capacity[i][j][k] * dx[i][j][k] * dy[i][j][k] * dz[i][j][k]) + dt / (density[i][j][k] * heat_capacity[i][j][k] * dx[i][j][k] * dy[i][j][k] * dz[i][j][k]) * Q[i][j][k]
                     Fourier_number[i][j][k] = np.max(Lambda[i][j][k]) / (density[i][j][k] * heat_capacity[i][j][k]) * dt * (1 / dx[i][j][k] ** 2 + 1 / dy[i][j][k] ** 2 + 1 / dz[i][j][k] ** 2)# [-]
                     Latent_Heat_per_Layer[i][j][k] = - (sublimated_mass[i][j][k] - resublimated_mass[i][j][k]) * latent_heat_water[i][j][k]
                     Energy_Increase_per_Layer[i][j][k] = heat_capacity[i][j][k] * density[i][j][k] * dx[i][j][k] * dy[i][j][k] * dz[i][j][k] * delta_T[i][j][k]  # [J]
+                    Energy_source_sink += Q[i][j][k] * dt
                     #if i == 2 and j == 2 and k == 50:
                         #print('E_INpL: ', Energy_Increase_per_Layer[i][j][k])
                 elif sample_holder[i][j][k] == 1:
@@ -151,7 +153,7 @@ def hte_calculate(n_x, n_y, n_z, surface, delta_T_0, temperature, Lambda, Dr, dx
                 '''if i == 2 and j == 1 and k == 50:
                         print('SAMPLE HOLDER: ', E_Cond_z_pos,E_Cond_z_neg, E_Cond_y_pos, E_Cond_y_neg, E_Cond_x_pos, E_Cond_x_neg)
                         print(temperature[i][j][k], temperature[i][j+1][k])'''
-    return delta_T, Energy_Increase_per_Layer, Latent_Heat_per_Layer, np.max(Fourier_number), E_sample_holder, EcoPL
+    return delta_T, Energy_Increase_per_Layer, Latent_Heat_per_Layer, np.max(Fourier_number), E_sample_holder, EcoPL, Energy_source_sink
 
 
 @njit(parallel=True)
@@ -439,7 +441,7 @@ Returns:
 		Array containing the ratio of CO2 ice to water ice for each layer of dimension n+1	    
 '''
 @njit(parallel=False)
-def update_thermal_arrays(n_x, n_y, n_z, temperature, uniform_water_mass,  delta_T, Energy_Increase_per_Layer, sublimated_mass, resublimated_mass, dt, avogadro_constant, molar_mass_water, molar_mass_co2, heat_capacity, heat_capacity_water_ice, heat_capacity_co2_ice, EIpL_0, Latent_Heat_per_Layer, E_Lat_0, E_Rad, E_In, E_sh):
+def update_thermal_arrays(n_x, n_y, n_z, temperature, uniform_water_mass,  delta_T, Energy_Increase_per_Layer, sublimated_mass, resublimated_mass, dt, avogadro_constant, molar_mass_water, molar_mass_co2, heat_capacity, heat_capacity_water_ice, heat_capacity_co2_ice, EIpL_0, Latent_Heat_per_Layer, E_Lat_0, E_Rad, E_In, E_sh, E_source_sink):
     temperature_o = temperature + delta_T
     Energy_Increase_Total_per_time_Step = 0
     Latent_Heat_per_time_step = 0
@@ -474,7 +476,7 @@ def update_thermal_arrays(n_x, n_y, n_z, temperature, uniform_water_mass,  delta
                                        dust_ice_ratio_per_layer[i] * co2_h2o_ratio_per_layer[i])'''
     Energy_Increase_Total_per_time_Step = np.sum(Energy_Increase_per_Layer) + EIpL_0
     Latent_Heat_per_time_step = np.sum(Latent_Heat_per_Layer) + E_Lat_0
-    E_conservation = Energy_Increase_Total_per_time_Step - E_Rad - Latent_Heat_per_time_step - E_In + E_sh
+    E_conservation = Energy_Increase_Total_per_time_Step - E_Rad - Latent_Heat_per_time_step - E_In + E_sh + E_source_sink
     # Set Energy Loss per Timestep = 0 -> Differential Counting of Energy Loss
     return temperature_o, uniform_water_mass, heat_capacity, dust_ice_ratio_per_layer, co2_h2o_ratio_per_layer, E_conservation, Energy_Increase_Total_per_time_Step, E_Rad, Latent_Heat_per_time_step, E_In
 

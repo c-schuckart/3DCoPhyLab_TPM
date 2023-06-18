@@ -6,7 +6,7 @@ from tqdm import tqdm
 import json
 from os import listdir
 from surface_detection import create_equidistant_mesh, DEBUG_print_3D_arrays, find_surface, surrounding_checker, update_surface_arrays, create_equidistant_mesh_gradient
-from thermal_parameter_functions import lambda_constant, lambda_granular, calculate_heat_capacity, lambda_sand, calculate_latent_heat, calculate_density, thermal_functions, lambda_ice_block
+from thermal_parameter_functions import lambda_constant, lambda_granular, calculate_heat_capacity, lambda_sand, calculate_latent_heat, calculate_density, thermal_functions, lambda_ice_block, calculate_Q_sensor
 from boundary_conditions import energy_input, test, energy_input_data, sample_holder_data, amplitude_lamp, get_energy_input_lamp, calculate_L_chamber_lamp_bd, sample_holder_test, sample_holder_test_2
 from heat_transfer_equation import hte_calculate, update_thermal_arrays, test_E_cond, test_e_cond_2
 from molecule_transfer import calculate_molecule_flux_test, calculate_molecule_surface
@@ -14,7 +14,7 @@ from data_input import getPath, read_temperature_data, transform_temperature_dat
 from save_and_load import data_store, data_store_sensors, data_save_sensors, data_save
 from read_images import get_surface_temperatures_csv
 
-for lambda_sand_val in np.linspace(const.lambda_sand * 0.5, const.lambda_sand * 0.005, 10):
+for temperature_plug in [295]:
     #work arrays and mesh creation + surface detection
     temperature, dx, dy, dz, Dr, a, a_rad, b, b_rad = create_equidistant_mesh(const.n_x, const.n_y, const.n_z, const.temperature_ini, const.min_dx, const.min_dy, const.min_dz)
     #temperature, dx, dy, dz, Dr, Lambda = one_d_test(const.n_x, const.n_y, const.n_z, const.min_dx, const.min_dy, const.min_dz, 'y')
@@ -47,6 +47,7 @@ for lambda_sand_val in np.linspace(const.lambda_sand * 0.5, const.lambda_sand * 
     E_Rad_arr = var.E_Rad_arr
     Latent_Heat_per_time_step_arr = var.Latent_Heat_per_time_step_arr
     E_In_arr = var.E_In_arr
+    Q = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
 
     #test(const.r_H, const.albedo, const.dt, const.Input_Intensity, dx, dy, surface, surface_reduced)
 
@@ -65,11 +66,11 @@ for lambda_sand_val in np.linspace(const.lambda_sand * 0.5, const.lambda_sand * 
     '''time_deltas_data_interior, sample_holder_temp = read_temperature_data('D:/Laboratory_data/temps_ice.txt', '2023-03-04 17:52:03', '2023-03-04 22:00:02', [6], [])
     max_k_2, sample_holder_temp = transform_temperature_data(const.k, const.dt, np.array(time_deltas_data_interior), [], sample_holder_temp)'''
 
-    #file_list = listdir('D:/Masterarbeit_data/Sand_no_tubes/temp_profile/temp_profile')
-    directory = 'D:/Laboratory_data/Sand_without_tubes/temp_profile/temp_profile/'
+    #directory = 'D:/Laboratory_data/Sand_without_tubes/temp_profile/temp_profile/'
+    directory = 'D:/Masterarbeit_data/Sand_no_tubes/temp_profile/temp_profile/'
     file_list = listdir(directory)
-    #csv_file = open('D:/Masterarbeit_data/Sand_no_tubes/sand_temps(no_tubes).txt', 'r')
-    csv_file = open('D:/Laboratory_data/Sand_without_tubes/sand_temps(no_tubes).txt', 'r')
+    csv_file = open('D:/Masterarbeit_data/Sand_no_tubes/sand_temps(no_tubes).txt', 'r')
+    #csv_file = open('D:/Laboratory_data/Sand_without_tubes/sand_temps(no_tubes).txt', 'r')
     surface_temperature_section, current_file, time_cur, current_surface_temp_scaled, next_segment_time = get_surface_temperatures_csv(const.n_x, const.n_y, directory, file_list, 5, 0, np.zeros(1, dtype=np.float64), const.dt, 0, True)
     time_deltas_data_interior, current_index, next_segment_time_sh, sample_holder_temp = read_temperature_data_partial(csv_file, '2023-03-05 17:52:03', [6], True, 0, 0, [])
     max_k_2, sample_holder_temp = transform_temperature_data_partial(int(time_deltas_data_interior.astype(int)/const.dt), const.dt, time_deltas_data_interior.astype(int), [], sample_holder_temp)
@@ -110,8 +111,8 @@ for lambda_sand_val in np.linspace(const.lambda_sand * 0.5, const.lambda_sand * 
     Delta_cond_ges = 0
 
     #file = open('D:/Masterarbeit_data/Sand_no_tubes/Results/sensor_data_lambda_' + str(round(lambda_sand_val, 5)) + '.csv', 'a')
-    file = open('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/Sand(no_tubes)/sensor_data_lambda_' + str(round(lambda_sand_val, 5)) + '.csv', 'a')
-    Lambda = lambda_sand(const.n_x, const.n_y, const.n_z, temperature, Dr, lambda_sand_val, sample_holder, const.lambda_sample_holder)
+    file = open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Sand(no_tubes)/sensor_data2_lambda_sand_temperature_plug_' + str(temperature_plug) + '.csv', 'a')
+    Lambda = lambda_sand(const.n_x, const.n_y, const.n_z, temperature, Dr, const.lambda_sand, sample_holder, const.lambda_sample_holder)
     #for j in tqdm(range(0, min(const.k, max_k, max_k_2))):
     for j in tqdm(range(0, const.k)):
         if j * const.dt >= next_segment_time:
@@ -119,8 +120,8 @@ for lambda_sand_val in np.linspace(const.lambda_sand * 0.5, const.lambda_sand * 
             surface_temperature_section, current_file, time_cur, current_surface_temp_scaled, next_segment_time = get_surface_temperatures_csv(const.n_x, const.n_y, directory, file_list, current_file, time_cur, current_surface_temp_scaled, const.dt, next_segment_time, False)
         if j * const.dt >= next_segment_time_sh:
             previous_section_time_sh = next_segment_time_sh
-            #csv_file = open('D:/Masterarbeit_data/Sand_no_tubes/sand_temps(no_tubes).txt', 'r')
-            csv_file = open('D:/Laboratory_data/Sand_without_tubes/sand_temps(no_tubes).txt', 'r')
+            csv_file = open('D:/Masterarbeit_data/Sand_no_tubes/sand_temps(no_tubes).txt', 'r')
+            #csv_file = open('D:/Laboratory_data/Sand_without_tubes/sand_temps(no_tubes).txt', 'r')
             time_deltas_data_interior, current_index, next_segment_time_sh, sample_holder_temp = read_temperature_data_partial(csv_file, '2023-03-05 17:52:03', [6], False, current_index, next_segment_time_sh, [])
             max_k_2, sample_holder_temp = transform_temperature_data_partial(int(time_deltas_data_interior.astype(int)/const.dt), const.dt, time_deltas_data_interior.astype(int), [], sample_holder_temp)
             data_save_sensors(j * const.dt, sensor_10mm, sensor_20mm, sensor_35mm, sensor_55mm, sensor_90mm, file)
@@ -131,6 +132,7 @@ for lambda_sand_val in np.linspace(const.lambda_sand * 0.5, const.lambda_sand * 
         '''density = calculate_density(temperature, const.VFF_pack_const)[1]
         heat_capacity = calculate_heat_capacity(temperature)
         latent_heat_water = calculate_latent_heat(temperature, const.lh_b_1, const.lh_c_1, const.lh_d_1, const.R, const.m_mol)'''
+        temperature = sample_holder_data(const.n_x, const.n_y, const.n_z, sample_holder, temperature, sample_holder_temp[j - int(previous_section_time_sh/const.dt)])
         #heat_capacity, latent_heat_water, density_grain, density = thermal_functions(temperature, const.lh_b_1, const.lh_c_1, const.lh_d_1, const.R, const.m_mol, const.VFF_pack_const)
         #sublimated_mass, resublimated_mass, pressure, outgassing_rate[j], empty_voxels = calculate_molecule_flux(const.n_x, const.n_y, const.n_z, temperature, pressure, const.lh_a_1, const.lh_b_1, const.lh_c_1, const.lh_d_1, const.m_mol, const.R, var.VFF_pack, const.r_mono, const.Phi, const.tortuosity, dx, dy, dz, const.dt, surface_reduced, const.avogadro_constant, const.k_boltzmann, sample_holder, uniform_water_masses, var.n_x_lr, var.n_y_lr, var.n_z_lr, Dr)
         #sublimated_mass, resublimated_mass, pressure, outgassing_rate[j], empty_voxels = calculate_molecule_surface(const.n_x, const.n_y, const.n_z, temperature, pressure, const.lh_a_1, const.lh_b_1, const.lh_c_1, const.lh_d_1, const.m_H2O, const.R, var.VFF_pack, const.r_mono, const.Phi_Asaeda, const.tortuosity, dx, dy, dz, const.dt, surface_reduced, const.avogadro_constant, const.k_boltzmann, sample_holder, uniform_water_masses, var.n_x_lr, var.n_y_lr, var.n_z_lr, Dr, const.surface_reduction_factor)
@@ -140,11 +142,12 @@ for lambda_sand_val in np.linspace(const.lambda_sand * 0.5, const.lambda_sand * 
         dT_0, EIis_0, E_In, E_Rad, E_Lat_0 = energy_input_data(const.dt, surface_temperature_section[j - int(previous_section_time/const.dt)], const.sigma, const.epsilon, temperature, Lambda, Dr, const.n_x, const.n_y, const.n_z, heat_capacity, density, dx, dy, dz, surface, surface_reduced, delta_T)
         #temperature = sample_holder_data(const.n_x, const.n_y, const.n_z, sample_holder, temperature, 110)
         #temperature = sample_holder_test(const.n_x, const.n_y, const.n_z, sample_holder, temperature)
-        delta_T, Energy_Increase_per_Layer, Latent_Heat_per_Layer, Max_Fourier_number[j], E_sh, EcoPL = hte_calculate(const.n_x, const.n_y, const.n_z, surface, dT_0, temperature, Lambda, Dr, dx, dy, dz, const.dt, density, heat_capacity, sublimated_mass, resublimated_mass, latent_heat_water, sample_holder)
+        #Q = calculate_Q_sensor(const.n_x, const.n_y, const.n_z, const.lambda_copper, const.wire_cross_section, const.wire_length, temperature, temperature_plug)
+        delta_T, Energy_Increase_per_Layer, Latent_Heat_per_Layer, Max_Fourier_number[j], E_sh, EcoPL, E_source_sink = hte_calculate(const.n_x, const.n_y, const.n_z, surface, dT_0, temperature, Lambda, Dr, dx, dy, dz, const.dt, density, heat_capacity, sublimated_mass, resublimated_mass, latent_heat_water, sample_holder, Q)
         #print(Energy_Increase_per_Layer[50][50][50], Latent_Heat_per_Layer[50][50][50])
         #Delta_cond_ges += test_E_cond(const.n_x, const.n_y, const.n_z, surface, dT_0, temperature, Lambda, Dr, dx, dy, dz, const.dt, density, heat_capacity, sublimated_mass, resublimated_mass, latent_heat_water, sample_holder, Energy_conduction_per_Layer)
         #test_e_cond_2(const.n_x, const.n_y, const.n_z, Energy_Increase_per_Layer, EcoPL, 50, sample_holder)
-        temperature, uniform_water_masses, heat_capacity, dust_ice_ratio_per_layer, co2_h2o_ratio_per_layer, E_conservation[j], Energy_Increase_Total_per_time_Step_arr[j], E_Rad_arr[j], Latent_Heat_per_time_step_arr[j], E_In_arr[j] = update_thermal_arrays(const.n_x, const.n_y, const.n_z, temperature, uniform_water_masses, delta_T, Energy_Increase_per_Layer, sublimated_mass, resublimated_mass, const.dt, const.avogadro_constant, const.molar_mass_water, const.molar_mass_co2, heat_capacity, const.heat_capacity_water_ice, const.heat_capacity_co2_ice, EIis_0, Latent_Heat_per_Layer, E_Lat_0, E_Rad, E_In, E_sh)
+        temperature, uniform_water_masses, heat_capacity, dust_ice_ratio_per_layer, co2_h2o_ratio_per_layer, E_conservation[j], Energy_Increase_Total_per_time_Step_arr[j], E_Rad_arr[j], Latent_Heat_per_time_step_arr[j], E_In_arr[j] = update_thermal_arrays(const.n_x, const.n_y, const.n_z, temperature, uniform_water_masses, delta_T, Energy_Increase_per_Layer, sublimated_mass, resublimated_mass, const.dt, const.avogadro_constant, const.molar_mass_water, const.molar_mass_co2, heat_capacity, const.heat_capacity_water_ice, const.heat_capacity_co2_ice, EIis_0, Latent_Heat_per_Layer, E_Lat_0, E_Rad, E_In, E_sh, E_source_sink)
         #temperature = sample_holder_test(const.n_x, const.n_y, const.n_z, sample_holder, temperature)
         #temperature = sample_holder_data(const.n_x, const.n_y, const.n_z, sample_holder, temperature, 77)
         #if len(empty_voxels) != 0:
@@ -174,7 +177,7 @@ for lambda_sand_val in np.linspace(const.lambda_sand * 0.5, const.lambda_sand * 
     #save_current_arrays(temperature, water_content_per_layer, co2_content_per_layer, dust_ice_ratio_per_layer, co2_h2o_ratio_per_layer, heat_capacity, highest_pressure, highest_pressure_co2, ejection_times, var.time_passed + const.dt * const.k)
     data_dict = {'Temperature': temperature.tolist()}
     #with open('D:/Masterarbeit_data/Sand_no_tubes/Results/temperature_data_lambda_' + str(round(lambda_sand_val, 5)) + '.json', 'w') as outfile:
-    with open('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/Sand(no_tubes)/temperature_data_lambda_' + str(round(lambda_sand_val, 5)) + '.json', 'w') as outfile:
+    with open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Sand(no_tubes)/temperature_data2_lambda_sand_plug_temp_' + str(temperature_plug) + '.json', 'w') as outfile:
         json.dump(data_dict, outfile)
 
     data_save_sensors(const.k * const.dt, sensor_10mm, sensor_20mm, sensor_35mm, sensor_55mm, sensor_90mm, file)

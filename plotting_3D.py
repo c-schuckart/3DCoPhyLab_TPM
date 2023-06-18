@@ -255,20 +255,31 @@ def polygon_3D_ray_traced(polygon_list, view_factor_matrix, target_polygon, elev
             y = polygon_list[i][0][1] + non_normal_2
             z = polygon_list[i][0][2] - normal
         face = Poly3DCollection([list(zip(-x, -y, -z))])
-        face.set_color('#999999')
+        face.set_color('#cfcfcf') #face.set_color('#999999')
         face.set_alpha(0.4)
+        #face.set_hatch('+')
         if i == target_polygon:
-            face.set_color('#ff0000')
+            face.set_color('#000000')#face.set_color('#ff0000')
             face.set_alpha(1.0)
+            #face.set_hatch('')
         if view_factor_matrix[target_polygon][i] == 0:
             ax.add_collection3d(face)
         else:
-            red = hex(int((view_factor_matrix[target_polygon][i] - view_factor_min) / view_factor_max * 191))
-            green = hex(int(-(view_factor_matrix[target_polygon][i] - view_factor_min) / view_factor_max * (226 - 140) + 226))
+            #red = hex(int((view_factor_matrix[target_polygon][i] - view_factor_min) / view_factor_max * 191))
+            #green = hex(int(-(view_factor_matrix[target_polygon][i] - view_factor_min) / view_factor_max * (226 - 140) + 226))
+            green = str(hex(int(-(view_factor_matrix[target_polygon][i] - view_factor_min) / view_factor_max * (100 - 50) + 100)))
+            red, blue = green, green
+            color = '#000000'
             if len(red) == 3:
+                color = '#0' + red[2:3] + '0' + green[2:3] + '0' +blue[2:3]
+            else:
+                color = '#' + red[2:4] + green[2:4] + blue[2:4]
+            face.set_color(color)
+            #face.set_hatch('')
+            '''if len(red) == 3:
                 face.set_color('#0' + str(red)[2:3] + str(green)[2:4] + 'ff' )
             else:
-                face.set_color('#' + str(red)[2:4] + str(green)[2:4] + 'ff' )
+                face.set_color('#' + str(red)[2:4] + str(green)[2:4] + 'ff' )'''
             face.set_alpha(0.4)
             ax.add_collection3d(face)
         if np.max(-x) > max_x:

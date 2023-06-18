@@ -1,20 +1,20 @@
 import numpy as np
 
 #Definition of Simulation Parameters
-min_dx = 5E-6                      # Layer Thickness of smallest layer in x direction, Numerical Resolution  [m]
+'''min_dx = 5E-6                      # Layer Thickness of smallest layer in x direction, Numerical Resolution  [m]
 min_dy = 5E-6                      # Layer Thickness of smallest layer in y direction, Numerical Resolution  [m]
 min_dz = 5E-6                      # Layer Thickness of smallest layer in z direction, Numerical Resolution  [m]
 dt = 0.5E-8                           # Timestep                               [s]
 n_x = 17                            # Number of Layers                       [-]
 n_y = 17
-n_z = 100
-'''min_dx = 2E-3                      # Layer Thickness of the smallest layer in x direction, Numerical Resolution  [m]
+n_z = 100'''
+min_dx = 2E-3                      # Layer Thickness of the smallest layer in x direction, Numerical Resolution  [m]
 min_dy = 2E-3                      # Layer Thickness of the smallest layer in y direction, Numerical Resolution  [m]
 min_dz = 2E-3                      # Layer Thickness of the smallest layer in z direction, Numerical Resolution  [m]
 dt = 0.1                           # Timestep                               [s]
 n_x = 39                           # Number of Layers                       [-]
 n_y = 39
-n_z = 53'''
+n_z = 53
 n = np.array([n_x, n_y, n_z])
 #k = 360000 * 1000                      # Number of Timesteps                    [-]
 k = 1303200                     # Number of Timesteps                    [-]
@@ -63,15 +63,16 @@ x_0 = 5E-2                        # Length scaling factor used to calculate the 
 gravitational_pressure = 0        #Placeholder! [Pa]
 surface_reduction_factor = 1
 #Thermal Properties
-temperature_ini = 77             # Start Temperature                      [K]
+temperature_ini = 285.75             # Start Temperature                      [K]
 sample_holder_starting_temp = 110  # Starting temperature of the sample holder [K]
 Input_Intensity = 6500             # Intensity of the Light Source (Sun)    [W/m^2]
 epsilon = 1                       # Emissivity                             [-]
 albedo = 0.80                  # Albedo                                 [-]
 lambda_water_ice = 651            # thermal conductivity of water ice      [W/(m * T)], depending on T!
 #lambda_water_ice = 567
-lambda_co2_ice = 0.02             # thermal conductivity of water ice      [W/(m * K)], depending on T!
-lambda_sample_holder = 210        # thermal conductivity of aluminium, the sample holder material   [W/(m*K)]
+lambda_co2_ice = 0.02             # thermal conductivity of water ice      [W/(m * K)]
+lambda_sample_holder = 236        # thermal conductivity of aluminium, the sample holder material   [W/(m*K)]
+lambda_copper = 401               # thermal conductivity of copper      [W/(m * K)]
 lambda_sand = 0.287
 a_H2O = 3.23E12                   # Sublimation Pressure Coefficient of water [Pa]
 b_H2O = 6134.6                     # Sublimation Pressure Coefficient of water [K]
@@ -79,6 +80,10 @@ a_CO2 = 1.32E12                   # Sublimation Pressure Coefficient of water [P
 b_CO2 = 3167.8                    # Sublimation Pressure Coefficient of water [K]
 #Illumination Condition/Celestial Mechanics
 r_H = 1                           # Lamp Distance                  		   [m]
+wire_cross_section = 0.08096E-6   # Cross-section of the AWG 28 wirse      [m^2]
+wire_length = 0.30                # Length of the sensor wires from the plug to the sensor  [m]
+temperature_plug = 295            # Temperature of the plug
+
 
 #Constants
 sigma = 5.67E-8                   # Stefan-Boltzmann Constant              [W/(m^2 K^4)]

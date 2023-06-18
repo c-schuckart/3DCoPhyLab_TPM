@@ -235,5 +235,18 @@ def lambda_test(n_x, n_y, n_z, temperature, Dr, lambda_sand, sample_holder, lamb
 	return lambda_total
 
 
+@njit
+def calculate_Q_sensor(n_x, n_y, n_z, lambda_copper, A, l, temperature, temperature_plug):
+	Q = np.zeros((n_z, n_y, n_x), dtype=np.float64)
+	Q[5][n_y // 2][n_x // 2] = - lambda_copper * A / l * (temperature[5][n_y // 2][n_x // 2] - temperature_plug)
+	Q[10][n_y//2][n_x//2] = - lambda_copper * A / l * (temperature[10][n_y//2][n_x//2] - temperature_plug)
+	Q[17][n_y//2][n_x//2] = (- lambda_copper * A / l * (temperature[17][n_y//2][n_x//2] - temperature_plug)) / 2
+	Q[18][n_y // 2][n_x // 2] = (- lambda_copper * A / l * (temperature[18][n_y // 2][n_x // 2] - temperature_plug)) / 2
+	Q[27][n_y // 2][n_x // 2] = (- lambda_copper * A / l * (temperature[27][n_y // 2][n_x // 2] - temperature_plug)) / 2
+	Q[28][n_y // 2][n_x // 2] = (- lambda_copper * A / l * (temperature[28][n_y // 2][n_x // 2] - temperature_plug)) / 2
+	Q[45][n_y // 2][n_x // 2] = - lambda_copper * A / l * (temperature[45][n_y // 2][n_x // 2] - temperature_plug)
+	return Q
+
+
 
 
