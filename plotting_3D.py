@@ -46,11 +46,25 @@ def bar_chart_2D(dx, dy, scalars):
     return obj
 
 
-#with open(getPath()) as json_file:
-'''with open('test.json') as json_file:
+'''with open(getPath()) as json_file:
     data_vis = json.load(json_file)'''
+with open('test.json') as json_file:
+    data_vis = json.load(json_file)
 
-#sample = plot_3D(np.array(data_vis['Temperature'][-1]))
+sample_and_surface = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
+for i in range(0, const.n_z):
+    for j in range(0, const.n_y):
+        for k in range(0, const.n_x):
+            #sample_and_surface[i][j][k] = np.array(data_vis['SH'][i][j][k])
+            sample_and_surface[i][j][k] = np.max(data_vis['HC'][i][j][k])
+
+'''temperature = np.array(data_vis['Temperature'])
+for i in range(0, const.n_z):
+    for j in range(const.n_y//2 + 1, const.n_y):
+        for k in range(const.n_x//2 + 1, const.n_x):
+            temperature[i][j][k] = 0
+sample = plot_3D(temperature)'''
+
 #sample = plot_3D(np.array(data_vis['Temperature'][-1]))
 #print(np.sum([data_vis['Outgassing rate'][b] * const.dt for b in range(len(data_vis['Outgassing rate']))]))
 '''for i in range(0, const.n_z):
@@ -80,7 +94,7 @@ for i in range(0, const.n_z):
     sample_and_surface[each[2]][each[1]][each[0]] = 100'''
     #if np.sum(data_vis['Surface'][each[2]][each[1]][each[0]]) != 0:
         #sample_and_surface[each[2]][each[1]][each[0]] = 1
-#sample = plot_3D(sample_and_surface)
+sample = plot_3D(sample_and_surface)
 #print(data_vis['gas mass'][3][1][50][50])
 #print(data_vis['gas mass'][3][0][50][50])
 '''
@@ -134,7 +148,7 @@ def animate_rotate():
         mlab.pitch(1)
         yield
 #animate_rotate()
-#mlab.show()
+mlab.show()
 
 #slice_3D(data_vis['Temperature'][0])
 

@@ -207,7 +207,8 @@ def thermal_functions(temperature, b_1, c_1, d_1, R_gas, m_mol, VFF):
 	return (7.5 * temperature + 90), ((-b_1[0] * np.log(10) + (c_1[0] - 1) * temperature + d_1[0] * np.log(10) * temperature**2) * R_gas / (m_mol[0])), density_grain, density_grain * VFF
 
 @njit(parallel=True)
-def lambda_sand(n_x, n_y, n_z, temperature, Dr, lambda_sand, sample_holder, lambda_sample_holder):
+def lambda_sand(n_x, n_y, n_z, temperature, Dr, lambda_sand, sample_holder, lambda_sample_holder, sensor_positions):
+	sample_holder = sample_holder + sensor_positions
 	lambda_total = np.zeros((n_z, n_y, n_x, 6), dtype=np.float64)
 	lambda_s = np.full(6, lambda_sand, dtype=np.float64)
 	for i in prange(1, n_z-1):
@@ -238,13 +239,18 @@ def lambda_test(n_x, n_y, n_z, temperature, Dr, lambda_sand, sample_holder, lamb
 @njit
 def calculate_Q_sensor(n_x, n_y, n_z, lambda_copper, A, l, temperature, temperature_plug):
 	Q = np.zeros((n_z, n_y, n_x), dtype=np.float64)
-	Q[5][n_y // 2][n_x // 2] = - lambda_copper * A / l * (temperature[5][n_y // 2][n_x // 2] - temperature_plug)
-	Q[10][n_y//2][n_x//2] = - lambda_copper * A / l * (temperature[10][n_y//2][n_x//2] - temperature_plug)
-	Q[17][n_y//2][n_x//2] = (- lambda_copper * A / l * (temperature[17][n_y//2][n_x//2] - temperature_plug)) / 2
-	Q[18][n_y // 2][n_x // 2] = (- lambda_copper * A / l * (temperature[18][n_y // 2][n_x // 2] - temperature_plug)) / 2
-	Q[27][n_y // 2][n_x // 2] = (- lambda_copper * A / l * (temperature[27][n_y // 2][n_x // 2] - temperature_plug)) / 2
-	Q[28][n_y // 2][n_x // 2] = (- lambda_copper * A / l * (temperature[28][n_y // 2][n_x // 2] - temperature_plug)) / 2
-	Q[45][n_y // 2][n_x // 2] = - lambda_copper * A / l * (temperature[45][n_y // 2][n_x // 2] - temperature_plug)
+	Q[20][n_y // 2][n_x // 2] = - 2 * lambda_copper * A / l * (temperature[20][n_y // 2][n_x // 2] - temperature_plug)
+	Q[40][n_y // 2][n_x // 2] = - 2 * lambda_copper * A / l * (temperature[40][n_y // 2][n_x // 2] - temperature_plug)
+	Q[70][n_y // 2][n_x // 2] = - 2 * lambda_copper * A / l * (temperature[70][n_y // 2][n_x // 2] - temperature_plug)
+	Q[110][n_y // 2][n_x // 2] = - 2 * lambda_copper * A / l * (temperature[110][n_y // 2][n_x // 2] - temperature_plug)
+	Q[180][n_y // 2][n_x // 2] = - 2 * lambda_copper * A / l * (temperature[180][n_y // 2][n_x // 2] - temperature_plug)
+	'''Q[5][n_y // 2][n_x // 2] = - 2 * lambda_copper * A / l * (temperature[5][n_y // 2][n_x // 2] - temperature_plug)
+	Q[10][n_y//2][n_x//2] = - 2 * lambda_copper * A / l * (temperature[10][n_y//2][n_x//2] - temperature_plug)
+	Q[17][n_y//2][n_x//2] = 2 * (- lambda_copper * A / l * (temperature[17][n_y//2][n_x//2] - temperature_plug)) / 2
+	Q[18][n_y // 2][n_x // 2] = 2 * (- lambda_copper * A / l * (temperature[18][n_y // 2][n_x // 2] - temperature_plug)) / 2
+	Q[27][n_y // 2][n_x // 2] = 2 * (- lambda_copper * A / l * (temperature[27][n_y // 2][n_x // 2] - temperature_plug)) / 2
+	Q[28][n_y // 2][n_x // 2] = 2 * (- lambda_copper * A / l * (temperature[28][n_y // 2][n_x // 2] - temperature_plug)) / 2
+	Q[45][n_y // 2][n_x // 2] = - 2 * lambda_copper * A / l * (temperature[45][n_y // 2][n_x // 2] - temperature_plug)'''
 	return Q
 
 

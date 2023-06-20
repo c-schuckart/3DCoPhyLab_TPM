@@ -111,8 +111,8 @@ for temperature_plug in [295]:
     Delta_cond_ges = 0
 
     #file = open('D:/Masterarbeit_data/Sand_no_tubes/Results/sensor_data_lambda_' + str(round(lambda_sand_val, 5)) + '.csv', 'a')
-    file = open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Sand(no_tubes)/sensor_data2_lambda_sand_temperature_plug_' + str(temperature_plug) + '.csv', 'a')
-    Lambda = lambda_sand(const.n_x, const.n_y, const.n_z, temperature, Dr, const.lambda_sand, sample_holder, const.lambda_sample_holder)
+    file = open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Sand(no_tubes)/sensor_data_highres_long_lambda_sand_temperature_plug_' + str(temperature_plug) + '.csv', 'a')
+    Lambda = lambda_sand(const.n_x, const.n_y, const.n_z, temperature, Dr, const.lambda_sand, sample_holder, const.lambda_sample_holder, var.sensor_positions)
     #for j in tqdm(range(0, min(const.k, max_k, max_k_2))):
     for j in tqdm(range(0, const.k)):
         if j * const.dt >= next_segment_time:
@@ -142,7 +142,7 @@ for temperature_plug in [295]:
         dT_0, EIis_0, E_In, E_Rad, E_Lat_0 = energy_input_data(const.dt, surface_temperature_section[j - int(previous_section_time/const.dt)], const.sigma, const.epsilon, temperature, Lambda, Dr, const.n_x, const.n_y, const.n_z, heat_capacity, density, dx, dy, dz, surface, surface_reduced, delta_T)
         #temperature = sample_holder_data(const.n_x, const.n_y, const.n_z, sample_holder, temperature, 110)
         #temperature = sample_holder_test(const.n_x, const.n_y, const.n_z, sample_holder, temperature)
-        #Q = calculate_Q_sensor(const.n_x, const.n_y, const.n_z, const.lambda_copper, const.wire_cross_section, const.wire_length, temperature, temperature_plug)
+        Q = calculate_Q_sensor(const.n_x, const.n_y, const.n_z, const.lambda_copper, const.wire_cross_section, const.wire_length, temperature, temperature_plug)
         delta_T, Energy_Increase_per_Layer, Latent_Heat_per_Layer, Max_Fourier_number[j], E_sh, EcoPL, E_source_sink = hte_calculate(const.n_x, const.n_y, const.n_z, surface, dT_0, temperature, Lambda, Dr, dx, dy, dz, const.dt, density, heat_capacity, sublimated_mass, resublimated_mass, latent_heat_water, sample_holder, Q)
         #print(Energy_Increase_per_Layer[50][50][50], Latent_Heat_per_Layer[50][50][50])
         #Delta_cond_ges += test_E_cond(const.n_x, const.n_y, const.n_z, surface, dT_0, temperature, Lambda, Dr, dx, dy, dz, const.dt, density, heat_capacity, sublimated_mass, resublimated_mass, latent_heat_water, sample_holder, Energy_conduction_per_Layer)
@@ -177,7 +177,7 @@ for temperature_plug in [295]:
     #save_current_arrays(temperature, water_content_per_layer, co2_content_per_layer, dust_ice_ratio_per_layer, co2_h2o_ratio_per_layer, heat_capacity, highest_pressure, highest_pressure_co2, ejection_times, var.time_passed + const.dt * const.k)
     data_dict = {'Temperature': temperature.tolist()}
     #with open('D:/Masterarbeit_data/Sand_no_tubes/Results/temperature_data_lambda_' + str(round(lambda_sand_val, 5)) + '.json', 'w') as outfile:
-    with open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Sand(no_tubes)/temperature_data2_lambda_sand_plug_temp_' + str(temperature_plug) + '.json', 'w') as outfile:
+    with open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Sand(no_tubes)/temperature_data_highres_long_lambda_sand_plug_temp_' + str(temperature_plug) + '.json', 'w') as outfile:
         json.dump(data_dict, outfile)
 
     data_save_sensors(const.k * const.dt, sensor_10mm, sensor_20mm, sensor_35mm, sensor_55mm, sensor_90mm, file)

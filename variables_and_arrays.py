@@ -28,3 +28,5 @@ R = const.r_mono/2
 K = 3/4*np.pi*2*(1 - const.poisson_ratio_par**2)/(np.pi * const.young_modulus_par)
 P = np.pi*R*const.surface_energy_par
 r_n = np.full((const.n_z, const.n_y, const.n_x), (R*K*(P + 3*const.surface_energy_par*np.pi*R + np.sqrt(6*const.surface_energy_par*np.pi*R*P + (3*const.surface_energy_par*np.pi*R)**2)))**(1/3), dtype=np.float64)
+sensor_positions = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
+sensor_positions[20][const.n_y//2][const.n_x//2], sensor_positions[40][const.n_y//2][const.n_x//2], sensor_positions[70][const.n_y//2][const.n_x//2], sensor_positions[110][const.n_y//2][const.n_x//2], sensor_positions[180][const.n_y//2][const.n_x//2] = 1, 1, 1, 1, 1
