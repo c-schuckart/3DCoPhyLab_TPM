@@ -101,8 +101,10 @@ plt.show()
 #plt.savefig('Constant_lambda_test_sand_' + str(const.lambda_sand) + '.png', dpi=600)
 #plt.savefig(path, dpi=600)
 '''
+def correct_temperatures(temperatures, dt, m, heat_capacity, Lambda, A, l, T_room):
+    return (temperatures - dt / (m * heat_capacity) * Lambda * A / l * T_room) / (1 - dt / (m * heat_capacity) * Lambda * A / l)
 sim_10mm, sim_20mm, sim_35mm, sim_55mm, sim_90mm, time_sim = [], [], [], [], [], []
-csv_file = open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Sand(no_tubes)/sensor_data_highres_lambda_sand_temperature_plug_295.csv', 'r')
+csv_file = open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Sand(no_tubes)/sensor_data_highres_pure_sand.csv', 'r')
 dat = csv.reader(csv_file)
 for count, each in enumerate(dat):
     time_sim.append(float(each[0]))
@@ -113,8 +115,14 @@ for count, each in enumerate(dat):
     sim_90mm.append(float(each[5]))
 
 #time_sim = [const.dt * i for i in range(0, const.k//6)]
-time_deltas_data_interior, temp_10mm, temp_20mm, temp_35mm, temp_55mm, temp_90mm = read_temperature_data('D:/Masterarbeit_data/Sand_no_tubes/sand_temps(no_tubes).txt', '2023-03-05 17:52:03', '2023-03-05 23:54:06', [1, 2, 3, 4, 5], [], [], [], [], [])
+time_deltas_data_interior, temp_10mm, temp_20mm, temp_35mm, temp_55mm, temp_90mm = read_temperature_data('D:/Masterarbeit_data/Sand_no_tubes/sand_temps(no_tubes).txt', '2023-03-05 17:52:03', '2023-03-07 06:04:01', [1, 2, 3, 4, 5], [], [], [], [], [])
 time_data = [np.sum(time_deltas_data_interior[0:i+1]).astype(int) for i in range(len(time_deltas_data_interior)-1)]
+
+temp_10mm = correct_temperatures(np.array(temp_10mm, dtype=np.float64), np.array(time_deltas_data_interior).astype(int), const.density_copper*const.min_dx*const.min_dy*const.min_dz, const.heat_capacity_copper, const.lambda_copper, const.wire_cross_section, const.wire_length, 295)
+temp_20mm = correct_temperatures(np.array(temp_20mm, dtype=np.float64), np.array(time_deltas_data_interior).astype(int), const.density_copper*const.min_dx*const.min_dy*const.min_dz, const.heat_capacity_copper, const.lambda_copper, const.wire_cross_section, const.wire_length, 295)
+temp_35mm = correct_temperatures(np.array(temp_35mm, dtype=np.float64), np.array(time_deltas_data_interior).astype(int), const.density_copper*const.min_dx*const.min_dy*const.min_dz, const.heat_capacity_copper, const.lambda_copper, const.wire_cross_section, const.wire_length, 295)
+temp_55mm = correct_temperatures(np.array(temp_55mm, dtype=np.float64), np.array(time_deltas_data_interior).astype(int), const.density_copper*const.min_dx*const.min_dy*const.min_dz, const.heat_capacity_copper, const.lambda_copper, const.wire_cross_section, const.wire_length, 295)
+temp_90mm = correct_temperatures(np.array(temp_90mm, dtype=np.float64), np.array(time_deltas_data_interior).astype(int), const.density_copper*const.min_dx*const.min_dy*const.min_dz, const.heat_capacity_copper, const.lambda_copper, const.wire_cross_section, const.wire_length, 295)
 
 print(len(time_data), len(temp_10mm))
 plt.xlabel('Time (s)')
@@ -135,10 +143,10 @@ plt.plot(time_sim, sim_90mm, label='90mm simulation', ls='solid')
 plt.ylim(270, 370)
 #plt.title('Lambda linear ' + str(const.lambda_a) + '*T + ' + str(const.lambda_b))
 #plt.title('Lambda constant = ' + str(const.lambda_constant) + r', $b_{\eta}$ = ' + str(const.b)
-plt.title('Simulation with wires at 295K')
+plt.title('Simulation of pure sand with corrected sensors')
 plt.legend(fontsize='xx-small')
 #plt.show()
-plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Simulation_with_wires_short.png', dpi=600)
+plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Simulation_sand_corrected_sensors.png', dpi=600)
 plt.clf()
 #plt.savefig('C:/Users/Christian Schuckart/Documents/Masterarbeit/Plots/Sand_surface_1D_TPM.png', dpi=600)
 #plt.savefig('linear_lambda_test_sand_' + str(const.lambda_a) + 'T + ' + str(const.lambda_b) + '.png', dpi=600)
