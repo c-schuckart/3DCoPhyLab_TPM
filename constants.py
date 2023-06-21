@@ -17,7 +17,7 @@ n_y = 39
 n_z = 203
 n = np.array([n_x, n_y, n_z])
 #k = 360000 * 1000                      # Number of Timesteps                    [-]
-k = 1303200//2                     # Number of Timesteps                    [-]
+k = 1303200                     # Number of Timesteps                    [-]
 #Definition of Physical Parameters
 #Material Properties
 lambda_constant = 1E-2            # Thermal Conductivity                   [W/(K m)]
