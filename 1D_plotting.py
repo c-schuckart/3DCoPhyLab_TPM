@@ -102,9 +102,11 @@ plt.show()
 #plt.savefig(path, dpi=600)
 '''
 def correct_temperatures(temperatures, dt, m, heat_capacity, Lambda, A, l, T_room):
-    return (temperatures - dt / (m * heat_capacity) * Lambda * A / l * T_room) / (1 - dt / (m * heat_capacity) * Lambda * A / l)
+   return (temperatures - dt / (m * heat_capacity) * Lambda * A / l * T_room) / (1 - dt / (m * heat_capacity) * Lambda * A / l)
+   #return temperatures + dt / (m * heat_capacity) * Lambda * A / l * (temperatures - T_room)
+
 sim_10mm, sim_20mm, sim_35mm, sim_55mm, sim_90mm, time_sim = [], [], [], [], [], []
-csv_file = open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Sand(no_tubes)/sensor_data_highres_pure_sand.csv', 'r')
+csv_file = open('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/Sand(no_tubes)/sensor_data_highres_pure_sand.csv', 'r')
 dat = csv.reader(csv_file)
 for count, each in enumerate(dat):
     time_sim.append(float(each[0]))
@@ -114,7 +116,7 @@ for count, each in enumerate(dat):
     sim_55mm.append(float(each[4]))
     sim_90mm.append(float(each[5]))
 
-#time_sim = [const.dt * i for i in range(0, const.k//6)]
+#time_sim = [const.dt * i for i in range(0, const.k//6)] #'2023-03-07 06:04:01' '2023-03-05 23:52:02'
 time_deltas_data_interior, temp_10mm, temp_20mm, temp_35mm, temp_55mm, temp_90mm = read_temperature_data('D:/Masterarbeit_data/Sand_no_tubes/sand_temps(no_tubes).txt', '2023-03-05 17:52:03', '2023-03-07 06:04:01', [1, 2, 3, 4, 5], [], [], [], [], [])
 time_data = [np.sum(time_deltas_data_interior[0:i+1]).astype(int) for i in range(len(time_deltas_data_interior)-1)]
 
@@ -146,7 +148,8 @@ plt.ylim(270, 370)
 plt.title('Simulation of pure sand with corrected sensors')
 plt.legend(fontsize='xx-small')
 #plt.show()
-plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Simulation_sand_corrected_sensors.png', dpi=600)
+print(temp_10mm[-1])
+plt.savefig('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/Simulation_with_pure_sand_test.png', dpi=600)
 plt.clf()
 #plt.savefig('C:/Users/Christian Schuckart/Documents/Masterarbeit/Plots/Sand_surface_1D_TPM.png', dpi=600)
 #plt.savefig('linear_lambda_test_sand_' + str(const.lambda_a) + 'T + ' + str(const.lambda_b) + '.png', dpi=600)

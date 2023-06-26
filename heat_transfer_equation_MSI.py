@@ -340,8 +340,30 @@ def solve_iterative(iterations, temperature, q, A, L, U, n_x, n_y, n_z):
     return T.reshape((n_z, n_y, n_x))
 
 
+@njit
+def set_matrices_lhs(n_x, n_y, n_z, Lambda, dx, Dx, density, heat_capacity, dt, S_p):
+    sub_alpha = np.zeros(n_z+1, dtype=np.float64)
+    diag = np.zeros(n_z+1, dtype=np.float64)
+    sub_gamma = np.zeros(n_z+1, dtype=np.float64)
+    for i in range(1, n_z):
+        sub_alpha[i] = Lambda[i]/Dx[i]
+        sub_gamma[i] = Lambda[i-1]/Dx[i]
+        diag[i] = sub_alpha[i] + sub_gamma[i] + density[i] * heat_capacity[i] * dx[i] / dt - S_p[i] * dx[i]
+    sub_alpha[0] = Lambda[0]/Dx[0]
+    diag[0] = sub_alpha[0] + density[0] * heat_capacity[0] * dx[0] / dt - S_p[0] * dx[0]
+    sub_alpha[n_z] = 0
+    diag[n_z] = density[n_z] * heat_capacity[n_z] * dx[n_z] / dt
+    return sub_alpha, diag, sub_gamma
 
 
+@njit
+def set_matrices_rhs(n_x, n_y, n_z, temperature, dx, density, heat_capacity, dt, S_c, Q):
+    rhs = np.zeros(n_z+1, dtype=np.float64)
+    for i in range(1, n_z):
+        rhs[i] = S_c[i] * dx[0] + density[0] * heat_capacity[0] * dx[i] / dt * temperature[i]
+    rhs[0] = Q + S_c[0] * dx[0] + density[0] * heat_capacity[0] * dx[0] / dt * temperature[0]
+    rhs[n_z] = density[n_z] * heat_capacity[n_z] * dx[n_z] / dt * temperature[n_z]
+    return rhs
 
 
 

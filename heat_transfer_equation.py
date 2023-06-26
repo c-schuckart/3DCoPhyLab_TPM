@@ -481,7 +481,7 @@ def update_thermal_arrays(n_x, n_y, n_z, temperature, uniform_water_mass,  delta
     return temperature_o, uniform_water_mass, heat_capacity, dust_ice_ratio_per_layer, co2_h2o_ratio_per_layer, E_conservation, Energy_Increase_Total_per_time_Step, E_Rad, Latent_Heat_per_time_step, E_In
 
 
-#@njit(parallel=False)
+@njit(parallel=False)
 def update_thermal_arrays_diffusion(n_x, n_y, n_z, temperature, uniform_water_mass,  delta_T, Energy_Increase_per_Layer, sublimated_mass, resublimated_mass, dt, avogadro_constant, molar_mass_water, molar_mass_co2, heat_capacity, heat_capacity_water_ice, heat_capacity_co2_ice, EIpL_0, Latent_Heat_per_Layer, E_Lat_0, E_Rad, E_In, E_sh, gas_mass, delta_gm, pressure, VFF, dx, dy, dz, a_1, b_1, c_1, d_1, m_H2O, k_Boltzmann, r_mono, sample_holder, temperature_ini):
     temperature_o = temperature + delta_T
     gas_mass = gas_mass + delta_gm

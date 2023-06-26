@@ -284,7 +284,7 @@ def diffusion_parameters(n_x, n_y, n_z, a_1, b_1, c_1, d_1, temperature, temps, 
                         diffusion_coefficient[i][j][k][a] = (1/(R_gas * temps[i][j][k][a]))**(-1) * 1/np.sqrt(2 * np.pi * m_mol * R_gas * temps[i][j][k][a]) * (1 - VFF[i][j][k])**2 * 2 * r_mono/(3 * (1 - (1 - VFF[i][j][k]))) * 4 / (Phi * q[i][j][k])
     return diffusion_coefficient, p_sub, sublimated_mass
 
-@njit(parallel=False)
+@njit(parallel=True)
 def de_calculate(n_x, n_y, n_z, sh_adjacent_voxels, sample_holder, delta_gm_0, gas_mass, temperature, p_sub, Diffusion_coefficient, Dr, dx, dy, dz, dt, pressure, m_H2O, k_Boltzmann, VFF, r_mono):
     delta_gm = np.zeros((n_z, n_y, n_x), dtype=np.float64) + delta_gm_0
     Fourier_number = np.zeros((n_z, n_y, n_x), dtype=np.float64)

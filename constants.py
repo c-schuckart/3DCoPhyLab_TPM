@@ -1,23 +1,23 @@
 import numpy as np
 
 #Definition of Simulation Parameters
-'''min_dx = 5E-6                      # Layer Thickness of smallest layer in x direction, Numerical Resolution  [m]
+min_dx = 5E-6                      # Layer Thickness of smallest layer in x direction, Numerical Resolution  [m]
 min_dy = 5E-6                      # Layer Thickness of smallest layer in y direction, Numerical Resolution  [m]
 min_dz = 5E-6                      # Layer Thickness of smallest layer in z direction, Numerical Resolution  [m]
-dt = 0.5E-8                           # Timestep                               [s]
-n_x = 17                            # Number of Layers                       [-]
-n_y = 17
-n_z = 100'''
-min_dx = 2E-3                      # Layer Thickness of the smallest layer in x direction, Numerical Resolution  [m]
+dt = 0.5E-5                           # Timestep                               [s]
+n_x = 25                            # Number of Layers                       [-]
+n_y = 25
+n_z = 25
+'''min_dx = 2E-3                      # Layer Thickness of the smallest layer in x direction, Numerical Resolution  [m]
 min_dy = 2E-3                      # Layer Thickness of the smallest layer in y direction, Numerical Resolution  [m]
 min_dz = 0.5E-3                      # Layer Thickness of the smallest layer in z direction, Numerical Resolution  [m]
 dt = 0.1                           # Timestep                               [s]
 n_x = 39                           # Number of Layers                       [-]
 n_y = 39
 n_z = 203
-n = np.array([n_x, n_y, n_z])
+n = np.array([n_x, n_y, n_z])'''
 #k = 360000 * 1000                      # Number of Timesteps                    [-]
-k = 1303200                     # Number of Timesteps                    [-]
+k = 1303200//6                     # Number of Timesteps                    [-]
 #Definition of Physical Parameters
 #Material Properties
 lambda_constant = 1E-2            # Thermal Conductivity                   [W/(K m)]

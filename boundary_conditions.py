@@ -316,7 +316,7 @@ def calculate_L_chamber_lamp_bd(Volt, sample_holder, n_x, n_y, n_z):
 	Surface_powers = get_L_chamber_lamp_power(sample_holder) * 0.01**2 * S_chamber_cal_curve(Volt)/S_chamber_cal_curve(24)
 	ggT = GCD(len(Surface_powers[0]), const.n_x-2)
 	length = len(Surface_powers[0])//ggT
-	convolved = convolve(Surface_powers, length, const.n_x-2, len(Surface_powers[0]))[0]
+	convolved = convolve(Surface_powers, length, const.n_x-2, len(Surface_powers[0]), n_x, n_y)[0]
 	lamp_energy = np.zeros((n_z, n_y, n_x), dtype=np.float64)
 	lamp_energy[:] = convolved
 	return lamp_energy
