@@ -66,16 +66,16 @@ def tridiag_matrix_solver3D(sub_a, diag, sub_c, res_3D, n_x, n_y, n_z):
 
 @njit
 def tridiagonal_matrix_solver(n, diag, sub_a, sub_c, res):
-    arr_1 = np.zeros(n+1)
-    arr_2 = np.zeros(n+1)
+    arr_1 = np.zeros(n)
+    arr_2 = np.zeros(n)
     arr_1[0] = sub_c[0] / diag[0]
     arr_2[0] = res[0] / diag[0]
-    for i in range(1, n+1):
+    for i in range(1, n):
         t = diag[i] - sub_a[i] * arr_1[i-1]
         arr_1[i] = sub_c[i] / t
         arr_2[i] = (res[i] - sub_a[i] * arr_2[i-1]) / t
-    sol = np.zeros(n+1)
-    sol[n] = arr_2[n]
-    for i in range(n-1, -1, -1):
+    sol = np.zeros(n)
+    sol[n-1] = arr_2[n-1]
+    for i in range(n-2, -1, -1):
         sol[i] = arr_2[i] - arr_1[i] * sol[i+1]
     return sol

@@ -1,6 +1,7 @@
 import numpy as np
 from numba import jit, njit, prange
 import scipy
+from tri_diag_solve import tridiagonal_matrix_solver
 
 @njit(parallel=True)
 def set_inner_matrices(n_x, n_y, n_z, dx, dy, dz, Dr, Lambda, dt, density, heat_capacity, Q_const, Q_lin, temperature, surface_reduced, sample_holder, input_energy, albedo, sigma, epsilon, alpha):
@@ -340,30 +341,156 @@ def solve_iterative(iterations, temperature, q, A, L, U, n_x, n_y, n_z):
     return T.reshape((n_z, n_y, n_x))
 
 
-@njit
-def set_matrices_lhs(n_x, n_y, n_z, Lambda, dx, Dx, density, heat_capacity, dt, S_p):
+'''@njit
+def set_matrices_lhs(n_x, n_y, n_z, Lambda, dx, Dx, density, heat_capacity, dt, S_p, S_p_rad):
     sub_alpha = np.zeros(n_z+1, dtype=np.float64)
     diag = np.zeros(n_z+1, dtype=np.float64)
     sub_gamma = np.zeros(n_z+1, dtype=np.float64)
     for i in range(1, n_z):
         sub_alpha[i] = Lambda[i]/Dx[i]
-        sub_gamma[i] = Lambda[i-1]/Dx[i]
+        sub_gamma[i] = Lambda[i-1]/Dx[i-1]
         diag[i] = sub_alpha[i] + sub_gamma[i] + density[i] * heat_capacity[i] * dx[i] / dt - S_p[i] * dx[i]
     sub_alpha[0] = Lambda[0]/Dx[0]
-    diag[0] = sub_alpha[0] + density[0] * heat_capacity[0] * dx[0] / dt - S_p[0] * dx[0]
+    diag[0] = sub_alpha[0] + density[0] * heat_capacity[0] * dx[0] / dt - S_p_rad - S_p[0] * dx[0]
     sub_alpha[n_z] = 0
     diag[n_z] = density[n_z] * heat_capacity[n_z] * dx[n_z] / dt
     return sub_alpha, diag, sub_gamma
 
 
 @njit
-def set_matrices_rhs(n_x, n_y, n_z, temperature, dx, density, heat_capacity, dt, S_c, Q):
+def set_matrices_rhs(n_x, n_y, n_z, temperature, dx, density, heat_capacity, dt, S_c, S_c_rad, Q):
     rhs = np.zeros(n_z+1, dtype=np.float64)
     for i in range(1, n_z):
-        rhs[i] = S_c[i] * dx[0] + density[0] * heat_capacity[0] * dx[i] / dt * temperature[i]
-    rhs[0] = Q + S_c[0] * dx[0] + density[0] * heat_capacity[0] * dx[0] / dt * temperature[0]
+        rhs[i] = S_c[i] * dx[i] + density[i] * heat_capacity[i] * dx[i] / dt * temperature[i]
+    rhs[0] = Q + S_c_rad + S_c[0] * dx[0] + density[0] * heat_capacity[0] * dx[0] / dt * temperature[0]
     rhs[n_z] = density[n_z] * heat_capacity[n_z] * dx[n_z] / dt * temperature[n_z]
+    return rhs'''
+
+
+'''@njit
+def set_matrices_lhs(n_x, n_y, n_z, sub_alpha, diag, sub_gamma, Lambda, dx, dy, dz, Dr, density, heat_capacity, dt, S_p, S_p_rad, temperature, sample_holder):
+    for i in range(1, n_z-1):
+        for j in range(1, n_y-1):
+            for k in range(1, n_x-1):
+                if temperature[i][j][k] > 0 and sample_holder[i][j][k] == 0:
+                    a_t = Lambda[i][j][k][0] * dx[i][j][k] * dy[i][j][k]/Dr[i][j][k][0]
+                    a_b = Lambda[i][j][k][1] * dx[i][j][k] * dy[i][j][k]/Dr[i][j][k][1]
+                    a_n = Lambda[i][j][k][2] * dx[i][j][k] * dz[i][j][k]/Dr[i][j][k][2]
+                    a_s = Lambda[i][j][k][3] * dx[i][j][k] * dz[i][j][k]/Dr[i][j][k][3]
+                    a_e = Lambda[i][j][k][4] * dx[i][j][k] * dz[i][j][k]/Dr[i][j][k][4]
+                    a_w = Lambda[i][j][k][5] * dx[i][j][k] * dz[i][j][k]/Dr[i][j][k][5]
+                    sub_alpha[i][j][k] = - a_t
+                    sub_gamma[i][j][k] = - a_b
+                    diag[i][j][k] = a_t + a_b + a_n + a_s + a_e + a_w + density[i][j][k] * heat_capacity[i][j][k] * dx[i][j][k] * dy[i][j][k] * dz[i][j][k] / dt - S_p[i] * dx[i][j][k] * dy[i][j][k] * dz[i][j][k]
+                elif sample_holder[i][j][k] != 0:
+                    diag[i][j][k] = density[i][j][k] * heat_capacity[i][j][k] * dx[i][j][k] * dy[i][j][k] * dz[i][j][k] / dt
+    return sub_alpha, diag, sub_gamma
+
+
+@njit
+def set_matrices_rhs(n_x, n_y, n_z, rhs, temperature, sample_holder, dx, dy, dz, Dr, Lambda, density, heat_capacity, dt, S_c, S_c_rad, Q):
+    for i in range(1, n_z - 1):
+        for j in range(1, n_y - 1):
+            for k in range(1, n_x - 1):
+                if temperature[i][j][k] > 0 and sample_holder[i][j][k] == 0:
+                    a_n = Lambda[i][j][k][2] * dx[i][j][k] * dz[i][j][k] / Dr[i][j][k][2]
+                    a_s = Lambda[i][j][k][3] * dx[i][j][k] * dz[i][j][k] / Dr[i][j][k][3]
+                    a_e = Lambda[i][j][k][4] * dx[i][j][k] * dz[i][j][k] / Dr[i][j][k][4]
+                    a_w = Lambda[i][j][k][5] * dx[i][j][k] * dz[i][j][k] / Dr[i][j][k][5]
+                    rhs[i][j][k] = a_n * temperature[i][j+1][k] + a_s * temperature[i][j-1][k] + a_e * temperature[i][j][k+1] + a_w * temperature[i][j][k-1] + S_c[i][j][k] * dx[i][j][k] * dy[i][j][k] * dz[i][j][k] + density[i][j][k] * heat_capacity[i][j][k] * dx[i][j][k] * dy[i][j][k] * dz[i][j][k] / dt * temperature[i]
+                elif sample_holder[i][j][k] != 0:
+                    rhs[i][j][k] = density[i][j][k] * heat_capacity[i][j][k] * dx[i][j][k] * dy[i][j][k] * dz[i][j][k] / dt * temperature[i][j][k]
     return rhs
 
 
+@njit
+def boundary_condition_implicit(r_H, albedo, dt, input_energy, sigma, epsilon, temperature, Lambda, Dr, sublimated_mass, resublimated_mass, latent_heat_water, heat_capacity, density, dx, dy, dz, surface, surface_reduced, sub_alpha, diag, rhs, S_c, S_p):
+    for each in surface_reduced:
+        S_c_rad = 3 * epsilon * sigma * temperature[each[2]][each[1]][each[0]]**4 * (dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][0] + surface[each[2]][each[1]][each[0]][1]) + dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][2] + surface[each[2]][each[1]][each[0]][3]) + dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][4] + surface[each[2]][each[1]][each[0]][5]))
+        S_p_rad = -4 * epsilon * sigma * temperature[each[2]][each[1]][each[0]]**3 * (dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][0] + surface[each[2]][each[1]][each[0]][1]) + dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][2] + surface[each[2]][each[1]][each[0]][3]) + dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][4] + surface[each[2]][each[1]][each[0]][5]))
+        Q =  input_energy[each[2]][each[1]][each[0]] / r_H ** 2 * (1 - albedo) * surface[each[2]][each[1]][each[0]][1]
+        a_t = Lambda[each[2]][each[1]][each[0]][0] * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] / Dr[each[2]][each[1]][each[0]][0] * (1 - surface[each[2]][each[1]][each[0]][0])
+        a_b = Lambda[each[2]][each[1]][each[0]][1] * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] / Dr[each[2]][each[1]][each[0]][1] * (1 - surface[each[2]][each[1]][each[0]][1])
+        a_n = Lambda[each[2]][each[1]][each[0]][2] * dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] / Dr[each[2]][each[1]][each[0]][2] * (1 - surface[each[2]][each[1]][each[0]][2])
+        a_s = Lambda[each[2]][each[1]][each[0]][3] * dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] / Dr[each[2]][each[1]][each[0]][3] * (1 - surface[each[2]][each[1]][each[0]][3])
+        a_e = Lambda[each[2]][each[1]][each[0]][4] * dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] / Dr[each[2]][each[1]][each[0]][4] * (1 - surface[each[2]][each[1]][each[0]][4])
+        a_w = Lambda[each[2]][each[1]][each[0]][5] * dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] / Dr[each[2]][each[1]][each[0]][5] * (1 - surface[each[2]][each[1]][each[0]][5])
+        diag[each[2]][each[1]][each[0]] = -S_p[each[2]][each[1]][each[0]] * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] - S_p_rad + a_t + a_n + a_s + a_e + a_w + density[each[2]][each[1]][each[0]] * heat_capacity[each[2]][each[1]][each[0]] * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] / dt
+        sub_alpha[each[2]][each[1]][each[0]] = -a_b
+        rhs[each[2]][each[1]][each[0]] = a_n * temperature[each[2]][each[1] + 1][each[0]] + a_s * temperature[each[2]][each[1] - 1][each[0]] + a_e * temperature[each[2]][each[1]][each[0] + 1] + a_w * temperature[each[2]][each[1]][each[0] - 1] + Q + S_c[each[2]][each[1]][each[0]] * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] + S_c_rad + density[each[2]][each[1]][each[0]] * heat_capacity[each[2]][each[1]][each[0]] * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] / dt * temperature[each[2]][each[1]][each[0]]
+    return sub_alpha, diag, rhs'''
 
+
+@njit
+def set_matrices_lhs(n_z, j, k, sub_alpha, diag, sub_gamma, Lambda, dx, dy, dz, Dr, density, heat_capacity, dt, S_p, temperature, surface, sample_holder):
+    for i in range(0, n_z):
+        if temperature[i][j][k] > 0 and np.sum(surface[i][j][k]) == 0 and diag[i] == 0:   #The diag == 0 condition is needed for cases where there is an 'interior' top boundary condition
+            a_t = Lambda[i][j][k][0] * dx[i][j][k] * dy[i][j][k]/Dr[i][j][k][0]
+            a_b = Lambda[i][j][k][1] * dx[i][j][k] * dy[i][j][k]/Dr[i][j][k][1]
+            a_n = Lambda[i][j][k][2] * dx[i][j][k] * dz[i][j][k]/Dr[i][j][k][2]
+            a_s = Lambda[i][j][k][3] * dx[i][j][k] * dz[i][j][k]/Dr[i][j][k][3]
+            a_e = Lambda[i][j][k][4] * dx[i][j][k] * dz[i][j][k]/Dr[i][j][k][4]
+            a_w = Lambda[i][j][k][5] * dx[i][j][k] * dz[i][j][k]/Dr[i][j][k][5]
+            sub_alpha[i] = - a_t
+            sub_gamma[i] = - a_b
+            diag[i] = a_t + a_b + a_n + a_s + a_e + a_w + density[i][j][k] * heat_capacity[i][j][k] * dx[i][j][k] * dy[i][j][k] * dz[i][j][k] / dt - S_p[i][j][k] * dx[i][j][k] * dy[i][j][k] * dz[i][j][k]
+        elif sample_holder[i][j][k] != 0:
+            diag[i] = density[i][j][k] * heat_capacity[i][j][k] * dx[i][j][k] * dy[i][j][k] * dz[i][j][k] / dt
+        elif temperature[i][j][k] == 0:
+            diag[i] = 1
+    return sub_alpha, diag, sub_gamma
+
+
+@njit
+def set_matrices_rhs(n_z, j, k, rhs, temperature, surface, sample_holder, dx, dy, dz, Dr, Lambda, density, heat_capacity, dt, S_c):
+    for i in range(0, n_z):
+        if temperature[i][j][k] > 0 and np.sum(surface[i][j][k]) == 0 and rhs[i] == 0:
+            a_n = Lambda[i][j][k][2] * dx[i][j][k] * dz[i][j][k] / Dr[i][j][k][2]
+            a_s = Lambda[i][j][k][3] * dx[i][j][k] * dz[i][j][k] / Dr[i][j][k][3]
+            a_e = Lambda[i][j][k][4] * dx[i][j][k] * dy[i][j][k] / Dr[i][j][k][4]
+            a_w = Lambda[i][j][k][5] * dx[i][j][k] * dy[i][j][k] / Dr[i][j][k][5]
+            rhs[i] = a_n * temperature[i][j+1][k] + a_s * temperature[i][j-1][k] + a_e * temperature[i][j][k+1] + a_w * temperature[i][j][k-1] + S_c[i][j][k] * dx[i][j][k] * dy[i][j][k] * dz[i][j][k] + density[i][j][k] * heat_capacity[i][j][k] * dx[i][j][k] * dy[i][j][k] * dz[i][j][k] / dt * temperature[i][j][k]
+        elif sample_holder[i][j][k] != 0:
+            rhs[i] = density[i][j][k] * heat_capacity[i][j][k] * dx[i][j][k] * dy[i][j][k] * dz[i][j][k] / dt * temperature[i][j][k]
+        elif temperature[i][j][k] == 0:
+            rhs[i] = 0
+    return rhs
+
+
+@njit
+def boundary_condition_implicit(r_H, albedo, dt, input_energy, sigma, epsilon, temperature, Lambda, Dr, sublimated_mass, resublimated_mass, latent_heat_water, heat_capacity, density, dx, dy, dz, surface, surface_reduced, sub_alpha, diag, rhs, S_c, S_p):
+    for each in surface_reduced:
+        S_c_rad = 3 * epsilon * sigma * temperature[each[2]][each[1]][each[0]]**4 * (dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][0] + surface[each[2]][each[1]][each[0]][1]) + dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][2] + surface[each[2]][each[1]][each[0]][3]) + dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][4] + surface[each[2]][each[1]][each[0]][5]))
+        S_p_rad = -4 * epsilon * sigma * temperature[each[2]][each[1]][each[0]]**3 * (dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][0] + surface[each[2]][each[1]][each[0]][1]) + dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][2] + surface[each[2]][each[1]][each[0]][3]) + dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][4] + surface[each[2]][each[1]][each[0]][5]))
+        Q = input_energy[each[2]][each[1]][each[0]] / r_H ** 2 * (1 - albedo) * surface[each[2]][each[1]][each[0]][1]
+        a_t = Lambda[each[2]][each[1]][each[0]][0] * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] / Dr[each[2]][each[1]][each[0]][0] * (1 - surface[each[2]][each[1]][each[0]][0])
+        a_n = Lambda[each[2]][each[1]][each[0]][2] * dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] / Dr[each[2]][each[1]][each[0]][2] * (1 - surface[each[2]][each[1]][each[0]][2])
+        a_s = Lambda[each[2]][each[1]][each[0]][3] * dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] / Dr[each[2]][each[1]][each[0]][3] * (1 - surface[each[2]][each[1]][each[0]][3])
+        a_e = Lambda[each[2]][each[1]][each[0]][4] * dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] / Dr[each[2]][each[1]][each[0]][4] * (1 - surface[each[2]][each[1]][each[0]][4])
+        a_w = Lambda[each[2]][each[1]][each[0]][5] * dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] / Dr[each[2]][each[1]][each[0]][5] * (1 - surface[each[2]][each[1]][each[0]][5])
+        diag[each[2]] = -S_p[each[2]][each[1]][each[0]] * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] - S_p_rad + a_t + a_n + a_s + a_e + a_w + density[each[2]][each[1]][each[0]] * heat_capacity[each[2]][each[1]][each[0]] * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] / dt
+        sub_alpha[each[2]] = -a_t
+        rhs[each[2]] = a_n * temperature[each[2]][each[1] + 1][each[0]] + a_s * temperature[each[2]][each[1] - 1][each[0]] + a_e * temperature[each[2]][each[1]][each[0] + 1] + a_w * temperature[each[2]][each[1]][each[0] - 1] + Q + S_c[each[2]][each[1]][each[0]] * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] + S_c_rad + density[each[2]][each[1]][each[0]] * heat_capacity[each[2]][each[1]][each[0]] * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] / dt * temperature[each[2]][each[1]][each[0]]
+    return sub_alpha, diag, rhs
+
+
+@njit
+def hte_implicit(n_x, n_y, n_z, surface_reduced, r_H, albedo, dt, input_energy, sigma, epsilon, temperature, Lambda, Dr, sublimated_mass, resublimated_mass, latent_heat_water, heat_capacity, density, dx, dy, dz, surface, S_c, S_p, sample_holder):
+    for j in range(1, n_y-1):
+        for k in range(1, n_x-1):
+            if temperature[1][j][k] > 0 and sample_holder[1][j][k] == 0:
+                sub_alpha = np.zeros(n_z, dtype=np.float64)
+                diag = np.zeros(n_z, dtype=np.float64)
+                sub_gamma = np.zeros(n_z, dtype=np.float64)
+                rhs = np.zeros(n_z, dtype=np.float64)
+                surface_elements_in_line = np.zeros(np.shape(surface_reduced), dtype=np.int32)
+                counter = 0
+                for each in surface_reduced:
+                    if each[1] == j and each[0] == k:
+                        surface_elements_in_line[counter] = np.array([each[0], each[1], each[2]], dtype=np.float64)
+                        counter += 1
+                sub_alpha, diag, rhs = boundary_condition_implicit(r_H, albedo, dt, input_energy, sigma, epsilon, temperature, Lambda, Dr, sublimated_mass, resublimated_mass, latent_heat_water, heat_capacity, density, dx, dy, dz, surface, surface_elements_in_line[0:counter], sub_alpha, diag, rhs, S_c, S_p)
+                sub_alpha, diag, sub_gamma = set_matrices_lhs(n_z, j, k, sub_alpha, diag, sub_gamma, Lambda, dx, dy, dz, Dr, density, heat_capacity, dt, S_p, temperature, surface, sample_holder)
+                rhs = set_matrices_rhs(n_z, j, k, rhs, temperature, surface, sample_holder, dx, dy, dz, Dr, Lambda, density, heat_capacity, dt, S_c)
+                temperature[0:n_z, j, k] = tridiagonal_matrix_solver(n_z, diag, sub_gamma, sub_alpha, rhs)
+    return temperature

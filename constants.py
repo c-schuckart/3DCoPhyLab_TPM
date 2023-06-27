@@ -16,8 +16,8 @@ n_x = 39                           # Number of Layers                       [-]
 n_y = 39
 n_z = 203
 n = np.array([n_x, n_y, n_z])'''
-#k = 360000 * 1000                      # Number of Timesteps                    [-]
-k = 1303200//6                     # Number of Timesteps                    [-]
+k = 360000 * 1                      # Number of Timesteps                    [-]
+#k = 1303200//6                     # Number of Timesteps                    [-]
 #Definition of Physical Parameters
 #Material Properties
 lambda_constant = 1E-2            # Thermal Conductivity                   [W/(K m)]
@@ -65,7 +65,7 @@ x_0 = 5E-2                        # Length scaling factor used to calculate the 
 gravitational_pressure = 0        #Placeholder! [Pa]
 surface_reduction_factor = 1
 #Thermal Properties
-temperature_ini = 286             # Start Temperature                      [K]
+temperature_ini = 77             # Start Temperature                      [K]
 sample_holder_starting_temp = 110  # Starting temperature of the sample holder [K]
 Input_Intensity = 6500             # Intensity of the Light Source (Sun)    [W/m^2]
 epsilon = 1                       # Emissivity                             [-]
