@@ -16,7 +16,7 @@ n_x = 39                           # Number of Layers                       [-]
 n_y = 39
 n_z = 203
 n = np.array([n_x, n_y, n_z])'''
-k = 360000 * 1                      # Number of Timesteps                    [-]
+k = 36000 * 1                      # Number of Timesteps                    [-]
 #k = 1303200//6                     # Number of Timesteps                    [-]
 #Definition of Physical Parameters
 #Material Properties
