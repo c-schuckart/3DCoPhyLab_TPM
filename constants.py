@@ -1,23 +1,23 @@
 import numpy as np
 
 #Definition of Simulation Parameters
-min_dx = 5E-6                      # Layer Thickness of smallest layer in x direction, Numerical Resolution  [m]
+'''min_dx = 5E-6                      # Layer Thickness of smallest layer in x direction, Numerical Resolution  [m]
 min_dy = 5E-6                      # Layer Thickness of smallest layer in y direction, Numerical Resolution  [m]
 min_dz = 5E-6                      # Layer Thickness of smallest layer in z direction, Numerical Resolution  [m]
 dt = 0.5E-5                           # Timestep                               [s]
 n_x = 25                            # Number of Layers                       [-]
 n_y = 25
-n_z = 25
-'''min_dx = 2E-3                      # Layer Thickness of the smallest layer in x direction, Numerical Resolution  [m]
+n_z = 25'''
+min_dx = 2E-3                      # Layer Thickness of the smallest layer in x direction, Numerical Resolution  [m]
 min_dy = 2E-3                      # Layer Thickness of the smallest layer in y direction, Numerical Resolution  [m]
 min_dz = 0.5E-3                      # Layer Thickness of the smallest layer in z direction, Numerical Resolution  [m]
-dt = 0.1                           # Timestep                               [s]
+dt = 1                           # Timestep                               [s]
 n_x = 39                           # Number of Layers                       [-]
 n_y = 39
 n_z = 203
-n = np.array([n_x, n_y, n_z])'''
-k = 36000 * 1                      # Number of Timesteps                    [-]
-#k = 1303200//6                     # Number of Timesteps                    [-]
+n = np.array([n_x, n_y, n_z])
+#k = 36000 * 1                      # Number of Timesteps                    [-]
+k = 130320//4                     # Number of Timesteps                    [-]
 #Definition of Physical Parameters
 #Material Properties
 lambda_constant = 1E-2            # Thermal Conductivity                   [W/(K m)]
@@ -65,7 +65,7 @@ x_0 = 5E-2                        # Length scaling factor used to calculate the 
 gravitational_pressure = 0        #Placeholder! [Pa]
 surface_reduction_factor = 1
 #Thermal Properties
-temperature_ini = 220             # Start Temperature                      [K]
+temperature_ini = 286             # Start Temperature                      [K]
 sample_holder_starting_temp = 110  # Starting temperature of the sample holder [K]
 Input_Intensity = 6500             # Intensity of the Light Source (Sun)    [W/m^2]
 epsilon = 1                       # Emissivity                             [-]
@@ -75,7 +75,7 @@ lambda_water_ice = 651            # thermal conductivity of water ice      [W/(m
 lambda_co2_ice = 0.02             # thermal conductivity of water ice      [W/(m * K)]
 lambda_sample_holder = 236        # thermal conductivity of aluminium, the sample holder material   [W/(m*K)]
 lambda_copper = 401               # thermal conductivity of copper      [W/(m * K)]
-lambda_sand = 0.287
+lambda_sand = 0.0074 * 0.2
 a_H2O = 3.23E12                   # Sublimation Pressure Coefficient of water [Pa]
 b_H2O = 6134.6                     # Sublimation Pressure Coefficient of water [K]
 a_CO2 = 1.32E12                   # Sublimation Pressure Coefficient of water [Pa]

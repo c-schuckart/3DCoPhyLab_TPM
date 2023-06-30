@@ -164,7 +164,10 @@ def boundary_condition_implicit_x_sweep(r_H, albedo, dt, input_energy, sigma, ep
 
 
 @njit
-def hte_implicit(n_x, n_y, n_z, surface_reduced, r_H, albedo, dt, input_energy, sigma, epsilon, temperature, x_sweep_temperature, y_sweep_temperature, next_step_temperature, Lambda, Dr, sublimated_mass, resublimated_mass, latent_heat_water, heat_capacity, density, dx, dy, dz, surface, S_c, S_p, sample_holder):
+def hte_implicit_DGADI(n_x, n_y, n_z, surface_reduced, r_H, albedo, dt, input_energy, sigma, epsilon, temperature, Lambda, Dr, sublimated_mass, resublimated_mass, latent_heat_water, heat_capacity, density, dx, dy, dz, surface, S_c, S_p, sample_holder):
+    next_step_temperature = np.zeros((n_z, n_y, n_x), dtype=np.float64)
+    x_sweep_temperature = np.zeros((n_z, n_y, n_x), dtype=np.float64)
+    y_sweep_temperature = np.zeros((n_z, n_y, n_x), dtype=np.float64)
     for i in range(1, n_z-1):
         for j in range(1, n_y-1):
             sub_alpha = np.zeros(n_x, dtype=np.float64)
