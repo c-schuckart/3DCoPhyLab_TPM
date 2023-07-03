@@ -106,7 +106,7 @@ def correct_temperatures(temperatures, dt, m, heat_capacity, Lambda, A, l, T_roo
    #return temperatures + dt / (m * heat_capacity) * Lambda * A / l * (temperatures - T_room)
 
 sim_10mm, sim_20mm, sim_35mm, sim_55mm, sim_90mm, time_sim = [], [], [], [], [], []
-csv_file = open('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/Sand(no_tubes)/sensor_data_highres_pure_sand.csv', 'r')
+csv_file = open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Sand(no_tubes)/surface_and_sample_holder.csv', 'r')
 dat = csv.reader(csv_file)
 for count, each in enumerate(dat):
     time_sim.append(float(each[0]))
@@ -114,10 +114,10 @@ for count, each in enumerate(dat):
     sim_20mm.append(float(each[2]))
     sim_35mm.append(float(each[3]))
     sim_55mm.append(float(each[4]))
-    sim_90mm.append(float(each[5]))
+    #sim_90mm.append(float(each[5]))
 
 #time_sim = [const.dt * i for i in range(0, const.k//6)] #'2023-03-07 06:04:01' '2023-03-05 23:52:02'
-time_deltas_data_interior, temp_10mm, temp_20mm, temp_35mm, temp_55mm, temp_90mm = read_temperature_data('D:/Masterarbeit_data/Sand_no_tubes/sand_temps(no_tubes).txt', '2023-03-05 17:52:03', '2023-03-07 06:04:01', [1, 2, 3, 4, 5], [], [], [], [], [])
+time_deltas_data_interior, temp_10mm, temp_20mm, temp_35mm, temp_55mm, temp_90mm = read_temperature_data('D:/Masterarbeit_data/Sand_no_tubes/sand_temps(no_tubes).txt', '2023-03-05 17:52:03', '2023-03-06 02:55:07', [1, 2, 3, 4, 5], [], [], [], [], [])
 time_data = [np.sum(time_deltas_data_interior[0:i+1]).astype(int) for i in range(len(time_deltas_data_interior)-1)]
 
 temp_10mm = correct_temperatures(np.array(temp_10mm, dtype=np.float64), np.array(time_deltas_data_interior).astype(int), const.density_copper*const.min_dx*const.min_dy*const.min_dz, const.heat_capacity_copper, const.lambda_copper, const.wire_cross_section, const.wire_length, 295)
@@ -129,7 +129,7 @@ temp_90mm = correct_temperatures(np.array(temp_90mm, dtype=np.float64), np.array
 print(len(time_data), len(temp_10mm))
 plt.xlabel('Time (s)')
 plt.ylabel('Temperature (K)')
-plt.tick_params(axis='x', which='both', direction='in', top=True, labeltop=False)
+'''plt.tick_params(axis='x', which='both', direction='in', top=True, labeltop=False)
 plt.tick_params(axis='y', which='both', direction='in', right=True, labelright=False)
 plt.scatter(time_data, temp_10mm[:-1], label='10mm sensor', s=1, color='black')
 plt.scatter(time_data, temp_20mm[:-1], label='20mm sensor', s=1, color='black', marker='x')
@@ -140,16 +140,19 @@ plt.plot(time_sim, sim_10mm, label='10mm simulation', ls='solid')
 plt.plot(time_sim, sim_20mm, label='20mm simulation', ls='dashed')
 plt.plot(time_sim, sim_35mm, label='35mm simulation', ls='dotted')
 plt.plot(time_sim, sim_55mm, label='55mm simulation', ls='dashdot')
-plt.plot(time_sim, sim_90mm, label='90mm simulation', ls='solid')
+plt.plot(time_sim, sim_90mm, label='90mm simulation', ls='solid')'''
+plt.plot(time_sim, sim_10mm, label='Surface temp. max.', ls='solid')
+plt.plot(time_sim, sim_20mm, label='Surface temp. avrg.', ls='dashed')
+plt.plot(time_sim, sim_55mm, label='Sample holder temp.', ls='dotted')
 #plt.xlim(6000, 6200)
-plt.ylim(270, 370)
+plt.ylim(270, 415)
 #plt.title('Lambda linear ' + str(const.lambda_a) + '*T + ' + str(const.lambda_b))
 #plt.title('Lambda constant = ' + str(const.lambda_constant) + r', $b_{\eta}$ = ' + str(const.b)
-plt.title('Simulation of pure sand with corrected sensors')
+plt.title('Boundary condition temperatures')
 plt.legend(fontsize='xx-small')
 #plt.show()
-print(temp_10mm[-1])
-plt.savefig('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/Simulation_with_pure_sand_test.png', dpi=600)
+#print(temp_10mm[-1])
+plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Simulation_boundary_conditions.png', dpi=600)
 plt.clf()
 #plt.savefig('C:/Users/Christian Schuckart/Documents/Masterarbeit/Plots/Sand_surface_1D_TPM.png', dpi=600)
 #plt.savefig('linear_lambda_test_sand_' + str(const.lambda_a) + 'T + ' + str(const.lambda_b) + '.png', dpi=600)
