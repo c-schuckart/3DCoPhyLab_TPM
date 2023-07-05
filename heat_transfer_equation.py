@@ -178,7 +178,7 @@ def hte_calculate_periodic(n_x, n_y, n_z, surface, delta_T_0, temperature, Lambd
                     x_pos_period = 1
                 if np.sum(surface[i][j][k]) == 0 and temperature[i][j][k] > 0:
                     # Standard Thermal Diffusivity Equation 3D explicit
-                    delta_T[i][j][k] = (((((temperature[i][j][k + 1] - temperature[i][j][k]) * (1- x_pos_period) + (temperature[i][j][1] - temperature[i][j][k]) * x_pos_period)* Lambda[i][j][k][4] / (Dr[i][j][k][4])) - (((temperature[i][j][k] - temperature[i][j][k - 1]) * (1 - x_neg_period) + (temperature[i][j][k] - temperature[i][j][n_x-2]) * x_neg_period)* Lambda[i][j][k][5] / (Dr[i][j][k][5]))) / dx[i][j][k]) * dt / (
+                    delta_T[i][j][k] = (((((temperature[i][j][k + 1] - temperature[i][j][k]) * (1 - x_pos_period) + (temperature[i][j][1] - temperature[i][j][k]) * x_pos_period)* Lambda[i][j][k][4] / (Dr[i][j][k][4])) - (((temperature[i][j][k] - temperature[i][j][k - 1]) * (1 - x_neg_period) + (temperature[i][j][k] - temperature[i][j][n_x-2]) * x_neg_period)* Lambda[i][j][k][5] / (Dr[i][j][k][5]))) / dx[i][j][k]) * dt / (
                                          density[i][j][k] * heat_capacity[i][j][k]) + \
                                    (((((temperature[i][j + 1][k] - temperature[i][j][k]) * (1 - y_pos_period) + (temperature[i][1][k] - temperature[i][j][k]) * y_pos_period)* Lambda[i][j][k][2] / (Dr[i][j][k][2]))
                                      - (((temperature[i][j][k] - temperature[i][j - 1][k]) * (1 - y_neg_period) + (temperature[i][j][k] - temperature[i][n_y-2][k]) * y_neg_period) * Lambda[i][j][k][3] / (

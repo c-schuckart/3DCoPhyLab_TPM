@@ -48,15 +48,15 @@ def bar_chart_2D(dx, dy, scalars):
 
 '''with open(getPath()) as json_file:
     data_vis = json.load(json_file)'''
-with open('test.json') as json_file:
+with open('test_1.json') as json_file:
     data_vis = json.load(json_file)
 
-sample_and_surface = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
+'''sample_and_surface = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
 for i in range(0, const.n_z):
     for j in range(0, const.n_y):
         for k in range(0, const.n_x):
             #sample_and_surface[i][j][k] = np.array(data_vis['SH'][i][j][k])
-            sample_and_surface[i][j][k] = np.max(data_vis['HC'][i][j][k])
+            sample_and_surface[i][j][k] = np.max(data_vis['HC'][i][j][k])'''
 
 '''temperature = np.array(data_vis['Temperature'])
 for i in range(0, const.n_z):
@@ -72,7 +72,7 @@ sample = plot_3D(temperature)'''
         print(i-1)
         break'''
 #sample = plot_3D(np.array(data_vis['Water content'][len(data_vis['Water content'])-2]))
-#sample = plot_3D(np.array(data_vis['Temperature'][2]))
+sample = plot_3D(np.array(data_vis['Temperature']))
 #sample_and_surface = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
 '''sample_and_surface = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
 #sample_and_surface = np.array(data_vis['gas mass'][1])
@@ -94,7 +94,7 @@ for i in range(0, const.n_z):
     sample_and_surface[each[2]][each[1]][each[0]] = 100'''
     #if np.sum(data_vis['Surface'][each[2]][each[1]][each[0]]) != 0:
         #sample_and_surface[each[2]][each[1]][each[0]] = 1
-sample = plot_3D(sample_and_surface)
+#sample = plot_3D(sample_and_surface)
 #print(data_vis['gas mass'][3][1][50][50])
 #print(data_vis['gas mass'][3][0][50][50])
 '''

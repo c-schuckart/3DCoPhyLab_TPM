@@ -39,7 +39,7 @@ def set_matrices_rhs_z_sweep(n_z, j, k, rhs, temperature, x_sweep_temperature, y
 
 
 @njit
-def boundary_condition_implicit_z_sweep(r_H, albedo, dt, input_energy, sigma, epsilon, temperature, x_sweep_temperature, y_sweep_temperature, Lambda, Dr, sublimated_mass, resublimated_mass, latent_heat_water, heat_capacity, density, dx, dy, dz, surface, surface_reduced, sub_alpha, diag, sub_gamma, rhs, S_c, S_p):
+def boundary_condition_implicit_z_sweep(r_H, albedo, dt, input_energy, sigma, epsilon, temperature, x_sweep_temperature, y_sweep_temperature, Lambda, Dr, heat_capacity, density, dx, dy, dz, surface, surface_reduced, sub_alpha, diag, sub_gamma, rhs, S_c, S_p):
     for each in surface_reduced:
         S_c_rad = 3 * epsilon * sigma * temperature[each[2]][each[1]][each[0]]**4 * (dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][0] + surface[each[2]][each[1]][each[0]][1]) + dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][2] + surface[each[2]][each[1]][each[0]][3]) + dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][4] + surface[each[2]][each[1]][each[0]][5]))
         S_p_rad = -4 * epsilon * sigma * temperature[each[2]][each[1]][each[0]]**3 * (dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][0] + surface[each[2]][each[1]][each[0]][1]) + dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][2] + surface[each[2]][each[1]][each[0]][3]) + dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][4] + surface[each[2]][each[1]][each[0]][5]))
@@ -92,7 +92,7 @@ def set_matrices_rhs_y_sweep(n_y, i, k, rhs, temperature, x_sweep_temperature, s
 
 
 @njit
-def boundary_condition_implicit_y_sweep(r_H, albedo, dt, input_energy, sigma, epsilon, temperature, x_sweep_temperature, Lambda, Dr, sublimated_mass, resublimated_mass, latent_heat_water, heat_capacity, density, dx, dy, dz, surface, surface_reduced, sub_alpha, diag, sub_gamma, rhs, S_c, S_p):
+def boundary_condition_implicit_y_sweep(r_H, albedo, dt, input_energy, sigma, epsilon, temperature, x_sweep_temperature, Lambda, Dr, heat_capacity, density, dx, dy, dz, surface, surface_reduced, sub_alpha, diag, sub_gamma, rhs, S_c, S_p):
     for each in surface_reduced:
         S_c_rad = 3 * epsilon * sigma * temperature[each[2]][each[1]][each[0]]**4 * (dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][0] + surface[each[2]][each[1]][each[0]][1]) + dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][2] + surface[each[2]][each[1]][each[0]][3]) + dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][4] + surface[each[2]][each[1]][each[0]][5]))
         S_p_rad = -4 * epsilon * sigma * temperature[each[2]][each[1]][each[0]]**3 * (dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][0] + surface[each[2]][each[1]][each[0]][1]) + dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][2] + surface[each[2]][each[1]][each[0]][3]) + dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][4] + surface[each[2]][each[1]][each[0]][5]))
@@ -145,7 +145,7 @@ def set_matrices_rhs_x_sweep(n_x, i, j, rhs, temperature, surface, sample_holder
 
 
 @njit
-def boundary_condition_implicit_x_sweep(r_H, albedo, dt, input_energy, sigma, epsilon, temperature, Lambda, Dr, sublimated_mass, resublimated_mass, latent_heat_water, heat_capacity, density, dx, dy, dz, surface, surface_reduced, sub_alpha, diag, sub_gamma, rhs, S_c, S_p):
+def boundary_condition_implicit_x_sweep(r_H, albedo, dt, input_energy, sigma, epsilon, temperature, Lambda, Dr, heat_capacity, density, dx, dy, dz, surface, surface_reduced, sub_alpha, diag, sub_gamma, rhs, S_c, S_p):
     for each in surface_reduced:
         S_c_rad = 3 * epsilon * sigma * temperature[each[2]][each[1]][each[0]]**4 * (dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][0] + surface[each[2]][each[1]][each[0]][1]) + dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][2] + surface[each[2]][each[1]][each[0]][3]) + dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][4] + surface[each[2]][each[1]][each[0]][5]))
         S_p_rad = -4 * epsilon * sigma * temperature[each[2]][each[1]][each[0]]**3 * (dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][0] + surface[each[2]][each[1]][each[0]][1]) + dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][2] + surface[each[2]][each[1]][each[0]][3]) + dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][4] + surface[each[2]][each[1]][each[0]][5]))
@@ -164,7 +164,7 @@ def boundary_condition_implicit_x_sweep(r_H, albedo, dt, input_energy, sigma, ep
 
 
 @njit
-def hte_implicit_DGADI(n_x, n_y, n_z, surface_reduced, r_H, albedo, dt, input_energy, sigma, epsilon, temperature, Lambda, Dr, sublimated_mass, resublimated_mass, latent_heat_water, heat_capacity, density, dx, dy, dz, surface, S_c, S_p, sample_holder):
+def hte_implicit_DGADI(n_x, n_y, n_z, surface_reduced, r_H, albedo, dt, input_energy, sigma, epsilon, temperature, Lambda, Dr, heat_capacity, density, dx, dy, dz, surface, S_c, S_p, sample_holder):
     next_step_temperature = np.zeros((n_z, n_y, n_x), dtype=np.float64)
     x_sweep_temperature = np.zeros((n_z, n_y, n_x), dtype=np.float64)
     y_sweep_temperature = np.zeros((n_z, n_y, n_x), dtype=np.float64)
@@ -180,7 +180,7 @@ def hte_implicit_DGADI(n_x, n_y, n_z, surface_reduced, r_H, albedo, dt, input_en
                 if each[2] == i and each[1] == j:
                     surface_elements_in_line[counter] = np.array([each[0], each[1], each[2]], dtype=np.float64)
                     counter += 1
-            sub_alpha, diag, sub_gamma, rhs = boundary_condition_implicit_x_sweep(r_H, albedo, dt, input_energy, sigma, epsilon, temperature, Lambda, Dr, sublimated_mass, resublimated_mass, latent_heat_water, heat_capacity, density, dx, dy, dz, surface, surface_elements_in_line[0:counter], sub_alpha, diag, sub_gamma, rhs, S_c, S_p)
+            sub_alpha, diag, sub_gamma, rhs = boundary_condition_implicit_x_sweep(r_H, albedo, dt, input_energy, sigma, epsilon, temperature, Lambda, Dr, heat_capacity, density, dx, dy, dz, surface, surface_elements_in_line[0:counter], sub_alpha, diag, sub_gamma, rhs, S_c, S_p)
             sub_alpha, diag, sub_gamma = set_matrices_lhs_x_sweep(n_x, i, j, sub_alpha, diag, sub_gamma, Lambda, dx, dy, dz, Dr, density, heat_capacity, dt, S_p, temperature, surface, sample_holder)
             rhs = set_matrices_rhs_x_sweep(n_x, i, j, rhs, temperature, surface, sample_holder, dx, dy, dz, Dr, Lambda, density, heat_capacity, dt, S_c)
             x_sweep_temperature[i, j, 0:n_x] = tridiagonal_matrix_solver(n_x, diag, sub_gamma, sub_alpha, rhs)
@@ -196,7 +196,7 @@ def hte_implicit_DGADI(n_x, n_y, n_z, surface_reduced, r_H, albedo, dt, input_en
                 if each[2] == i and each[0] == k:
                     surface_elements_in_line[counter] = np.array([each[0], each[1], each[2]], dtype=np.float64)
                     counter += 1
-            sub_alpha, diag, sub_gamma, rhs = boundary_condition_implicit_y_sweep(r_H, albedo, dt, input_energy, sigma, epsilon, temperature, x_sweep_temperature, Lambda, Dr, sublimated_mass, resublimated_mass, latent_heat_water, heat_capacity, density, dx, dy, dz, surface, surface_elements_in_line[0:counter], sub_alpha, diag, sub_gamma, rhs, S_c, S_p)
+            sub_alpha, diag, sub_gamma, rhs = boundary_condition_implicit_y_sweep(r_H, albedo, dt, input_energy, sigma, epsilon, temperature, x_sweep_temperature, Lambda, Dr, heat_capacity, density, dx, dy, dz, surface, surface_elements_in_line[0:counter], sub_alpha, diag, sub_gamma, rhs, S_c, S_p)
             sub_alpha, diag, sub_gamma = set_matrices_lhs_y_sweep(n_y, i, k, sub_alpha, diag, sub_gamma, Lambda, dx, dy, dz, Dr, density, heat_capacity, dt, S_p, temperature, surface, sample_holder)
             rhs = set_matrices_rhs_y_sweep(n_y, i, k, rhs, temperature, x_sweep_temperature, surface, sample_holder, dx, dy, dz, Dr, Lambda, density, heat_capacity, dt, S_c)
             y_sweep_temperature[i, 0:n_y, k] = tridiagonal_matrix_solver(n_y, diag, sub_gamma, sub_alpha, rhs)
@@ -212,7 +212,7 @@ def hte_implicit_DGADI(n_x, n_y, n_z, surface_reduced, r_H, albedo, dt, input_en
                 if each[1] == j and each[0] == k:
                     surface_elements_in_line[counter] = np.array([each[0], each[1], each[2]], dtype=np.float64)
                     counter += 1
-            sub_alpha, diag, sub_gamma, rhs = boundary_condition_implicit_z_sweep(r_H, albedo, dt, input_energy, sigma, epsilon, temperature, x_sweep_temperature, y_sweep_temperature, Lambda, Dr, sublimated_mass, resublimated_mass, latent_heat_water, heat_capacity, density, dx, dy, dz, surface, surface_elements_in_line[0:counter], sub_alpha, diag, sub_gamma, rhs, S_c, S_p)
+            sub_alpha, diag, sub_gamma, rhs = boundary_condition_implicit_z_sweep(r_H, albedo, dt, input_energy, sigma, epsilon, temperature, x_sweep_temperature, y_sweep_temperature, Lambda, Dr, heat_capacity, density, dx, dy, dz, surface, surface_elements_in_line[0:counter], sub_alpha, diag, sub_gamma, rhs, S_c, S_p)
             sub_alpha, diag, sub_gamma = set_matrices_lhs_z_sweep(n_z, j, k, sub_alpha, diag, sub_gamma, Lambda, dx, dy, dz, Dr, density, heat_capacity, dt, S_p, temperature, surface, sample_holder)
             rhs = set_matrices_rhs_z_sweep(n_z, j, k, rhs, temperature, x_sweep_temperature, y_sweep_temperature, surface, sample_holder, dx, dy, dz, Dr, Lambda, density, heat_capacity, dt, S_c)
             next_step_temperature[0:n_z, j, k] = tridiagonal_matrix_solver(n_z, diag, sub_gamma, sub_alpha, rhs)
