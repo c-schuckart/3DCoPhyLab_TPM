@@ -79,3 +79,21 @@ def tridiagonal_matrix_solver(n, diag, sub_a, sub_c, res):
     for i in range(n-2, -1, -1):
         sol[i] = arr_2[i] - arr_1[i] * sol[i+1]
     return sol
+
+
+@njit
+def periodic_tridiagonal_matrix_solver(n, diag, sub_a, sub_c, res):
+    gamma = - diag[0]
+    diag[0] = diag[0] - gamma
+    diag[n-1] = diag[n-1] - sub_a[0] * sub_c[n-1] / gamma
+    u = np.zeros(n, dtype=np.float64)
+    v = np.zeros(n, dtype=np.float64)
+    u[0], u[n-1] = gamma, sub_c[n-1]
+    v[0], v[n-1] = 1, sub_a[0]/gamma
+    #print(gamma, u, v)
+    #print(diag)
+    y = tridiagonal_matrix_solver(n, diag, sub_a, sub_c, res)
+    #print(diag)
+    q = tridiagonal_matrix_solver(n, diag, sub_a, sub_c, u)
+    sol = y - q * np.dot(v, y) / (1 + np.dot(v, q))
+    return sol
