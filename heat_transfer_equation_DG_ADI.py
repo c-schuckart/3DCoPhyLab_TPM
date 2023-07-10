@@ -220,6 +220,24 @@ def hte_implicit_DGADI(n_x, n_y, n_z, surface_reduced, r_H, albedo, dt, input_en
 
 
 @njit
+def set_matrices_lhs_z_sweep_periodic(n_z, j, k, sub_alpha, diag, sub_gamma, Lambda, dx, dy, dz, Dr, density, heat_capacity, dt, S_p, temperature, surface, sample_holder):
+    for i in range(0, n_z):
+        if temperature[i][j][k] > 0 and np.sum(surface[i][j][k]) == 0 and diag[i] == 0:   #The diag == 0 condition is needed for cases where there is an 'interior' top boundary condition
+            a_t = 1 / 2 * Lambda[i][j][k][0] * dx[i][j][k] * dy[i][j][k]/Dr[i][j][k][0]
+            a_b = 1 / 2 * Lambda[i][j][k][1] * dx[i][j][k] * dy[i][j][k]/Dr[i][j][k][1]
+            sub_alpha[i] = - a_t
+            sub_gamma[i] = - a_b
+            if i < n_z - 1 and temperature[i + 1][j][k] == 0:
+                a_t = 0
+            diag[i] = a_t + a_b + density[i][j][k] * heat_capacity[i][j][k] * dx[i][j][k] * dy[i][j][k] * dz[i][j][k] / dt - S_p[i][j][k] * dx[i][j][k] * dy[i][j][k] * dz[i][j][k]
+        elif sample_holder[i][j][k] != 0:
+            diag[i] = density[i][j][k] * heat_capacity[i][j][k] * dx[i][j][k] * dy[i][j][k] * dz[i][j][k] / dt
+        elif temperature[i][j][k] == 0:
+            diag[i] = 1
+    return sub_alpha, diag, sub_gamma
+
+
+@njit
 def set_matrices_rhs_z_sweep_periodic(n_z, j, k, rhs, temperature, x_sweep_temperature, y_sweep_temperature, surface, sample_holder, dx, dy, dz, Dr, Lambda, density, heat_capacity, dt, S_c, n_x, n_y):
     x_neg_periodic, x_pos_periodic, y_neg_periodic, y_pos_periodic = 0, 0, 0, 0
     if k == 1:
@@ -238,6 +256,8 @@ def set_matrices_rhs_z_sweep_periodic(n_z, j, k, rhs, temperature, x_sweep_tempe
             a_s = Lambda[i][j][k][3] * dx[i][j][k] * dz[i][j][k] / Dr[i][j][k][3]
             a_e = Lambda[i][j][k][4] * dy[i][j][k] * dz[i][j][k] / Dr[i][j][k][4]
             a_w = Lambda[i][j][k][5] * dy[i][j][k] * dz[i][j][k] / Dr[i][j][k][5]
+            if i < n_z - 1 and temperature[i + 1][j][k] == 0:
+                a_t = 0
             rhs[i] = a_t * temperature[i+1][j][k] + a_b * temperature[i-1][j][k] + a_n * ((y_sweep_temperature[i][j+1][k] + temperature[i][j+1][k])/2 * (1 - y_pos_periodic) + (y_sweep_temperature[i][1][k] + temperature[i][1][k])/2 * y_pos_periodic) + a_s * ((y_sweep_temperature[i][j-1][k] + temperature[i][j-1][k])/2 * (1 - y_neg_periodic) + (y_sweep_temperature[i][n_y-2][k] + temperature[i][n_y-2][k])/2 * y_neg_periodic) + a_e * ((x_sweep_temperature[i][j][k+1] + temperature[i][j][k+1])/2 * (1 - x_pos_periodic) + (x_sweep_temperature[i][j][1] + temperature[i][j][1])/2 * x_pos_periodic) + a_w * ((x_sweep_temperature[i][j][k-1] + temperature[i][j][k-1])/2 * (1 - x_neg_periodic) + (x_sweep_temperature[i][j][n_x-2] + temperature[i][j][n_x-2])/2 * x_neg_periodic) + S_c[i][j][k] * dx[i][j][k] * dy[i][j][k] * dz[i][j][k] + (density[i][j][k] * heat_capacity[i][j][k] * dx[i][j][k] * dy[i][j][k] * dz[i][j][k] / dt - a_t - a_b) * temperature[i][j][k] - (a_n + a_s) * (y_sweep_temperature[i][j][k] + temperature[i][j][k])/2 - (a_w + a_e) * (x_sweep_temperature[i][j][k] + temperature[i][j][k])/2
         elif sample_holder[i][j][k] != 0:
             rhs[i] = density[i][j][k] * heat_capacity[i][j][k] * dx[i][j][k] * dy[i][j][k] * dz[i][j][k] / dt * temperature[i][j][k]
@@ -443,7 +463,7 @@ def hte_implicit_DGADI_periodic(n_x, n_y, n_z, surface_reduced, r_H, albedo, dt,
                     surface_elements_in_line[counter] = np.array([each[0], each[1], each[2]], dtype=np.float64)
                     counter += 1
             sub_alpha, diag, sub_gamma, rhs = boundary_condition_implicit_z_sweep_periodic(r_H, albedo, dt, input_energy, sigma, epsilon, temperature, x_sweep_temperature, y_sweep_temperature, Lambda, Dr, heat_capacity, density, dx, dy, dz, surface, surface_elements_in_line[0:counter], sub_alpha, diag, sub_gamma, rhs, S_c, S_p, n_x, n_y)
-            sub_alpha, diag, sub_gamma = set_matrices_lhs_z_sweep(n_z, j, k, sub_alpha, diag, sub_gamma, Lambda, dx, dy, dz, Dr, density, heat_capacity, dt, S_p, temperature, surface, sample_holder)
+            sub_alpha, diag, sub_gamma = set_matrices_lhs_z_sweep_periodic(n_z, j, k, sub_alpha, diag, sub_gamma, Lambda, dx, dy, dz, Dr, density, heat_capacity, dt, S_p, temperature, surface, sample_holder)
             rhs = set_matrices_rhs_z_sweep_periodic(n_z, j, k, rhs, temperature, x_sweep_temperature, y_sweep_temperature, surface, sample_holder, dx, dy, dz, Dr, Lambda, density, heat_capacity, dt, S_c, n_x, n_y)
             '''if j < 3:
                 print(sub_gamma)
