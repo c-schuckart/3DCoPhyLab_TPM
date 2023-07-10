@@ -299,12 +299,13 @@ def boundary_condition_implicit_z_sweep_periodic(r_H, albedo, dt, input_energy, 
 
 @njit
 def set_matrices_rhs_y_sweep_periodic(n_y, i, k, rhs, temperature, x_sweep_temperature, surface, sample_holder, dx, dy, dz, Dr, Lambda, density, heat_capacity, dt, S_c, n_x):
-    x_neg_periodic, x_pos_periodic, y_neg_periodic, y_pos_periodic = 0, 0, 0, 0
+    x_neg_periodic, x_pos_periodic = 0, 0
     if k == 1:
         x_neg_periodic = 1
     if k == n_x - 2:
         x_pos_periodic = 1
     for j in range(0, n_y):
+        y_neg_periodic, y_pos_periodic = 0, 0
         if j == 1:
             y_neg_periodic = 1
         if j == n_y - 2:
@@ -326,8 +327,8 @@ def set_matrices_rhs_y_sweep_periodic(n_y, i, k, rhs, temperature, x_sweep_tempe
 
 @njit
 def boundary_condition_implicit_y_sweep_periodic(r_H, albedo, dt, input_energy, sigma, epsilon, temperature, x_sweep_temperature, Lambda, Dr, heat_capacity, density, dx, dy, dz, surface, surface_reduced, sub_alpha, diag, sub_gamma, rhs, S_c, S_p, n_x, n_y):
-    x_neg_periodic, x_pos_periodic, y_neg_periodic, y_pos_periodic = 0, 0, 0, 0
     for each in surface_reduced:
+        x_neg_periodic, x_pos_periodic, y_neg_periodic, y_pos_periodic = 0, 0, 0, 0
         if each[0] == 1:
            x_neg_periodic = 1
         if each[0] == n_x-2:
@@ -357,12 +358,13 @@ def boundary_condition_implicit_y_sweep_periodic(r_H, albedo, dt, input_energy, 
 
 @njit
 def set_matrices_rhs_x_sweep_periodic(n_x, i, j, rhs, temperature, surface, sample_holder, dx, dy, dz, Dr, Lambda, density, heat_capacity, dt, S_c, n_y):
-    x_neg_periodic, x_pos_periodic, y_neg_periodic, y_pos_periodic = 0, 0, 0, 0
+    y_neg_periodic, y_pos_periodic = 0, 0
     if j == 1:
         y_neg_periodic = 1
     if j == n_y - 2:
         y_pos_periodic = 1
     for k in range(0, n_x):
+        x_neg_periodic, x_pos_periodic = 0, 0
         if k == 1:
             x_neg_periodic = 1
         if k == n_x - 2:
@@ -384,8 +386,8 @@ def set_matrices_rhs_x_sweep_periodic(n_x, i, j, rhs, temperature, surface, samp
 
 @njit
 def boundary_condition_implicit_x_sweep_periodic(r_H, albedo, dt, input_energy, sigma, epsilon, temperature, Lambda, Dr, heat_capacity, density, dx, dy, dz, surface, surface_reduced, sub_alpha, diag, sub_gamma, rhs, S_c, S_p, n_x, n_y):
-    x_neg_periodic, x_pos_periodic, y_neg_periodic, y_pos_periodic = 0, 0, 0, 0
     for each in surface_reduced:
+        x_neg_periodic, x_pos_periodic, y_neg_periodic, y_pos_periodic = 0, 0, 0, 0
         if each[0] == 1:
            x_neg_periodic = 1
         if each[0] == n_x-2:

@@ -287,6 +287,47 @@ def calculate_molecule_flux_test(n_x, n_y, n_z, temperature, pressure, a_1, b_1,
 
     return sublimated_mass, resublimated_mass, pressure, outgassed_mass/dt, empty_voxels[0:empty_voxel_count]
 
+
+@njit
+def calculate_molecule_flux_test_Q(n_x, n_y, n_z, temperature, pressure, a_1, b_1, c_1, d_1, m_H2O, R_gas, VFF, r_grain, Phi, tortuosity, dx, dy, dz, dt, surface_reduced, avogadro_constant, k_B, sample_holder, water_mass_per_layer, n_x_lr, n_y_lr, n_z_lr, Dr, surface_reduction_factor, latent_heat_water, surface):
+    p_sub = np.zeros(np.shape(temperature), dtype=np.float64)
+    sublimated_mass = np.zeros(np.shape(temperature), dtype=np.float64)
+    resublimated_mass = np.zeros((n_z, n_y, n_x), dtype=np.float64)
+    S_c = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
+    # Placeholder
+    outgassed_mass = 0
+    mass_flux = np.zeros(np.shape(sublimated_mass), dtype=np.float64)
+    # Replace surface_reduced with len(temperature.flatten() because it could technically be that deeper voxels are drained at the same time step
+    empty_voxels = np.zeros((len(surface_reduced), 3), dtype=np.int32)
+    empty_voxel_count = 0
+    for each in surface_reduced:
+        p_sub[each[2]][each[1]][each[0]] = 10 ** (
+                    a_1[0] + b_1[0] / temperature[each[2]][each[1]][each[0]] + c_1[0] * np.log10(
+                temperature[each[2]][each[1]][each[0]]) + d_1[0] * temperature[each[2]][each[1]][each[0]])
+        sublimated_mass[each[2]][each[1]][each[0]] = (p_sub[each[2]][each[1]][each[0]] - pressure[each[2]][each[1]][
+            each[0]]) * np.sqrt(m_H2O / (2 * np.pi * k_B * temperature[each[2]][each[1]][each[0]])) * \
+                                                     dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][
+                                                         each[0]] * dt  # * (
+        # 3 * VFF[each[2]][each[1]][each[0]] / r_grain * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]]) * surface_reduction_factor
+        if sublimated_mass[each[2]][each[1]][each[0]] > water_mass_per_layer[each[2]][each[1]][each[0]]:
+            sublimated_mass[each[2]][each[1]][each[0]] = water_mass_per_layer[each[2]][each[1]][each[0]]
+            empty_voxels[empty_voxel_count] = np.array([each[0], each[1], each[2]], dtype=np.int32)
+            empty_voxel_count += 1
+        outgassed_mass += sublimated_mass[each[2]][each[1]][each[0]]
+        mass_flux[each[2]][each[1]][each[0]] = sublimated_mass[each[2]][each[1]][each[0]]
+        # p_sub[each[2]][each[1]][each[0]] = 0
+        S_c[each[2]][each[1]][each[0]] = - sublimated_mass[each[2]][each[1]][each[0]] * latent_heat_water[each[2]][each[1]][each[0]] / (dt * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]])
+    for i in range(1, n_z-1):
+        for j in range(1, n_y-1):
+            for k in range(1, n_x-1):
+                if np.sum(surface[i][j][k]) == 0 and temperature[i][j][k] > 0:
+                    p_sub[i][j][k] = 10 ** (a_1[0] + b_1[0] / temperature[i][j][k] + c_1[0] * np.log10(temperature[i][j][k]) + d_1[0] * temperature[i][j][k])
+                    sublimated_mass[i][j][k] = (p_sub[i][j][k] - pressure[i][j][k]) * np.sqrt(m_H2O / (2 * np.pi * k_B * temperature[i][j][k])) * dx[i][j][k] * dy[i][j][k] * dt
+                    S_c[i][j][k] = - sublimated_mass[i][j][k] * latent_heat_water[i][j][k] / (dt * dx[i][j][k] * dy[i][j][k] * dz[i][j][k])
+    # pressure = p_sub
+    # Non 100% resublimation missing
+    return S_c, sublimated_mass
+
 @njit(parallel=True)
 def diffusion_parameters(n_x, n_y, n_z, a_1, b_1, c_1, d_1, temperature, temps, m_mol, R_gas, VFF, r_mono, Phi, q, pressure, m_H2O, k_B, dx, dy, dz, Dr, dt, sample_holder):
     diffusion_coefficient = np.zeros((n_z, n_y, n_x, 6), dtype=np.float64)
