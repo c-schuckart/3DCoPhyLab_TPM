@@ -359,6 +359,30 @@ def diffusion_parameters(n_x, n_y, n_z, a_1, b_1, c_1, d_1, temperature, temps, 
                         diffusion_coefficient[i][j][k][a] = (1/(R_gas * temps[i][j][k][a]))**(-1) * 1/np.sqrt(2 * np.pi * m_mol * R_gas * temps[i][j][k][a]) * (1 - VFF[i][j][k])**2 * 2 * r_mono/(3 * (1 - (1 - VFF[i][j][k]))) * 4 / (Phi * q[i][j][k])
     return diffusion_coefficient, p_sub, sublimated_mass
 
+
+@njit
+def calculate_source_terms(n_x, n_y, n_z, temperature, pressure, sublimated_mass, dx, dy, dz, dt, surface_reduced, water_mass_per_layer, latent_heat_water, surface):
+    S_c_hte = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
+    S_c_de = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
+    outgassed_mass = 0
+    mass_flux = np.zeros(np.shape(sublimated_mass), dtype=np.float64)
+    # Replace surface_reduced with len(temperature.flatten() because it could technically be that deeper voxels are drained at the same time step
+    empty_voxels = np.zeros((len(surface_reduced), 3), dtype=np.int32)
+    empty_voxel_count = 0
+    for i in range(1, n_z-1):
+        for j in range(1, n_y-1):
+            for k in range(1, n_x-1):
+                if sublimated_mass[i][j][k] > sublimated_mass[i][j][k]:
+                    sublimated_mass[i][j][k] = water_mass_per_layer[i][j][k]
+                    empty_voxels[empty_voxel_count] = np.array([k, j, i], dtype=np.int32)
+                    empty_voxel_count += 1
+                outgassed_mass += sublimated_mass[i][j][k]
+                # p_sub[each[2]][each[1]][each[0]] = 0
+                S_c_hte[i][j][k] = - sublimated_mass[i][j][k] * latent_heat_water[i][j][k] / (dt * dx[i][j][k] * dy[i][j][k] * dz[i][j][k])
+                S_c_de[i][j][k] = sublimated_mass[i][j][k] / (dt * dx[i][j][k] * dy[i][j][k] * dz[i][j][k])
+    return S_c_hte, S_c_de
+
+
 @njit(parallel=True)
 def de_calculate(n_x, n_y, n_z, sh_adjacent_voxels, sample_holder, delta_gm_0, gas_mass, temperature, p_sub, Diffusion_coefficient, Dr, dx, dy, dz, dt, pressure, m_H2O, k_Boltzmann, VFF, r_mono):
     delta_gm = np.zeros((n_z, n_y, n_x), dtype=np.float64) + delta_gm_0
@@ -436,11 +460,11 @@ def gas_mass_function(T, pressure, VFF, dx, dy, dz, target_mass):
 
 
 @njit
-def pressure_calculation(n_x, n_y, n_z, temperature, gas_mass, k_boltzmann, m_H2O):
+def pressure_calculation(n_x, n_y, n_z, temperature, gas_mass, k_boltzmann, m_H2O, sample_holder):
     pressure = np.zeros((n_z, n_y, n_x), dtype=np.float64)
     for a in range(0, n_z):
         for b in range(0, n_y):
             for c in range(0, n_x):
-                if temperature[a][b][c] > 0:
+                if temperature[a][b][c] > 0 and sample_holder[a][b][c] != 1:
                     pressure[a][b][c] = gas_mass[a][b][c] * np.sqrt(2 * np.pi * k_boltzmann * temperature[a][b][c] / m_H2O)
     return pressure
