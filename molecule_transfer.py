@@ -372,7 +372,7 @@ def calculate_source_terms(n_x, n_y, n_z, temperature, pressure, sublimated_mass
     for i in range(1, n_z-1):
         for j in range(1, n_y-1):
             for k in range(1, n_x-1):
-                if sublimated_mass[i][j][k] > sublimated_mass[i][j][k]:
+                if sublimated_mass[i][j][k] > water_mass_per_layer[i][j][k]:
                     sublimated_mass[i][j][k] = water_mass_per_layer[i][j][k]
                     empty_voxels[empty_voxel_count] = np.array([k, j, i], dtype=np.int32)
                     empty_voxel_count += 1

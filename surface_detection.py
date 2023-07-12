@@ -21,7 +21,7 @@ def create_equidistant_mesh(n_x, n_y, n_z, temperature_ini, dx, dy, dz):
         mask = ((x-a)/a_rad)**2 + ((y-b)/b_rad)**2 <= 1
         slice[mask] = temperature_ini
         for i in range(0, n_z-1):
-            if i != 0:
+            if i != 0 and i != 1:
                 mesh[i] = slice
     elif sett.mesh_form == 0:
         mesh = np.zeros((n_z, n_y, n_x), dtype=np.float64)
@@ -32,7 +32,7 @@ def create_equidistant_mesh(n_x, n_y, n_z, temperature_ini, dx, dy, dz):
     dx_arr = np.full((n_z, n_y, n_x), dx, dtype=np.float64)
     dy_arr = np.full((n_z, n_y, n_x), dy, dtype=np.float64)
     dz_arr = np.full((n_z, n_y, n_x), dz, dtype=np.float64)
-    dz_arr[1] = np.full((n_y, n_x,), dz / 2, dtype=np.float64)
+    dz_arr[2] = np.full((n_y, n_x,), dz / 2, dtype=np.float64)
     Dr = np.full((n_z, n_y, n_x, 6), np.array([dz, dz, dy, dy, dx, dx]), dtype=np.float64)
     return mesh, dx_arr, dy_arr, dz_arr, Dr, a, (a_rad-1), b, (b_rad-1)
 
@@ -214,10 +214,13 @@ def surrounding_checker(array, surface, n_x_lr, n_y_lr, n_z_lr, temperature):
     surrounding_surface = np.zeros((len(array) * 9, 3), dtype=np.int32)
     count = 0
     nr_of_last_sus_elements = 0
-    for count, each in enumerate(array):
+    for each in array:
         for i in range(0, 6):
-            if np.sum(surface[each[2] + n_z_lr[i]][each[1] + n_y_lr[i]][each[0] + n_x_lr[i]]) == 0 and temperature[each[2] + n_z_lr[i]][each[1] + n_y_lr[i]][each[0] + n_x_lr[i]] == 0:
-                surrounding_surface[count] = np.array([each[0] + n_x_lr[i], each[1] + n_y_lr[i], each[2] + n_z_lr[i]], dtype=np.float32)
+            if temperature[each[2] + n_z_lr[i]][each[1] + n_y_lr[i]][each[0] + n_x_lr[i]] == 0:
+                surrounding_surface[count] = np.array([each[0] + n_x_lr[i], each[1] + n_y_lr[i], each[2] + n_z_lr[i]], dtype=np.int32)
+                if each[2] + n_z_lr[i] == 1 and each[1] + n_y_lr[i] == 12 and each[0] + n_x_lr[i] == 12:
+                    print('here')
+                    #print(surrounding_surface[0:count+1])
                 count += 1
                 if count == len(array) - 1:
                     nr_of_last_sus_elements += 1
@@ -225,6 +228,7 @@ def surrounding_checker(array, surface, n_x_lr, n_y_lr, n_z_lr, temperature):
         for j in range(i+1-len(surrounding_surface)):
             if surrounding_surface[i][0] == surrounding_surface[j][0] and surrounding_surface[i][1] == surrounding_surface[j][1] and surrounding_surface[i][2] == surrounding_surface[j][2]:
                 np.delete(surrounding_surface, j)
+                count -= 1
     return surrounding_surface[0:count]
 
 
