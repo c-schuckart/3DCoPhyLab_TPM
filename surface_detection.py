@@ -9,7 +9,7 @@ import settings as sett
 The surface is marked as an array of six values, which each correspond to one of the sides, a "1" signaling it being
 an exposed tile, while a "0" denotes a non surface element. 
 Array entries 0 to 5 correspond to "z positive", "z negative", "y positive", "y negative", "x positive" and "x negative"'''
-def create_equidistant_mesh(n_x, n_y, n_z, temperature_ini, dx, dy, dz):
+def create_equidistant_mesh(n_x, n_y, n_z, temperature_ini, dx, dy, dz, diffusion_mesh):
     if sett.mesh_form == 1:
         a = n_x//2
         a_rad = (n_x - 2)//2
@@ -21,7 +21,7 @@ def create_equidistant_mesh(n_x, n_y, n_z, temperature_ini, dx, dy, dz):
         mask = ((x-a)/a_rad)**2 + ((y-b)/b_rad)**2 <= 1
         slice[mask] = temperature_ini
         for i in range(0, n_z-1):
-            if i != 0 and i != 1:
+            if i != 0 and (i != 1 or not diffusion_mesh):
                 mesh[i] = slice
     elif sett.mesh_form == 0:
         mesh = np.zeros((n_z, n_y, n_x), dtype=np.float64)
@@ -32,7 +32,10 @@ def create_equidistant_mesh(n_x, n_y, n_z, temperature_ini, dx, dy, dz):
     dx_arr = np.full((n_z, n_y, n_x), dx, dtype=np.float64)
     dy_arr = np.full((n_z, n_y, n_x), dy, dtype=np.float64)
     dz_arr = np.full((n_z, n_y, n_x), dz, dtype=np.float64)
-    dz_arr[2] = np.full((n_y, n_x,), dz / 2, dtype=np.float64)
+    if not diffusion_mesh:
+        dz_arr[1] = np.full((n_y, n_x,), dz / 2, dtype=np.float64)
+    else:
+        dz_arr[2] = np.full((n_y, n_x,), dz / 2, dtype=np.float64)
     Dr = np.full((n_z, n_y, n_x, 6), np.array([dz, dz, dy, dy, dx, dx]), dtype=np.float64)
     return mesh, dx_arr, dy_arr, dz_arr, Dr, a, (a_rad-1), b, (b_rad-1)
 

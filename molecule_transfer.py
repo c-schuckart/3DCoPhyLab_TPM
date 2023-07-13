@@ -335,15 +335,16 @@ def diffusion_parameters(n_x, n_y, n_z, a_1, b_1, c_1, d_1, temperature, temps, 
     sublimated_mass = np.zeros((n_z, n_y, n_x), dtype=np.float64)
     #Using Güttler et al. 2023 calculation for q together with Phi = 13/6
     q = 1.60 - 0.73 * VFF
-    for i in prange(0, n_z-1):
+    for i in prange(1, n_z-1):
         for j in range(1, n_y-1):
             for k in range(1, n_x-1):
-                if temperature[i][j][k] == 0 and (sample_holder[i + 1][j][k] + sample_holder[i][j + 1][k] + sample_holder[i][j - 1][k] + sample_holder[i][j][k + 1] + sample_holder[i][j][k - 1]) == 0 and (temperature[i + 1][j][k] + temperature[i][j + 1][k] + temperature[i][j - 1][k] + temperature[i][j][k + 1] + temperature[i][j][k - 1]) != 0:
+                if temperature[i][j][k] == 0 and (sample_holder[i + 1][j][k] + sample_holder[i][j + 1][k] + sample_holder[i][j - 1][k] + sample_holder[i][j][k + 1] + sample_holder[i][j][k - 1]) == 0 and (temperature[i + 1][j][k] + temperature[i - 1][j][k] + temperature[i][j + 1][k] + temperature[i][j - 1][k] + temperature[i][j][k + 1] + temperature[i][j][k - 1]) != 0:
                     temps[i][j][k][4] = temperature[i][j][k + 1] + (temperature[i][j][k] - temperature[i][j][k + 1]) / Dr[i][j][k][4] * 1/2 * dx[i][j][k + 1]
                     temps[i][j][k][5] = temperature[i][j][k] + (temperature[i][j][k - 1] - temperature[i][j][k]) / Dr[i][j][k][5] * 1 / 2 * dx[i][j][k]
                     temps[i][j][k][2] = temperature[i][j + 1][k] + (temperature[i][j][k] - temperature[i][j + 1][k]) / Dr[i][j][k][2] * 1 / 2 * dy[i][j + 1][k]
                     temps[i][j][k][3] = temperature[i][j][k] + (temperature[i][j - 1][k] - temperature[i][j][k]) / Dr[i][j][k][3] * 1 / 2 * dy[i][j][k]
                     temps[i][j][k][0] = temperature[i + 1][j][k] + (temperature[i][j][k] - temperature[i + 1][j][k]) / Dr[i][j][k][0] * 1 / 2 * dz[i + 1][j][k]
+                    temps[i][j][k][1] = temperature[i][j][k] + (temperature[i - 1][j][k] - temperature[i][j][k]) / Dr[i][j][k][1] * 1 / 2 * dz[i][j][k]
                     for a in range(len(temps[i][j][k])):
                         #diff_coeff = permeability * (porosity/(R*T))**-1
                         if temps[i][j][k][a] == 0:
