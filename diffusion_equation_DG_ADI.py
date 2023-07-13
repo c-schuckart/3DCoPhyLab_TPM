@@ -109,7 +109,7 @@ def boundary_condition_implicit_y_sweep_de(dt, gas_mass, x_sweep_gas_mass, Diffu
             a_s = 1 / 2 * Diffusion_coefficient[each[2]][each[1]][each[0]][3] * dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] / Dr[each[2]][each[1]][each[0]][3] * (1 - sh_adjacent_voxels[each[2]][each[1]][each[0]][3])
             a_e = Diffusion_coefficient[each[2]][each[1]][each[0]][4] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] / Dr[each[2]][each[1]][each[0]][4] * (1 - sh_adjacent_voxels[each[2]][each[1]][each[0]][4])
             a_w = Diffusion_coefficient[each[2]][each[1]][each[0]][5] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] / Dr[each[2]][each[1]][each[0]][5] * (1 - sh_adjacent_voxels[each[2]][each[1]][each[0]][5])
-            diag[each[1]] = -S_p[each[2]][each[1]][each[0]] * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] +  a_n + a_s + dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] / dt
+            diag[each[1]] = -S_p[each[2]][each[1]][each[0]] * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] + a_n + a_s + dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] / dt
             sub_alpha[each[1]] = - a_n
             sub_gamma[each[1]] = - a_s
             rhs[each[1]] = a_t * gas_mass[each[2] + 1][each[1]][each[0]] + a_b * gas_mass[each[2] - 1][each[1]][each[0]] + a_n * gas_mass[each[2]][each[1] + 1][each[0]] + a_s * gas_mass[each[2]][each[1] - 1][each[0]] + a_e * (x_sweep_gas_mass[each[2]][each[1]][each[0] + 1] + gas_mass[each[2]][each[1]][each[0] + 1])/2 + a_w * (x_sweep_gas_mass[each[2]][each[1]][each[0] - 1] + gas_mass[each[2]][each[1]][each[0] - 1])/2 + S_c[each[2]][each[1]][each[0]] * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] + (dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] / dt - a_t - a_b - a_n - a_s) * gas_mass[each[2]][each[1]][each[0]] - (a_w + a_e) * (x_sweep_gas_mass[each[2]][each[1]][each[0]] + gas_mass[each[2]][each[1]][each[0]])/2
@@ -212,8 +212,15 @@ def de_implicit_DGADI(n_x, n_y, n_z, surface_reduced, dt, gas_mass, Diffusion_co
             sub_alpha, diag, sub_gamma, rhs = boundary_condition_implicit_x_sweep_de(dt, gas_mass, Diffusion_coefficient, Dr, dx, dy, dz, surface, surface_elements_in_line[0:counter], sub_alpha, diag, sub_gamma, rhs, S_c, S_p, sh_adjacent_voxels, top_layer_zero)
             sub_alpha, diag, sub_gamma = set_matrices_lhs_x_sweep_de(n_x, i, j, sub_alpha, diag, sub_gamma, Diffusion_coefficient, dx, dy, dz, Dr, dt, S_p, gas_mass, surface, sh_adjacent_voxels, temperature)
             rhs = set_matrices_rhs_x_sweep_de(n_x, i, j, rhs, gas_mass, surface,dx, dy, dz, Dr, Diffusion_coefficient, dt, S_c, sh_adjacent_voxels, temperature)
+            if (i == 1 or i == 2) and j == 4:
+                print(sub_gamma)
+                print(diag)
+                print(sub_alpha)
+                print(rhs)
             x_sweep_gas_mass[i, j, 0:n_x] = tridiagonal_matrix_solver(n_x, diag, sub_gamma, sub_alpha, rhs)
-    #print(np.sum(x_sweep_gas_mass * dx * dy * dz))
+    print(np.sum(x_sweep_gas_mass * dx * dy * dz) - np.sum(gas_mass * dx * dy * dz))
+    #print(x_sweep_gas_mass[1])
+    #print(x_sweep_gas_mass[2])
     for i in range(1, n_z-1):
         for k in range(1, n_x-1):
             sub_alpha = np.zeros(n_y, dtype=np.float64)
@@ -234,7 +241,7 @@ def de_implicit_DGADI(n_x, n_y, n_z, surface_reduced, dt, gas_mass, Diffusion_co
             sub_alpha, diag, sub_gamma = set_matrices_lhs_y_sweep_de(n_y, i, k, sub_alpha, diag, sub_gamma, Diffusion_coefficient, dx, dy, dz, Dr, dt, S_p, gas_mass, surface, sh_adjacent_voxels, temperature)
             rhs = set_matrices_rhs_y_sweep_de(n_y, i, k, rhs, gas_mass, x_sweep_gas_mass, surface, dx, dy, dz, Dr, Diffusion_coefficient, dt, S_c,sh_adjacent_voxels, temperature)
             y_sweep_gas_mass[i, 0:n_y, k] = tridiagonal_matrix_solver(n_y, diag, sub_gamma, sub_alpha, rhs)
-    #print(np.sum(y_sweep_gas_mass * dx * dy * dz))
+    print(np.sum(y_sweep_gas_mass * dx * dy * dz) - np.sum(gas_mass * dx * dy * dz))
     for j in range(1, n_y-1):
         for k in range(1, n_x-1):
             sub_alpha = np.zeros(n_z, dtype=np.float64)
@@ -266,7 +273,7 @@ def de_implicit_DGADI(n_x, n_y, n_z, surface_reduced, dt, gas_mass, Diffusion_co
                 print(sub_alpha)
                 print(rhs)'''
             next_step_gas_mass[0:n_z, j, k] = tridiagonal_matrix_solver(n_z, diag, sub_gamma, sub_alpha, rhs)
-    #print(np.sum(next_step_gas_mass * dx * dy * dz))
+    print(np.sum(next_step_gas_mass * dx * dy * dz) - np.sum(gas_mass * dx * dy * dz))
     return next_step_gas_mass
 
 

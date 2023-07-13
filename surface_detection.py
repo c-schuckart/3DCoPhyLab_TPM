@@ -71,6 +71,7 @@ def create_equidistant_mesh_gradient(n_x, n_y, n_z, temperature_ini, dx, dy, dz)
 def find_surface(n_x, n_y, n_z, limiter_x_start, limiter_y_start, limiter_z_start, limiter_x_end, limiter_y_end, limiter_z_end, mesh, surface, a, a_rad, b, b_rad, initiation):
     surface_elements = 0
     sample_holder = np.zeros((n_z, n_y, n_x), dtype=np.int32)
+    mesh_shape_positive = np.zeros((n_z, n_y, n_x), dtype=np.int32)
     for i in range(limiter_z_start, limiter_z_end):
         for j in range(limiter_y_start, limiter_y_end):
             for k in range(limiter_x_start, limiter_x_end):
@@ -79,21 +80,27 @@ def find_surface(n_x, n_y, n_z, limiter_x_start, limiter_y_start, limiter_z_star
                     #Check if it is a surface in positive z direction
                     if mesh[i+1][j][k] == 0:
                         surface[i][j][k][0] = 1
+                        mesh_shape_positive[i][j][k] = 1
                     # Check if it is a surface in negative z direction
                     if mesh[i-1][j][k] == 0:
                         surface[i][j][k][1] = 1
+                        mesh_shape_positive[i][j][k] = 1
                     # Check if it is a surface in positive y direction
                     if mesh[i][j+1][k] == 0:
                         surface[i][j][k][2] = 1
+                        mesh_shape_positive[i][j][k] = 1
                     # Check if it is a surface in negative y direction
                     if mesh[i][j-1][k] == 0:
                         surface[i][j][k][3] = 1
+                        mesh_shape_positive[i][j][k] = 1
                     # Check if it is a surface in positive x direction
                     if mesh[i][j][k+1] == 0:
                         surface[i][j][k][4] = 1
+                        mesh_shape_positive[i][j][k] = 1
                     # Check if it is a surface in negative x direction
                     if mesh[i][j][k-1] == 0:
                         surface[i][j][k][5] = 1
+                        mesh_shape_positive[i][j][k] = 1
                     if sett.mesh_form == 1:
                         if ((k - a) / a_rad) ** 2 + ((j - b) / b_rad) ** 2 <= 1 and sum(surface[i][j][k] != 0) and i < n_z - 2:
                             surface_elements += 1
@@ -102,6 +109,7 @@ def find_surface(n_x, n_y, n_z, limiter_x_start, limiter_y_start, limiter_z_star
                     else:
                         if np.sum(surface[i][j][k]) != 0:
                             surface_elements += 1
+    mesh_shape_negative = np.abs(mesh_shape_positive - np.full((n_z, n_y, n_x), 1, dtype=np.int32))
     if initiation:
         sample_holder, misplaced_voxels = fix_rim(n_x, n_y, limiter_x_start, limiter_y_start, a, a_rad, b, b_rad, sample_holder)
     else:
@@ -114,7 +122,7 @@ def find_surface(n_x, n_y, n_z, limiter_x_start, limiter_y_start, limiter_z_star
                                          limiter_x_end, limiter_y_end, limiter_z_end+2, surface,
                                          np.zeros((surface_elements, 3), dtype=np.int32), a, a_rad, b, b_rad,
                                          misplaced_voxels)
-    return surface, surface_reduced, sample_holder
+    return surface, surface_reduced, sample_holder, mesh_shape_positive, mesh_shape_negative
 
 
 @njit
@@ -221,9 +229,6 @@ def surrounding_checker(array, surface, n_x_lr, n_y_lr, n_z_lr, temperature):
         for i in range(0, 6):
             if temperature[each[2] + n_z_lr[i]][each[1] + n_y_lr[i]][each[0] + n_x_lr[i]] == 0:
                 surrounding_surface[count] = np.array([each[0] + n_x_lr[i], each[1] + n_y_lr[i], each[2] + n_z_lr[i]], dtype=np.int32)
-                if each[2] + n_z_lr[i] == 1 and each[1] + n_y_lr[i] == 12 and each[0] + n_x_lr[i] == 12:
-                    print('here')
-                    #print(surrounding_surface[0:count+1])
                 count += 1
                 if count == len(array) - 1:
                     nr_of_last_sus_elements += 1

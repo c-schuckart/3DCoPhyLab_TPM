@@ -461,11 +461,11 @@ def gas_mass_function(T, pressure, VFF, dx, dy, dz, target_mass):
 
 
 @njit
-def pressure_calculation(n_x, n_y, n_z, temperature, gas_mass, k_boltzmann, m_H2O, sample_holder):
+def pressure_calculation(n_x, n_y, n_z, temperature, gas_mass, k_boltzmann, m_H2O, VFF, r_mono, dx, dy, dz, dt, sample_holder):
     pressure = np.zeros((n_z, n_y, n_x), dtype=np.float64)
     for a in range(0, n_z):
         for b in range(0, n_y):
             for c in range(0, n_x):
                 if temperature[a][b][c] > 0 and sample_holder[a][b][c] != 1:
-                    pressure[a][b][c] = gas_mass[a][b][c] * np.sqrt(2 * np.pi * k_boltzmann * temperature[a][b][c] / m_H2O)
+                    pressure[a][b][c] = gas_mass[a][b][c] * np.sqrt(2 * np.pi * k_boltzmann * temperature[a][b][c] / m_H2O) * 1 / ((3 * VFF[a][b][c] / r_mono * dx[a][b][c] * dy[a][b][c] * dz[a][b][c]) * dt)
     return pressure
