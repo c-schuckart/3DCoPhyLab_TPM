@@ -101,7 +101,7 @@ plt.show()
 #plt.savefig('Constant_lambda_test_sand_' + str(const.lambda_sand) + '.png', dpi=600)
 #plt.savefig(path, dpi=600)
 '''
-def correct_temperatures(temperatures, dt, m, heat_capacity, Lambda, A, l, T_room):
+'''def correct_temperatures(temperatures, dt, m, heat_capacity, Lambda, A, l, T_room):
    return (temperatures - dt / (m * heat_capacity) * Lambda * A / l * T_room) / (1 - dt / (m * heat_capacity) * Lambda * A / l)
    #return temperatures + dt / (m * heat_capacity) * Lambda * A / l * (temperatures - T_room)
 
@@ -129,7 +129,7 @@ temp_90mm = correct_temperatures(np.array(temp_90mm, dtype=np.float64), np.array
 print(len(time_data), len(temp_10mm))
 plt.xlabel('Time (s)')
 plt.ylabel('Temperature (K)')
-'''plt.tick_params(axis='x', which='both', direction='in', top=True, labeltop=False)
+plt.tick_params(axis='x', which='both', direction='in', top=True, labeltop=False)
 plt.tick_params(axis='y', which='both', direction='in', right=True, labelright=False)
 plt.scatter(time_data, temp_10mm[:-1], label='10mm sensor', s=1, color='black')
 plt.scatter(time_data, temp_20mm[:-1], label='20mm sensor', s=1, color='black', marker='x')
@@ -140,7 +140,7 @@ plt.plot(time_sim, sim_10mm, label='10mm simulation', ls='solid')
 plt.plot(time_sim, sim_20mm, label='20mm simulation', ls='dashed')
 plt.plot(time_sim, sim_35mm, label='35mm simulation', ls='dotted')
 plt.plot(time_sim, sim_55mm, label='55mm simulation', ls='dashdot')
-plt.plot(time_sim, sim_90mm, label='90mm simulation', ls='solid')'''
+plt.plot(time_sim, sim_90mm, label='90mm simulation', ls='solid')
 plt.plot(time_sim, sim_10mm, label='Surface temp. max.', ls='solid')
 plt.plot(time_sim, sim_20mm, label='Surface temp. avrg.', ls='dashed')
 plt.plot(time_sim, sim_55mm, label='Sample holder temp.', ls='dotted')
@@ -155,7 +155,7 @@ plt.legend(fontsize='xx-small')
 plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Simulation_boundary_conditions.png', dpi=600)
 plt.clf()
 #plt.savefig('C:/Users/Christian Schuckart/Documents/Masterarbeit/Plots/Sand_surface_1D_TPM.png', dpi=600)
-#plt.savefig('linear_lambda_test_sand_' + str(const.lambda_a) + 'T + ' + str(const.lambda_b) + '.png', dpi=600)
+#plt.savefig('linear_lambda_test_sand_' + str(const.lambda_a) + 'T + ' + str(const.lambda_b) + '.png', dpi=600)'''
 
 
 '''path_list_1 = ['D:/Masterarbeit_data/Albedo_0.9_lambda_scale_1_VFF_0.62.json', 'D:/Masterarbeit_data/Albedo_0.9_lambda_scale_2_VFF_0.62.json']
@@ -273,3 +273,47 @@ plt.legend()
 #plt.show()
 #plt.savefig('Constant_lambda_test_sand_' + str(const.lambda_sand) + '.png', dpi=600)
 plt.savefig('C:/Users/Christian Schuckart/Documents/Masterarbeit/Plots/activity_fraction_0.10_max_surface_temp.png', dpi=600)'''
+
+with open('test_gmt_08.json') as json_file:
+    data_08 = json.load(json_file)
+
+with open('test_gmt_07.json') as json_file:
+    data_07 = json.load(json_file)
+
+with open('test_gmt_03.json') as json_file:
+    data_06 = json.load(json_file)
+
+with open('test_gmt_09.json') as json_file:
+    data_09 = json.load(json_file)
+
+time_09 = [0.5E-9 * i for i in range(0, 100000)]
+time_08 = [0.5E-8 * i for i in range(0, 10000)]
+time_07 = [0.5E-7 * i for i in range(0, 1000)]
+time_06 = [1E-3 * i for i in range(0, 1000000)]
+
+fig, ax = plt.subplots(2, 1, sharex=True)
+
+plt.tick_params(axis='x', which='both', direction='in', top=True, labeltop=False)
+plt.tick_params(axis='y', which='both', direction='in', right=True, labelright=False)
+
+#ax[0].plot(time_09, np.array(data_09['Outgassed mass'])/0.5E-9, label='dt = 0.5E-9', ls='-.')
+#ax[0].plot(time_08, np.array(data_08['Outgassed mass'])/0.5E-8, label='dt = 0.5E-8', ls='-')
+#ax[0].plot(time_07, np.array(data_07['Outgassed mass'])/0.5E-7, label='dt = 0.5E-7', ls='--')
+ax[0].plot(time_06, np.array(data_06['Outgassed mass'])/1E-3, label='dt = 1E-3', ls=':')
+ax[0].set_title('Outgassing rate over time')
+ax[0].set_ylabel('Outgassing rate (kg/s)')
+
+#ax[1].plot(time_09, np.array(data_09['Top layer']), label='dt = 0.5E-9', ls='-.')
+#ax[1].plot(time_08, np.array(data_08['Top layer']), label='dt = 0.5E-8', ls='-')
+#ax[1].plot(time_07, np.array(data_07['Top layer']), label='dt = 0.5E-7', ls='--')
+ax[1].plot(time_06, np.array(data_06['Top layer']), label='dt = 1E-3', ls=':')
+ax[1].set_title('Sum of gas densities in top layer')
+ax[1].set_ylabel('Gas density (kg/(m^3))')
+ax[1].set_xlabel('Time (s)')
+
+ax[1].set_xlim(0, 1)
+#ax[0].set_ylim(8E-27, 9E-27)
+
+plt.legend()
+plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Plots/gas_diffusion_testing_9_9_9_dt1E-3.png', dpi=600)
+plt.show()
