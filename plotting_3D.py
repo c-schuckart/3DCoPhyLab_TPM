@@ -48,8 +48,8 @@ def bar_chart_2D(dx, dy, scalars):
 
 '''with open(getPath()) as json_file:
     data_vis = json.load(json_file)'''
-with open('test.json') as json_file:
-    data_vis = json.load(json_file)
+'''with open('test.json') as json_file:
+    data_vis = json.load(json_file)'''
 
 '''sample_and_surface = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
 for i in range(0, const.n_z):
@@ -74,7 +74,7 @@ sample = plot_3D(temperature)'''
 #sample = plot_3D(np.array(data_vis['Water content'][len(data_vis['Water content'])-2]))
 #sample = plot_3D(np.array(data_vis['Temperature']))
 #sample_and_surface = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
-sample_and_surface = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
+#sample_and_surface = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
 #sample_and_surface = np.array(data_vis['gas mass'][1])
 #surface = np.array(data_vis['Surface'])
 '''for i in range(0, const.n_z):
@@ -92,13 +92,13 @@ sample_and_surface = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float6
 '''for each in data_vis['SuS']:
     sample_and_surface[each[2]][each[1]][each[0]] = 50'''
 #print(data_vis['RSurface'])
-for each in data_vis['RSurface']:
+'''for each in data_vis['RSurface']:
     sample_and_surface[each[2]][each[1]][each[0]] = 100
 for each in data_vis['SSurface']:
     sample_and_surface[each[2]][each[1]][each[0]] = 50
     #if np.sum(data_vis['Surface'][each[2]][each[1]][each[0]]) != 0:
         #sample_and_surface[each[2]][each[1]][each[0]] = 1
-sample = plot_3D(sample_and_surface)
+sample = plot_3D(sample_and_surface)'''
 #print(data_vis['gas mass'][3][1][50][50])
 #print(data_vis['gas mass'][3][0][50][50])
 '''
@@ -152,7 +152,7 @@ def animate_rotate():
         mlab.pitch(1)
         yield
 #animate_rotate()
-mlab.show()
+#mlab.show()
 
 #slice_3D(data_vis['Temperature'][0])
 
@@ -324,4 +324,4 @@ def polygon_3D_ray_traced(polygon_list, view_factor_matrix, target_polygon, elev
     ax.set_ylim(min_y - 0.5, max_y + 0.5)
     ax.set_zlim(min_z - 0.5, max_z + 0.5)
     plt.savefig(file + '.png', dpi=600)
-    #plt.show()
+    plt.show()

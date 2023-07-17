@@ -101,10 +101,13 @@ def find_surface(n_x, n_y, n_z, limiter_x_start, limiter_y_start, limiter_z_star
                     if mesh[i][j][k-1] == 0:
                         surface[i][j][k][5] = 1
                         mesh_shape_positive[i][j][k] = 1
-                    if sett.mesh_form == 1:
+                    if sett.mesh_form == 1 and not sett.encapsulating_sample_holder:
                         if ((k - a) / a_rad) ** 2 + ((j - b) / b_rad) ** 2 <= 1 and sum(surface[i][j][k] != 0) and i < n_z - 2:
                             surface_elements += 1
                         if (not (((k - a) / a_rad) ** 2 + ((j - b) / b_rad) ** 2 <= 1) and np.sum(surface[i][j][k]) != 0) or (np.sum(surface[i][j][k]) != 0 and i >= n_z-2):
+                            sample_holder[i][j][k] = 1
+                    elif sett.mesh_form == 1:
+                        if (np.sum(surface[i][j][k]) != 0 and i == 1) or (not (((k - a) / a_rad) ** 2 + ((j - b) / b_rad) ** 2 <= 1) and np.sum(surface[i][j][k]) != 0) or (np.sum(surface[i][j][k]) != 0 and i >= n_z-2):
                             sample_holder[i][j][k] = 1
                     else:
                         if np.sum(surface[i][j][k]) != 0:

@@ -109,6 +109,55 @@ def lambda_ice_block(n_x, n_y, n_z, temperature, Dr, dx, dy, dz, lambda_water_ic
 							lambda_cond[a] = ((lambda_grain[a] / (Dr[i][j][k][a] / 2) * lambda_sample_holder / (Dr[i][j][k][a] / 2)) / (lambda_grain[a] / (Dr[i][j][k][a] / 2) + lambda_sample_holder / (Dr[i][j][k][a] / 2))) * Dr[i][j][k][a]
 						lambda_total[i][j][k][a] = lambda_cond[a] + 16 / 3 * sigma * temps[a] ** 3 * e_1 * (1 - VFF_pack[i][j][k]) / VFF_pack[i][j][k] * r_mono
 	return lambda_total
+
+@njit(parallel=True)
+def thermal_conductivity_moon_regolith(n_x, n_y, n_z, temperature, dx, dy, dz, Dr, VFF, radius, fc1, fc2, fc3, fc4, fc5, mu, E, gamma, f1, f2, e1, chi, sigma, epsilon, water_mass, dust_mass, lambda_water_ice, lambda_sample_holder, sample_holder):
+	#thermal conductivity is an interface property, evaluated at the layer boundaries
+	#get temperature and vff at layer boundary
+	lambda_total = np.zeros((n_z, n_y, n_x, 6), dtype=np.float64)
+	lambda_solid = np.zeros(6, dtype=np.float64)
+	lambda_net = np.zeros(6, dtype=np.float64)
+	lambda_rad = np.zeros(6, dtype=np.float64)
+	interface_temperatures = np.zeros((n_z, n_y, n_x, 6), dtype=np.float64)
+	interface_VFFs = np.zeros((n_z, n_y, n_x, 6), dtype=np.float64)
+	for i in prange(1, n_z-1):
+		for j in range(1, n_y-1):
+			for k in range(1, n_x-1):
+				if temperature[i][j][k] > 0:
+					T_x_pos = temperature[i][j][k + 1] + (temperature[i][j][k] - temperature[i][j][k + 1]) / Dr[i][j][k][4] * 1/2 * dx[i][j][k + 1]
+					T_x_neg = temperature[i][j][k] + (temperature[i][j][k - 1] - temperature[i][j][k]) / Dr[i][j][k][5] * 1 / 2 * dx[i][j][k]
+					T_y_pos = temperature[i][j + 1][k] + (temperature[i][j][k] - temperature[i][j + 1][k]) / Dr[i][j][k][2] * 1 / 2 * dy[i][j + 1][k]
+					T_y_neg = temperature[i][j][k] + (temperature[i][j - 1][k] - temperature[i][j][k]) / Dr[i][j][k][3] * 1 / 2 * dy[i][j][k]
+					T_z_pos = temperature[i + 1][j][k] + (temperature[i][j][k] - temperature[i + 1][j][k]) / Dr[i][j][k][0] * 1 / 2 * dz[i + 1][j][k]
+					T_z_neg = temperature[i][j][k] + (temperature[i - 1][j][k] - temperature[i][j][k]) / Dr[i][j][k][1] * 1 / 2 * dz[i][j][k]
+					temps = np.array([T_z_pos, T_z_neg, T_y_pos, T_y_neg, T_x_pos, T_x_neg])
+					interface_temperatures[i][j][k] = temps
+					VFF_x_pos = VFF[i][j][k + 1] + (VFF[i][j][k] - VFF[i][j][k + 1]) / Dr[i][j][k][4] * 1/2 * dx[i][j][k + 1]
+					VFF_x_neg = VFF[i][j][k] + (VFF[i][j][k - 1] - VFF[i][j][k]) / Dr[i][j][k][5] * 1 / 2 * dx[i][j][k]
+					VFF_y_pos = VFF[i][j + 1][k] + (VFF[i][j][k] - VFF[i][j + 1][k]) / Dr[i][j][k][2] * 1 / 2 * dy[i][j + 1][k]
+					VFF_y_neg = VFF[i][j][k] + (VFF[i][j - 1][k] - VFF[i][j][k]) / Dr[i][j][k][3] * 1 / 2 * dy[i][j][k]
+					VFF_z_pos = VFF[i + 1][j][k] + (VFF[i][j][k] - VFF[i + 1][j][k]) / Dr[i][j][k][0] * 1 / 2 * dz[i + 1][j][k]
+					VFF_z_neg = VFF[i][j][k] + (VFF[i - 1][j][k] - VFF[i][j][k]) / Dr[i][j][k][1] * 1 / 2 * dz[i][j][k]
+					cardinalVFF = np.array([VFF_z_pos, VFF_z_neg, VFF_y_pos, VFF_y_neg, VFF_x_pos, VFF_x_neg])
+					#get temperature dependence of solid thermal conductivity
+					for a in range(0, len(lambda_solid)):
+						lambda_solid[a] = fc1*temps[a] + fc2*(temps[a])**2 + fc3*(temps[a])**3 + fc4*(temps[a])**4 + fc5*(temps[a])**5
+						lambda_solid[a] = lambda_solid[a] * dust_mass / (dust_mass + water_mass) + lambda_water_ice * water_mass / (dust_mass + water_mass)
+						#network and radiative part of thermal conductivity
+						lambda_net[a] = lambda_solid[i] * (9*np.pi/4*(1-mu**2)/E*gamma/radius)**(1/3)*(f1*np.exp(f2*cardinalVFF[a]))*chi
+						if sample_holder[i + var.n_z_lr[a]][j + var.n_y_lr[a]][k + var.n_x_lr[a]] == 1 or sample_holder[i][j][k] == 1:
+							lambda_net[a] = ((lambda_net[a] / (Dr[i][j][k][a] / 2) * lambda_sample_holder / (Dr[i][j][k][a] / 2)) / (lambda_net[a] / (Dr[i][j][k][a] / 2) + lambda_sample_holder / (Dr[i][j][k][a] / 2))) * Dr[i][j][k][a]
+						lambda_rad[a] = 8*sigma*epsilon*temps[a]**3*e1*(1-cardinalVFF[a])/cardinalVFF[a]*radius
+						lambda_total[i][j][k][a] = lambda_net[a] + lambda_rad[a]
+	return lambda_total, interface_temperatures
+
+
+@njit()
+def heat_capacity_moon_regolith(temperature, c0, c1, c2, c3, c4, water_mass, dust_mass):
+	heat_capacity = c0 * np.ones(np.shape(temperature), dtype=np.float64) + c1 * temperature + c2 * temperature**2 + c3 * temperature**3 + c4 * temperature**4
+	heat_capacity = heat_capacity * dust_mass / (dust_mass * water_mass) + (7.5 * temperature + 90) * water_mass / (dust_mass * water_mass)
+	return heat_capacity
+
 '''
 Heat conductivity calculation for the pebble case based on Gundlach and Blum (2012).
 Includes network heat conductivity for a pebble system with two size scales and radiative heat conductivity
@@ -199,6 +248,13 @@ def calculate_latent_heat(temperature, b_1, c_1, d_1, R_gas, m_mol):
 def calculate_density(temperature, VFF):
 	density_grain = 918 - 0.13783 * temperature - 2.53451E-4 * temperature**2
 	return density_grain, density_grain * VFF
+
+
+@njit
+def calculate_bulk_density(temperature, VFF, dust_mass, water_mass, density_dust):
+	water_ice_grain_density = calculate_density(temperature, VFF)[0]
+	bulk_density = water_ice_grain_density * water_mass / (dust_mass + water_mass) * VFF + density_dust * dust_mass / (dust_mass + water_mass) * VFF
+	return bulk_density
 
 
 @njit
