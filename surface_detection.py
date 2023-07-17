@@ -35,6 +35,7 @@ def create_equidistant_mesh(n_x, n_y, n_z, temperature_ini, dx, dy, dz, diffusio
     if not diffusion_mesh:
         dz_arr[1] = np.full((n_y, n_x,), dz / 2, dtype=np.float64)
     else:
+        #pass
         dz_arr[2] = np.full((n_y, n_x,), dz / 2, dtype=np.float64)
     Dr = np.full((n_z, n_y, n_x, 6), np.array([dz, dz, dy, dy, dx, dx]), dtype=np.float64)
     return mesh, dx_arr, dy_arr, dz_arr, Dr, a, (a_rad-1), b, (b_rad-1)
