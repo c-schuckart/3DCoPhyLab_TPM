@@ -1,2 +1,3 @@
 mesh_form = 1                   # 0 == square, 1 == cylinder
-data_reduce = 360 * 4
+encapsulating_sample_holder = False
+data_reduce = 10000

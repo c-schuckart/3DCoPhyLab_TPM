@@ -35,24 +35,31 @@ def data_store(j, temperature, water_content_per_layer, co2_content_per_layer, o
     return temperature_save, water_content_save, co2_content_save, outgassing_save, outgassing_co2_save
 
 
-def data_store_sensors(j, n_x, n_y, n_z, temperature, sensor_10mm, sensor_20mm, sensor_35mm, sensor_55mm, sensor_90mm, data_reduction, temperature_save):
-    sensor_10mm[j] = (temperature[4][n_y//2][n_x//2] + temperature[5][n_y//2][n_x//2])/2
-    sensor_20mm[j] = (temperature[9][n_y//2][n_x//2] + temperature[10][n_y//2][n_x//2])/2
-    sensor_35mm[j] = temperature[17][n_y//2][n_x//2]
-    sensor_55mm[j] = temperature[27][n_y//2][n_x//2]
-    sensor_90mm[j] = (temperature[44][n_y//2][n_x//2] + temperature[45][n_y//2][n_x//2])/2
-    temperature_save[j // data_reduction] = temperature
-    return sensor_10mm, sensor_20mm, sensor_35mm, sensor_55mm, sensor_90mm, temperature_save
+def data_store_sensors(j, n_x, n_y, n_z, temperature, sensor_10mm, sensor_20mm, sensor_35mm, sensor_55mm, sensor_90mm, data_reduction):
+    sensor_10mm = temperature[20][n_y // 2][n_x // 2]
+    sensor_20mm = temperature[40][n_y // 2][n_x // 2]
+    sensor_35mm = (temperature[70][n_y // 2][n_x // 2])
+    sensor_55mm = (temperature[110][n_y // 2][n_x // 2])
+    sensor_90mm = temperature[180][n_y // 2][n_x // 2]
+    '''sensor_10mm = temperature[5][n_y//2][n_x//2]
+    sensor_20mm = temperature[10][n_y//2][n_x//2]
+    sensor_35mm = (temperature[17][n_y//2][n_x//2] + temperature[18][n_y//2][n_x//2])/2
+    sensor_55mm = (temperature[27][n_y//2][n_x//2] + temperature[28][n_y//2][n_x//2])/2
+    sensor_90mm = temperature[45][n_y//2][n_x//2]'''
+    return sensor_10mm, sensor_20mm, sensor_35mm, sensor_55mm, sensor_90mm
 
 
-def data_save(temperature_save, water_content_save, co2_content_save, outgassing_save, outgassing_co2_save, E_conservation, Energy_Increase_Total_per_time_Step, E_Rad, Latent_Heat_per_time_step, E_In, filename):
-    dict = {'Temperature': temperature_save.tolist(), 'Water content': water_content_save.tolist(), 'CO2 content': co2_content_save.tolist(), 'Outgassing rate': outgassing_save.tolist(), 'Outgassing rate CO2': outgassing_co2_save.tolist(), 'Energy conservation': E_conservation.tolist(), 'E total': Energy_Increase_Total_per_time_Step.tolist(), 'E rad': E_Rad.tolist(), 'E lat': Latent_Heat_per_time_step.tolist(), 'E in': E_In.tolist()}
+def data_save(temperature_save, water_content_save, outgassing_save, sublimated_mass_save, filename):
+    dict = {'Temperature': temperature_save.tolist(), 'Water content': water_content_save.tolist(), 'Outgassing rate': outgassing_save.tolist(), 'Voxel subl. rate': sublimated_mass_save.tolist()}
     with open(filename + '.json', 'w') as outfile:
         json.dump(dict, outfile)
 
 
-def data_save_sensors(temperature_save, sensor_10mm, sensor_20mm, sensor_35mm, sensor_55mm, sensor_90mm, path, path_2):
+'''def data_save_sensors(temperature_save, sensor_10mm, sensor_20mm, sensor_35mm, sensor_55mm, sensor_90mm, path, path_2):
     dict = {'Temperature': temperature_save.tolist()}
     with open(path + '.json', 'w') as outfile:
         json.dump(dict, outfile)
-    np.savetxt(path_2 + '.csv', np.array([sensor_10mm, sensor_20mm, sensor_35mm, sensor_55mm, sensor_90mm]), delimiter=",")
+    np.savetxt(path_2 + '.csv', np.array([sensor_10mm, sensor_20mm, sensor_35mm, sensor_55mm, sensor_90mm]), delimiter=",")'''
+
+def data_save_sensors(time_stamp, sensor_10mm, sensor_20mm, sensor_35mm, sensor_55mm, sensor_90mm, file):
+    file.write(str(time_stamp) + ',' + str(sensor_10mm) + ',' + str(sensor_20mm) + ',' + str(sensor_35mm) + ',' + str(sensor_55mm) + ',' + str(sensor_90mm) + '\n')
