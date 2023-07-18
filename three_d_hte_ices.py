@@ -6,7 +6,7 @@ from tqdm import tqdm
 import json
 from os import listdir
 from surface_detection import create_equidistant_mesh, DEBUG_print_3D_arrays, find_surface, surrounding_checker, update_surface_arrays, create_equidistant_mesh_gradient
-from thermal_parameter_functions import lambda_constant, lambda_granular, calculate_heat_capacity, lambda_sand, calculate_latent_heat, calculate_density, thermal_functions, lambda_ice_block, calculate_Q_sensor, calculate_bulk_density
+from thermal_parameter_functions import lambda_constant, lambda_granular, calculate_heat_capacity, lambda_sand, calculate_latent_heat, calculate_density, thermal_functions, lambda_ice_block, calculate_Q_sensor, calculate_bulk_density_and_VFF
 from boundary_conditions import energy_input, test, energy_input_data, sample_holder_data, amplitude_lamp, get_energy_input_lamp, calculate_L_chamber_lamp_bd, sample_holder_test, sample_holder_test_2
 from heat_transfer_equation import hte_calculate, update_thermal_arrays, test_E_cond, test_e_cond_2
 from molecule_transfer import calculate_molecule_flux_test, calculate_molecule_surface
@@ -19,7 +19,7 @@ temperature, dx, dy, dz, Dr, a, a_rad, b, b_rad = create_equidistant_mesh(const.
 #temperature, dx, dy, dz, Dr, Lambda = one_d_test(const.n_x, const.n_y, const.n_z, const.min_dx, const.min_dy, const.min_dz, 'y')
 heat_capacity = var.heat_capacity_sand
 #density = var.density * const.VFF_pack_const
-#density = var.density_sand
+density = var.density_sand
 delta_T = var.delta_T
 print(np.shape(temperature))
 #DEBUG_print_3D_arrays(const.n_x, const.n_y, const.n_z, temperature)
@@ -35,7 +35,7 @@ for i in range(0, const.n_z):
                 uniform_water_masses[i][j][k] = 0
                 uniform_dust_masses[i][j][k] = 0
 print(np.sum(uniform_water_masses[1]))
-density = calculate_bulk_density(temperature, var.VFF_pack, uniform_dust_masses, uniform_water_masses, const.density_maria)
+density, VFF = calculate_bulk_density_and_VFF(temperature, var.VFF_pack, uniform_dust_masses, uniform_water_masses, const.density_maria, dx, dy, dz)
 #surface = var.surface
 #surface_reduced = np.array([])
 #print(surface[1][1][25])

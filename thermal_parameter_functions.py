@@ -251,10 +251,12 @@ def calculate_density(temperature, VFF):
 
 
 @njit
-def calculate_bulk_density(temperature, VFF, dust_mass, water_mass, density_dust):
+def calculate_bulk_density_and_VFF(temperature, VFF, dust_mass, water_mass, density_dust, dx, dy, dz):
 	water_ice_grain_density = calculate_density(temperature, VFF)[0]
-	bulk_density = water_ice_grain_density * water_mass / (dust_mass + water_mass) * VFF + density_dust * dust_mass / (dust_mass + water_mass) * VFF
-	return bulk_density
+	bulk_density = (dust_mass + water_mass) / (dx * dy * dz)
+	#VFF = ((water_mass + dust_mass) / water_ice_grain_density + (dust_mass + water_mass) / density_dust) / (dx * dy * dz)
+	VFF = bulk_density / (water_ice_grain_density * (water_mass / (water_mass + dust_mass)) + density_dust * (dust_mass / (water_mass + dust_mass)))
+	return bulk_density, VFF
 
 
 @njit
