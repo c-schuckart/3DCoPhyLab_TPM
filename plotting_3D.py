@@ -48,8 +48,8 @@ def bar_chart_2D(dx, dy, scalars):
 
 '''with open(getPath()) as json_file:
     data_vis = json.load(json_file)'''
-'''with open('test.json') as json_file:
-    data_vis = json.load(json_file)'''
+with open('test.json') as json_file:
+    data_vis = json.load(json_file)
 
 '''sample_and_surface = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
 for i in range(0, const.n_z):
@@ -73,17 +73,18 @@ sample = plot_3D(temperature)'''
         break'''
 #sample = plot_3D(np.array(data_vis['Water content'][len(data_vis['Water content'])-2]))
 #sample = plot_3D(np.array(data_vis['Temperature']))
-#sample_and_surface = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
-#sample_and_surface = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
+sample_and_surface = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
 #sample_and_surface = np.array(data_vis['gas mass'][1])
 #surface = np.array(data_vis['Surface'])
-'''for i in range(0, const.n_z):
+for i in range(0, const.n_z):
     for j in range(0, const.n_y):
         for k in range(0, const.n_x):
-            if data_vis['sh'][i][j][k] == 1:
-                sample_and_surface[i][j][k] = 1
-            if data_vis['gas mass'][i][j][k] > 0:
-                sample_and_surface[i][j][k] = 10'''
+            if np.sum(data_vis['Surface'][i][j][k]) != 0:
+                sample_and_surface[i][j][k] = 50
+            else:
+                sample_and_surface[i][j][k] = 25
+            #if data_vis['gas mass'][i][j][k] > 0:
+                #sample_and_surface[i][j][k] = 10
             #if np.sum(data_vis['Surface'][i][j][k]) != 0:
             #if data_vis['Surface'][i][j][k][0] != 0 or data_vis['Surface'][i][j][k][1] != 0:
                 #sample_and_surface[i][j][k] = 1
@@ -129,7 +130,7 @@ for i in range(1, const.n_z - 1):
 
 sample = plot_3D(Lambda)
 sample_2 = plot_3D(np.array(data_vis['SH'])*50)'''
-#sample = plot_3D(np.array(data_vis['Sample holder']))
+sample = plot_3D(sample_and_surface)
 '''surface = np.zeros((const.n_z, const.n_y, const.n_z))
 for i in range(1, const.n_z - 1):
     for j in range(1, const.n_y - 1):
@@ -152,7 +153,7 @@ def animate_rotate():
         mlab.pitch(1)
         yield
 #animate_rotate()
-#mlab.show()
+mlab.show()
 
 #slice_3D(data_vis['Temperature'][0])
 

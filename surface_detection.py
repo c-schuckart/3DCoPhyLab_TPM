@@ -11,6 +11,38 @@ an exposed tile, while a "0" denotes a non surface element.
 Array entries 0 to 5 correspond to "z positive", "z negative", "y positive", "y negative", "x positive" and "x negative"'''
 def create_equidistant_mesh(n_x, n_y, n_z, temperature_ini, dx, dy, dz, diffusion_mesh):
     if sett.mesh_form == 1:
+        a = n_x/2 - 0.5
+        a_rad = (n_x - 2)//2
+        b = n_y/2 - 0.5
+        b_rad = (n_y - 2) // 2
+        x, y = np.ogrid[:n_x, :n_y]
+        mesh = np.zeros((n_z, n_y, n_x), dtype=np.float64)
+        slice = np.zeros((n_y, n_x), dtype=np.float64)
+        mask = ((x-a)/a_rad)**2 + ((y-b)/b_rad)**2 <= 1
+        slice[mask] = temperature_ini
+        for i in range(0, n_z-1):
+            if i != 0 and (i != 1 or not diffusion_mesh):
+                mesh[i] = slice
+    elif sett.mesh_form == 0:
+        mesh = np.zeros((n_z, n_y, n_x), dtype=np.float64)
+        mesh[1:n_z-1, 1:n_y-1, 1:n_x-1] = np.full((n_z-2, n_y-2, n_x-2), temperature_ini, dtype=np.float64)
+        a, a_rad, b, b_rad = 0, np.infty, 0, np.infty
+    else:
+        raise NotImplementedError
+    dx_arr = np.full((n_z, n_y, n_x), dx, dtype=np.float64)
+    dy_arr = np.full((n_z, n_y, n_x), dy, dtype=np.float64)
+    dz_arr = np.full((n_z, n_y, n_x), dz, dtype=np.float64)
+    if not diffusion_mesh:
+        dz_arr[1] = np.full((n_y, n_x,), dz / 2, dtype=np.float64)
+    else:
+        #pass
+        dz_arr[2] = np.full((n_y, n_x,), dz / 2, dtype=np.float64)
+    Dr = np.full((n_z, n_y, n_x, 6), np.array([dz, dz, dy, dy, dx, dx]), dtype=np.float64)
+    return mesh, dx_arr, dy_arr, dz_arr, Dr, a, (a_rad-1), b, (b_rad-1)
+
+
+def create_equidistant_mesh_old(n_x, n_y, n_z, temperature_ini, dx, dy, dz, diffusion_mesh):
+    if sett.mesh_form == 1:
         a = n_x//2
         a_rad = (n_x - 2)//2
         b = n_y//2
@@ -39,7 +71,6 @@ def create_equidistant_mesh(n_x, n_y, n_z, temperature_ini, dx, dy, dz, diffusio
         dz_arr[2] = np.full((n_y, n_x,), dz / 2, dtype=np.float64)
     Dr = np.full((n_z, n_y, n_x, 6), np.array([dz, dz, dy, dy, dx, dx]), dtype=np.float64)
     return mesh, dx_arr, dy_arr, dz_arr, Dr, a, (a_rad-1), b, (b_rad-1)
-
 
 def create_equidistant_mesh_gradient(n_x, n_y, n_z, temperature_ini, dx, dy, dz):
     if sett.mesh_form == 1:
@@ -114,18 +145,20 @@ def find_surface(n_x, n_y, n_z, limiter_x_start, limiter_y_start, limiter_z_star
                         if np.sum(surface[i][j][k]) != 0:
                             surface_elements += 1
     mesh_shape_negative = np.abs(mesh_shape_positive - np.full((n_z, n_y, n_x), 1, dtype=np.int32))
-    if initiation:
+    if initiation and not sett.encapsulating_sample_holder:
         sample_holder, misplaced_voxels = fix_rim(n_x, n_y, limiter_x_start, limiter_y_start, a, a_rad, b, b_rad, sample_holder)
     else:
         misplaced_voxels = np.empty((0, 0), dtype=np.int32)
     surface_elements += len(misplaced_voxels)
-    if initiation:
+    if initiation and surface_elements > 0:
         surface_reduced = reduce_surface(n_x, n_y, n_z, limiter_x_start, limiter_y_start, limiter_z_start, limiter_x_end, limiter_y_end, limiter_z_end, surface, np.zeros((surface_elements, 3), dtype=np.int32), a, a_rad, b, b_rad, misplaced_voxels)
-    else:
+    elif surface_elements > 0:
         surface_reduced = reduce_surface(n_x, n_y, n_z, limiter_x_start, limiter_y_start, limiter_z_start,
                                          limiter_x_end, limiter_y_end, limiter_z_end+2, surface,
                                          np.zeros((surface_elements, 3), dtype=np.int32), a, a_rad, b, b_rad,
                                          misplaced_voxels)
+    else:
+        surface_reduced = np.empty((0, 3), dtype=np.int32)
     return surface, surface_reduced, sample_holder, mesh_shape_positive, mesh_shape_negative
 
 
@@ -190,7 +223,7 @@ def find_surface_periodic(n_x, n_y, n_z, limiter_x_start, limiter_y_start, limit
                                          misplaced_voxels)
     return surface, surface_reduced, sample_holder
 
-@jit
+@njit
 def reduce_surface(n_x, n_y, n_z, limiter_x, limiter_y, limiter_z, limiter_x_end, limiter_y_end, limiter_z_end, surface, surface_reduced, a, a_rad, b, b_rad, misplaced_voxels):
     count = 0
     #z only runs up to n_z-2 to ignore the bottom plus the puffer layer
@@ -206,7 +239,7 @@ def reduce_surface(n_x, n_y, n_z, limiter_x, limiter_y, limiter_z, limiter_x_end
     return surface_reduced
 
 
-@jit
+@njit
 def fix_rim(n_x, n_y, limiter_x, limiter_y, a, a_rad, b, b_rad, array):
     erronous_voxels_nr = 0
     misplaced_voxels = np.zeros((n_x * n_y, 3), dtype=np.int32)
