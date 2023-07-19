@@ -1,5 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+from matplotlib import rcParams
 from matplotlib.ticker import (AutoLocator, AutoMinorLocator, MultipleLocator, LogLocator, LogFormatterMathtext)
 import matplotlib.lines as mlines
 import json
@@ -7,7 +9,9 @@ import csv
 import constants as const
 from scipy import interpolate
 from data_input import read_temperature_data, getPath
+from IPython.display import Video
 
+rcParams['animation.ffmpeg_path'] = r'C:\\ffmpeg\\bin\\ffmpeg.exe'
 '''file_name = 'Check_Knudsen_regime'
 #path = 'C:/Users/Christian Schuckart/Documents/Masterarbeit/Plots/' + file_name + '.png'
 path = 'C:/Users/Christian/Documents/Masterarbeit/Plots/' + file_name + '.png'
@@ -274,7 +278,7 @@ plt.legend()
 #plt.savefig('Constant_lambda_test_sand_' + str(const.lambda_sand) + '.png', dpi=600)
 plt.savefig('C:/Users/Christian Schuckart/Documents/Masterarbeit/Plots/activity_fraction_0.10_max_surface_temp.png', dpi=600)'''
 
-with open('test_gmt_08.json') as json_file:
+'''with open('test_gmt_08.json') as json_file:
     data_08 = json.load(json_file)
 
 with open('test_gmt_07.json') as json_file:
@@ -316,4 +320,58 @@ ax[1].set_xlim(0, 1)
 
 plt.legend()
 plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Plots/gas_diffusion_testing_9_9_9_dt1E-3.png', dpi=600)
-plt.show()
+plt.show()'''
+
+fig, ax = plt.subplots()
+ny, nz = const.n_y * 1j, const.n_z * 1j
+y, z = np.mgrid[-16:16:ny, -1:17:nz]
+
+time = [i * 3600 for i in range(0, 504)]
+scalars = np.load('D:/TPM_Data/Luwex/only_temperature_sim_' + str(float(0)) + '.npy')
+swapped_scalars = np.zeros((const.n_y, const.n_z), dtype=np.float64)
+for j in range(0, const.n_y):
+    for i in range(const.n_z-1, -1, -1):
+        if scalars[i][j][const.n_x//2] > 0:
+            swapped_scalars[j][const.n_z-1-i] = scalars[i][j][const.n_x//2]
+        else:
+             swapped_scalars[j][const.n_z - 1 - i] = np.nan
+cont_f = ax.contourf(y, z, swapped_scalars, levels=10, cmap=plt.cm.viridis)
+ax.set_xlim(-15.5, 15.5)
+ax.set_ylim(-0.5, 16.5)
+cbar = fig.colorbar(cont_f)
+cbar.ax.set_ylabel('Temperatures (K)')
+def update(t):
+    ax.clear()
+    cbar = None
+    scalars = np.load('D:/TPM_Data/Luwex/only_temperature_sim_' + str(float(t)) + '.npy')
+    swapped_scalars = np.zeros((const.n_y, const.n_z), dtype=np.float64)
+    for j in range(0, const.n_y):
+        for i in range(const.n_z-1, -1, -1):
+            if scalars[i][j][const.n_x//2] > 0:
+                swapped_scalars[j][const.n_z-1-i] = scalars[i][j][const.n_x//2]
+            else:
+                 swapped_scalars[j][const.n_z - 1 - i] = np.nan
+    cont_f = ax.contourf(y, z, swapped_scalars, levels=10, cmap=plt.cm.viridis)
+    #CS2 = ax.contour(cont_f, levels=cont_f.levels[::2], colors='black')
+    ax.set_xlim(-15.5, 15.5)
+    ax.set_ylim(-0.5, 16.5)
+    '''if t == 0:
+        cbar = fig.colorbar(cont_f)
+        cbar.ax.set_ylabel('Temperatures (K)')'''
+    ax.text(14, 17, 'Time: ' + str(t//3600) + 'h')
+    ax.set_title('Cross section isotherms evolution')
+    ax.set_xlabel('width (cm)')
+    ax.set_ylabel('height (cm)')
+    fig.canvas.draw()
+    fig.canvas.flush_events()
+    #plt.show()
+
+anim = animation.FuncAnimation(fig, update, frames=time, interval=200)
+
+#Writer = animation.writers['ffmpeg']
+Writer = animation.FFMpegWriter(fps=10)
+#writer = Writer(fps=5, bitrate=1800)
+writer = Writer
+
+anim.save('D:/TPM_Data/Luwex/only_temperature_sim.mp4', writer=writer, dpi=600)
+Video('D:/TPM_Data/Luwex/only_temperature_sim.mp4')

@@ -110,7 +110,7 @@ def lambda_ice_block(n_x, n_y, n_z, temperature, Dr, dx, dy, dz, lambda_water_ic
 						lambda_total[i][j][k][a] = lambda_cond[a] + 16 / 3 * sigma * temps[a] ** 3 * e_1 * (1 - VFF_pack[i][j][k]) / VFF_pack[i][j][k] * r_mono
 	return lambda_total
 
-@njit(parallel=True)
+@njit(parallel=False)
 def thermal_conductivity_moon_regolith(n_x, n_y, n_z, temperature, dx, dy, dz, Dr, VFF, radius, fc1, fc2, fc3, fc4, fc5, mu, E, gamma, f1, f2, e1, chi, sigma, epsilon, water_mass, dust_mass, lambda_water_ice, lambda_sample_holder, sample_holder):
 	#thermal conductivity is an interface property, evaluated at the layer boundaries
 	#get temperature and vff at layer boundary
@@ -142,20 +142,32 @@ def thermal_conductivity_moon_regolith(n_x, n_y, n_z, temperature, dx, dy, dz, D
 					#get temperature dependence of solid thermal conductivity
 					for a in range(0, len(lambda_solid)):
 						lambda_solid[a] = fc1*temps[a] + fc2*(temps[a])**2 + fc3*(temps[a])**3 + fc4*(temps[a])**4 + fc5*(temps[a])**5
-						lambda_solid[a] = lambda_solid[a] * dust_mass / (dust_mass + water_mass) + lambda_water_ice * water_mass / (dust_mass + water_mass)
+						lambda_solid[a] = lambda_solid[a] * dust_mass[i][j][k] / (dust_mass[i][j][k] + water_mass[i][j][k]) + lambda_water_ice/temps[a] * water_mass[i][j][k] / (dust_mass[i][j][k] + water_mass[i][j][k])
 						#network and radiative part of thermal conductivity
-						lambda_net[a] = lambda_solid[i] * (9*np.pi/4*(1-mu**2)/E*gamma/radius)**(1/3)*(f1*np.exp(f2*cardinalVFF[a]))*chi
+						lambda_net[a] = lambda_solid[a] * (9*np.pi/4*(1-mu**2)/E*gamma/radius)**(1/3)*(f1*np.exp(f2*cardinalVFF[a]))*chi
+						lambda_rad[a] = 8*sigma*epsilon*temps[a]**3*e1*(1-cardinalVFF[a])/cardinalVFF[a]*radius
 						if sample_holder[i + var.n_z_lr[a]][j + var.n_y_lr[a]][k + var.n_x_lr[a]] == 1 or sample_holder[i][j][k] == 1:
 							lambda_net[a] = ((lambda_net[a] / (Dr[i][j][k][a] / 2) * lambda_sample_holder / (Dr[i][j][k][a] / 2)) / (lambda_net[a] / (Dr[i][j][k][a] / 2) + lambda_sample_holder / (Dr[i][j][k][a] / 2))) * Dr[i][j][k][a]
-						lambda_rad[a] = 8*sigma*epsilon*temps[a]**3*e1*(1-cardinalVFF[a])/cardinalVFF[a]*radius
+							if np.isnan(lambda_net[a]):
+								lambda_net[a] = 0
+							lambda_rad[a] = 0
 						lambda_total[i][j][k][a] = lambda_net[a] + lambda_rad[a]
 	return lambda_total, interface_temperatures
 
 
 @njit()
-def heat_capacity_moon_regolith(temperature, c0, c1, c2, c3, c4, water_mass, dust_mass):
-	heat_capacity = c0 * np.ones(np.shape(temperature), dtype=np.float64) + c1 * temperature + c2 * temperature**2 + c3 * temperature**3 + c4 * temperature**4
-	heat_capacity = heat_capacity * dust_mass / (dust_mass * water_mass) + (7.5 * temperature + 90) * water_mass / (dust_mass * water_mass)
+def heat_capacity_moon_regolith(n_x, n_y, n_z, temperature, c0, c1, c2, c3, c4, water_mass, dust_mass, heat_capacity_sample_holder, sample_holder):
+	heat_capacity = np.zeros((n_z, n_y, n_x), dtype=np.float64)
+	for i in prange(1, n_z - 1):
+		for j in range(1, n_y - 1):
+			for k in range(1, n_x - 1):
+				if temperature[i][j][k] > 0 and sample_holder[i][j][k] == 0:
+					heat_capacity[i][j][k] = c0 + c1 * temperature[i][j][k] + c2 * temperature[i][j][k]**2 + c3 * temperature[i][j][k]**3 + c4 * temperature[i][j][k]**4
+					heat_capacity[i][j][k] = heat_capacity[i][j][k] * dust_mass[i][j][k] / (dust_mass[i][j][k] + water_mass[i][j][k]) + (7.5 * temperature[i][j][k] + 90) * water_mass[i][j][k] / (dust_mass[i][j][k] + water_mass[i][j][k])
+				elif sample_holder[i][j][k] == 1:
+					heat_capacity[i][j][k] = heat_capacity_sample_holder
+				else:
+					heat_capacity[i][j][k] = 1
 	return heat_capacity
 
 '''
