@@ -328,6 +328,27 @@ def calculate_molecule_flux_test_Q(n_x, n_y, n_z, temperature, pressure, a_1, b_
     # Non 100% resublimation missing
     return S_c, sublimated_mass
 
+@njit
+def calculate_molecule_flux_moon(n_x, n_y, n_z, temperature, pressure, a_1, b_1, c_1, d_1, m_H2O, dx, dy, dz, dt, k_B, sample_holder, water_mass_per_layer, latent_heat_water):
+    p_sub = np.zeros(np.shape(temperature), dtype=np.float64)
+    sublimated_mass = np.zeros(np.shape(temperature), dtype=np.float64)
+    resublimated_mass = np.zeros((n_z, n_y, n_x), dtype=np.float64)
+    S_c = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
+    # Placeholder
+    outgassed_mass = 0
+    for i in range(1, n_z-1):
+        for j in range(1, n_y-1):
+            for k in range(1, n_x-1):
+                if sample_holder[i][j][k] == 0 and temperature[i][j][k] > 0:
+                    p_sub[i][j][k] = 10 ** (a_1[0] + b_1[0] / temperature[i][j][k] + c_1[0] * np.log10(temperature[i][j][k]) + d_1[0] * temperature[i][j][k])
+                    sublimated_mass[i][j][k] = (p_sub[i][j][k] - pressure[i][j][k]) * np.sqrt(m_H2O / (2 * np.pi * k_B * temperature[i][j][k])) * dx[i][j][k] * dy[i][j][k] * dt
+                    if sublimated_mass[i][j][k] > water_mass_per_layer[i][j][k]:
+                        sublimated_mass[i][j][k] = water_mass_per_layer[i][j][k]
+                    S_c[i][j][k] = - sublimated_mass[i][j][k] * latent_heat_water[i][j][k] / (dt * dx[i][j][k] * dy[i][j][k] * dz[i][j][k])
+                    outgassed_mass += sublimated_mass[i][j][k]
+    # pressure = p_sub
+    return S_c, sublimated_mass
+
 @njit(parallel=True)
 def diffusion_parameters(n_x, n_y, n_z, a_1, b_1, c_1, d_1, temperature, temps, m_mol, R_gas, VFF, r_mono, Phi, q, pressure, m_H2O, k_B, dx, dy, dz, Dr, dt, sample_holder):
     diffusion_coefficient = np.zeros((n_z, n_y, n_x, 6), dtype=np.float64)

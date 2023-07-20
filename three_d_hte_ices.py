@@ -7,6 +7,7 @@ import json
 from os import listdir
 from surface_detection import create_equidistant_mesh, DEBUG_print_3D_arrays, find_surface, surrounding_checker, update_surface_arrays, create_equidistant_mesh_gradient
 from thermal_parameter_functions import  calculate_latent_heat, calculate_density, thermal_functions, calculate_bulk_density_and_VFF, thermal_conductivity_moon_regolith, heat_capacity_moon_regolith
+from molecule_transfer import calculate_molecule_flux_moon
 from heat_transfer_equation_DG_ADI import hte_implicit_DGADI
 from boundary_conditions import sample_holder_data
 
@@ -126,14 +127,16 @@ S_c = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
 S_p = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
 for j in tqdm(range(0, const.k)):
     if (j * const.dt) % 3600 == 0:
-        np.save('D:/TPM_Data/Luwex/only_temperature_sim_' + str(j * const.dt) + '.npy', temperature)
+        np.save('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/Luwex/only_temperature_sim_instant_outgassing' + str(j * const.dt) + '.npy', temperature)
     temperature_previous = temperature[0:const.n_z, 0:const.n_y, 0:const.n_x]
     density, VFF = calculate_bulk_density_and_VFF(temperature, VFF, uniform_dust_masses, uniform_water_masses, const.density_TUBS_M, dx, dy, dz)
     #density = density + sample_holder * const.density_sample_holder
     Lambda = thermal_conductivity_moon_regolith(const.n_x, const.n_y, const.n_z, temperature, dx, dy, dz, Dr, VFF, const.r_mono, const.fc1, const.fc2, const.fc3, const.fc4, const.fc5, const.mu, const.E, const.gamma, const.f1, const.f2, const.e1, const.chi_maria, const.sigma, const.epsilon, uniform_water_masses, uniform_dust_masses, const.lambda_water_ice, const.lambda_sample_holder, sample_holder)[0]
     heat_capacity = heat_capacity_moon_regolith(const.n_x, const.n_y, const.n_z, temperature, const.c0, const.c1, const.c2, const.c3, const.c4, uniform_water_masses, uniform_dust_masses, const.heat_capacity_sample_holder, sample_holder)
+    S_c, sublimated_mass = calculate_molecule_flux_moon(const.n_x, const.n_y, const.n_z, temperature, pressure, const.lh_a_1, const.lh_b_1, const.lh_c_1, const.lh_d_1, const.m_H2O, dx, dy, dz, const.dt, const.k_boltzmann, sample_holder, uniform_water_masses, latent_heat_water)
     temperature = hte_implicit_DGADI(const.n_x, const.n_y, const.n_z, surface_reduced, const.r_H, const.albedo, const.dt, lamp_power, const.sigma, const.epsilon, temperature, Lambda, Dr, heat_capacity, density, dx, dy, dz, surface, S_c, S_p, sample_holder)
-    if np.max(np.abs(temperature - temperature_previous)) < 1E-7:
+    uniform_water_masses = uniform_water_masses - sublimated_mass
+    if np.max(np.abs(temperature - temperature_previous)) < 50E-6:
         break
     #uniform_water_masses_implicit = update_thermal_arrays(const.n_x, const.n_y, const.n_z, temperature, uniform_water_masses_implicit, delta_T, Energy_Increase_per_Layer, sublimated_mass_implicit, resublimated_mass, const.dt, const.avogadro_constant, const.molar_mass_water, const.molar_mass_co2, heat_capacity, const.heat_capacity_water_ice, const.heat_capacity_co2_ice, EIis_0, Latent_Heat_per_Layer, E_Lat_0, E_Rad, E_In, E_sh, E_source_sink)[1]
     #print(sublimated_mass_implicit[1][12][12], temperature_implicit[1][12][12])'
