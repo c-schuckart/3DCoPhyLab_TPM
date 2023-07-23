@@ -347,7 +347,7 @@ def calculate_molecule_flux_moon(n_x, n_y, n_z, temperature, pressure, a_1, b_1,
                     S_c[i][j][k] = - sublimated_mass[i][j][k] * latent_heat_water[i][j][k] / (dt * dx[i][j][k] * dy[i][j][k] * dz[i][j][k])
                     outgassed_mass += sublimated_mass[i][j][k]
     # pressure = p_sub
-    return S_c, sublimated_mass
+    return S_c, sublimated_mass, outgassed_mass
 
 @njit(parallel=True)
 def diffusion_parameters(n_x, n_y, n_z, a_1, b_1, c_1, d_1, temperature, temps, m_mol, R_gas, VFF, r_mono, Phi, q, pressure, m_H2O, k_B, dx, dy, dz, Dr, dt, sample_holder):

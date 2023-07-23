@@ -326,8 +326,9 @@ fig, ax = plt.subplots()
 ny, nz = const.n_y * 1j, const.n_z * 1j
 y, z = np.mgrid[-16:16:ny, -1:17:nz]
 
-time = [i * 3600 for i in range(0, 1178)]
-scalars = np.load('D:/Masterarbeit_data/Luwex/only_temperature_sim_' + str(float(0)) + '.npy')
+time = [i * 3600 for i in range(0, 2503)]
+scalars = np.load('D:/TPM_Data/Luwex/only_temps_with_outgassing/only_temperature_sim_instant_outgassing' + str(float(0)) + '.npy')
+water_mass_one = np.sum(np.load('D:/TPM_Data/Luwex/only_temps_with_outgassing/WATERonly_temperature_sim_instant_outgassing' + str(float(0)) + '.npy'))
 swapped_scalars = np.zeros((const.n_y, const.n_z), dtype=np.float64)
 for j in range(0, const.n_y):
     for i in range(const.n_z-1, -1, -1):
@@ -344,7 +345,8 @@ def update(t):
     ax.clear()
     cbar = None
     #scalars = np.load('D:/TPM_Data/Luwex/only_temperature_sim_' + str(float(t)) + '.npy')
-    scalars = np.load('D:/Masterarbeit_data/Luwex/only_temperature_sim_' + str(float(t)) + '.npy')
+    scalars = np.load('D:/TPM_Data/Luwex/only_temps_with_outgassing/only_temperature_sim_instant_outgassing' + str(float(t)) + '.npy')
+    water_percent = np.round(np.sum(np.load('D:/TPM_Data/Luwex/only_temps_with_outgassing/WATERonly_temperature_sim_instant_outgassing' + str(float(t)) + '.npy')) / water_mass_one, 3) * 100
     swapped_scalars = np.zeros((const.n_y, const.n_z), dtype=np.float64)
     for j in range(0, const.n_y):
         for i in range(const.n_z-1, -1, -1):
@@ -359,7 +361,8 @@ def update(t):
     '''if t == 0:
         cbar = fig.colorbar(cont_f)
         cbar.ax.set_ylabel('Temperatures (K)')'''
-    ax.text(14, 17, 'Time: ' + str((t//3600)//24) + 'd ' + str((t//3600) % 24) + 'h')
+    ax.text(14, 18, 'Time: ' + str((t//3600)//24) + 'd ' + str((t//3600) % 24) + 'h')
+    ax.text(14, 17, 'Remaining water: ' + str(water_percent)[0:4] + '%')
     ax.set_title('Cross section isotherms evolution')
     ax.set_xlabel('width (cm)')
     ax.set_ylabel('height (cm)')
@@ -370,9 +373,9 @@ def update(t):
 anim = animation.FuncAnimation(fig, update, frames=time, interval=200)
 
 #Writer = animation.writers['ffmpeg']
-Writer = animation.FFMpegWriter(fps=12, codec='mpeg4', bitrate=6000)
+Writer = animation.FFMpegWriter(fps=24, codec='mpeg4', bitrate=6000)
 #writer = Writer(fps=5, bitrate=1800)
 writer = Writer
 
-anim.save('D:/Masterarbeit_data/Luwex/only_temperature_sim_equilib.mp4', writer=writer, dpi=600)
-Video('D:/Masterarbeit_data/Luwex/only_temperature_sim_equilib.mp4')
+anim.save('D:/TPM_Data/Luwex/only_temperature_sim_outgassing.mp4', writer=writer, dpi=600)
+Video('D:/TPM_Data/Luwex/only_temperature_sim_outgassing.mp4')
