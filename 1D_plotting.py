@@ -1,7 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.ticker import AutoMinorLocator
 import matplotlib.animation as animation
 from matplotlib import rcParams
+from matplotlib.gridspec import GridSpec
 from matplotlib.ticker import (AutoLocator, AutoMinorLocator, MultipleLocator, LogLocator, LogFormatterMathtext)
 import matplotlib.lines as mlines
 import json
@@ -10,6 +12,7 @@ import constants as const
 from scipy import interpolate
 from data_input import read_temperature_data, getPath
 from IPython.display import Video
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 rcParams['animation.ffmpeg_path'] = r'C:\\ffmpeg\\bin\\ffmpeg.exe'
 '''file_name = 'Check_Knudsen_regime'
@@ -322,50 +325,99 @@ plt.legend()
 plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Plots/gas_diffusion_testing_9_9_9_dt1E-3.png', dpi=600)
 plt.show()'''
 
-fig, ax = plt.subplots()
+#fig, ax = plt.subplots(1, 2)
+#fig.tight_layout()
+fig = plt.figure(figsize=(10, 5))
+#grid = GridSpec(1, 2)
+#ax = [fig.add_subplot(grid[0, 0], aspect='equal'), fig.add_subplot(grid[0, 1], aspect='equal')]
+ax = [fig.add_subplot(1, 2, 1, aspect='equal', adjustable='box'), fig.add_subplot(1, 2, 2, aspect='equal', adjustable='box')]
 ny, nz = const.n_y * 1j, const.n_z * 1j
 y, z = np.mgrid[-16:16:ny, -1:17:nz]
 
 time = [i * 3600 for i in range(0, 2503)]
-scalars = np.load('D:/TPM_Data/Luwex/only_temps_with_outgassing/only_temperature_sim_instant_outgassing' + str(float(0)) + '.npy')
-water_mass_one = np.sum(np.load('D:/TPM_Data/Luwex/only_temps_with_outgassing/WATERonly_temperature_sim_instant_outgassing' + str(float(0)) + '.npy'))
+#time = [i * 3600 for i in range(0, 250)]
+scalars = np.load('D:/Masterarbeit_data/Luwex/only_temps_with_outgassing/only_temperature_sim_instant_outgassing' + str(float(4240800)) + '.npy')
+scalars_2 = np.load('D:/Masterarbeit_data/Luwex/only_temps_equilibriated/only_temperature_sim_' + str(float(4240800)) + '.npy')
+water_mass_one = np.sum(np.load('D:/Masterarbeit_data/Luwex/only_temps_with_outgassing/WATERonly_temperature_sim_instant_outgassing' + str(float(4240800)) + '.npy'))
 swapped_scalars = np.zeros((const.n_y, const.n_z), dtype=np.float64)
+swapped_scalars_2 = np.zeros((const.n_y, const.n_z), dtype=np.float64)
 for j in range(0, const.n_y):
     for i in range(const.n_z-1, -1, -1):
-        if scalars[i][j][const.n_x//2] > 0:
-            swapped_scalars[j][const.n_z-1-i] = scalars[i][j][const.n_x//2]
+        if scalars[i][j][const.n_x//2] > 0: #and scalars_2[i][j][const.n_x//2] > 0:
+            swapped_scalars[j][const.n_z-1-i] = scalars[i][j][const.n_x//2] #- scalars_2[i][j][const.n_x//2]
         else:
-             swapped_scalars[j][const.n_z - 1 - i] = np.nan
-cont_f = ax.contourf(y, z, swapped_scalars, levels=10, cmap=plt.cm.viridis)
-ax.set_xlim(-15.5, 15.5)
-ax.set_ylim(-0.5, 16.5)
-cbar = fig.colorbar(cont_f)
+            swapped_scalars[j][const.n_z-1-i] = np.nan
+        if scalars_2[i][j][const.n_x//2] > 0:
+            swapped_scalars_2[j][const.n_z-1-i] = scalars_2[i][j][const.n_x//2]
+        else:
+            swapped_scalars_2[j][const.n_z-1-i] = np.nan
+#print(np.nanmin(swapped_scalars), np.nanmax(swapped_scalars))
+#levels = [-180, -160, -140, -120, -100, -80, -60, -40, -20, 0, 20, 40]
+levels = 10
+cont_f = ax[1].contourf(y, z, swapped_scalars, levels=levels, cmap=plt.cm.viridis)
+cont_f0 = ax[0].contourf(y, z, swapped_scalars_2, levels=levels, cmap=plt.cm.viridis)
+ax[0].set_xlim(-15.5, 15.5)
+ax[0].set_ylim(-0.5, 16.5)
+ax[1].set_xlim(-15.5, 15.5)
+ax[1].set_ylim(-0.5, 16.5)
+
+divider1 = make_axes_locatable(ax[0])
+cax0 = divider1.append_axes("right", size="5%", pad=0.05)
+divider2 = make_axes_locatable(ax[1])
+cax1 = divider2.append_axes("right", size="5%", pad=0.05)
+
+cbar_0 = fig.colorbar(cont_f0, cax=cax0)
+fig.delaxes(fig.axes[2])
+cbar = fig.colorbar(cont_f, cax=cax1)
 cbar.ax.set_ylabel('Temperatures (K)')
+#cbar_0 = fig.colorbar(None)
+#cbar.set_ticks(levels)
+#cbar.set_ticklabels(['-180', '-160', '-140', '-120', '-100', '-80', '-60', '-40', '-20', '0', '20', '40'])
+#cbar.set_over('cyan')
+#cbar.set_under('red')
 def update(t):
-    ax.clear()
+    ax[0].clear()
+    ax[1].clear()
     cbar = None
     #scalars = np.load('D:/TPM_Data/Luwex/only_temperature_sim_' + str(float(t)) + '.npy')
-    scalars = np.load('D:/TPM_Data/Luwex/only_temps_with_outgassing/only_temperature_sim_instant_outgassing' + str(float(t)) + '.npy')
-    water_percent = np.round(np.sum(np.load('D:/TPM_Data/Luwex/only_temps_with_outgassing/WATERonly_temperature_sim_instant_outgassing' + str(float(t)) + '.npy')) / water_mass_one, 3) * 100
+    scalars = np.load('D:/Masterarbeit_data/Luwex/only_temps_with_outgassing/only_temperature_sim_instant_outgassing' + str(float(t)) + '.npy')
+    if t <= 4240800.0:
+        scalars_2 = np.load('D:/Masterarbeit_data/Luwex/only_temps_equilibriated/only_temperature_sim_' + str(float(t)) + '.npy')
+    else:
+        scalars_2 = np.load('D:/Masterarbeit_data/Luwex/only_temps_equilibriated/only_temperature_sim_' + str(float(4240800)) + '.npy')
+    #water_percent = np.round(np.sum(np.load('D:/TPM_Data/Luwex/only_temps_with_outgassing/WATERonly_temperature_sim_instant_outgassing' + str(float(t)) + '.npy')) / water_mass_one, 3) * 100
     swapped_scalars = np.zeros((const.n_y, const.n_z), dtype=np.float64)
+    swapped_scalars_2 = np.zeros((const.n_y, const.n_z), dtype=np.float64)
     for j in range(0, const.n_y):
         for i in range(const.n_z-1, -1, -1):
-            if scalars[i][j][const.n_x//2] > 0:
-                swapped_scalars[j][const.n_z-1-i] = scalars[i][j][const.n_x//2]
+            if scalars[i][j][const.n_x//2] > 0: #or scalars_2[i][j][const.n_x//2] > 0:
+                swapped_scalars[j][const.n_z-1-i] = scalars[i][j][const.n_x//2] #- scalars_2[i][j][const.n_x//2]
             else:
                  swapped_scalars[j][const.n_z - 1 - i] = np.nan
-    cont_f = ax.contourf(y, z, swapped_scalars, levels=10, cmap=plt.cm.viridis)
+            if scalars_2[i][j][const.n_x // 2] > 0:
+                swapped_scalars_2[j][const.n_z - 1 - i] = scalars_2[i][j][const.n_x // 2]
+            else:
+                swapped_scalars_2[j][const.n_z - 1 - i] = np.nan
+    cont_f = ax[1].contourf(y, z, swapped_scalars, levels=levels, cmap=plt.cm.viridis)
+    ax[0].contourf(y, z, swapped_scalars_2, levels=levels, cmap=plt.cm.viridis)
     #CS2 = ax.contour(cont_f, levels=cont_f.levels[::2], colors='black')
-    ax.set_xlim(-15.5, 15.5)
-    ax.set_ylim(-0.5, 16.5)
-    '''if t == 0:
-        cbar = fig.colorbar(cont_f)
-        cbar.ax.set_ylabel('Temperatures (K)')'''
-    ax.text(14, 18, 'Time: ' + str((t//3600)//24) + 'd ' + str((t//3600) % 24) + 'h')
-    ax.text(14, 17, 'Remaining water: ' + str(water_percent)[0:4] + '%')
-    ax.set_title('Cross section isotherms evolution')
-    ax.set_xlabel('width (cm)')
-    ax.set_ylabel('height (cm)')
+    ax[0].set_xlim(-15.5, 15.5)
+    ax[0].set_ylim(-0.5, 16.5)
+    ax[1].set_xlim(-15.5, 15.5)
+    ax[1].set_ylim(-0.5, 16.5)
+    #if t == 0:
+        #cbar = fig.colorbar(cont_f)
+        #cbar.ax.set_ylabel('Temperatures (K)')
+    ax[1].text(14, 18, 'Time: ' + str((t//3600)//24) + 'd ' + str((t//3600) % 24) + 'h')
+    #ax.text(14, 17, 'Remaining water: ' + str(water_percent)[0:4] + '%')
+    ax[0].set_title('No sublimation')
+    ax[0].set_xlabel('width (cm)')
+    ax[0].set_ylabel('height (cm)')
+    if t >= 4240800.0:
+        ax[0].text(0, 15.5, 'EQUILIBRATED')
+    ax[1].set_title('With sublimation')
+    ax[1].set_xlabel('width (cm)')
+    ax[1].set_ylabel('height (cm)')
     fig.canvas.draw()
     fig.canvas.flush_events()
     #plt.show()
@@ -377,5 +429,25 @@ Writer = animation.FFMpegWriter(fps=24, codec='mpeg4', bitrate=6000)
 #writer = Writer(fps=5, bitrate=1800)
 writer = Writer
 
-anim.save('D:/TPM_Data/Luwex/only_temperature_sim_outgassing.mp4', writer=writer, dpi=600)
-Video('D:/TPM_Data/Luwex/only_temperature_sim_outgassing.mp4')
+anim.save('D:/Masterarbeit_data/Luwex/isotherms_outgassing_v_not_differences_both_videos.mp4', writer=writer, dpi=600)
+Video('D:/Masterarbeit_data/Luwex/isotherms_outgassing_v_not_differences_both_videos.mp4')
+
+'''water_mass_one = np.sum(np.load('D:/Masterarbeit_data/Luwex/only_temps_with_outgassing/WATERonly_temperature_sim_instant_outgassing' + str(float(0)) + '.npy'))
+time = np.array([i * 3600 for i in range(0, 2503)], dtype=np.float64)
+water_content_over_time = np.zeros(len(time), dtype=np.float64)
+for t in time:
+    water_content_over_time[int(t//3600)] = np.sum(np.load('D:/Masterarbeit_data/Luwex/only_temps_with_outgassing/WATERonly_temperature_sim_instant_outgassing' + str(float(t)) + '.npy')) / water_mass_one
+
+fig, ax = plt.subplots(1, 1)
+
+plt.tick_params(axis='x', which='both', direction='in', top=True, labeltop=False)
+plt.tick_params(axis='y', which='both', direction='in', right=True, labelright=False)
+ax.plot(time/(3600 * 24), water_content_over_time)
+ax.set_xlabel('Time (d)')
+ax.set_ylabel('Water content')
+ax.grid(True, which='major')
+ax.xaxis.set_minor_locator(MultipleLocator(5))
+ax.yaxis.set_minor_locator(AutoMinorLocator(2))
+ax.set_ylim(-0.05, 1.05)
+#plt.show()
+plt.savefig('D:/Masterarbeit_data/Luwex/Instant_outgassing_wc_over_time.png', dpi=600)'''

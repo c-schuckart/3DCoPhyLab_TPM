@@ -355,7 +355,7 @@ def diffusion_parameters(n_x, n_y, n_z, a_1, b_1, c_1, d_1, temperature, temps, 
     p_sub = np.zeros((n_z, n_y, n_x), dtype=np.float64)
     sublimated_mass = np.zeros((n_z, n_y, n_x), dtype=np.float64)
     #Using Güttler et al. 2023 calculation for q together with Phi = 13/6
-    q = 1.60 - 0.73 * VFF
+    q = 1.60 - 0.73 * (1 - VFF)
     for i in prange(1, n_z-1):
         for j in range(1, n_y-1):
             for k in range(1, n_x-1):

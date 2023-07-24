@@ -4,7 +4,8 @@ import numpy as np
 min_dx = 5E-3                      # Layer Thickness of smallest layer in x direction, Numerical Resolution  [m]
 min_dy = 5E-3                      # Layer Thickness of smallest layer in y direction, Numerical Resolution  [m]
 min_dz = 5E-3                      # Layer Thickness of smallest layer in z direction, Numerical Resolution  [m]
-dt = 5E1                           # Timestep                               [s]
+#dt = 5E1                           # Timestep                               [s]
+dt = 1
 n_x = 64                            # Number of Layers                       [-]
 n_y = 64
 n_z = 36
@@ -16,8 +17,8 @@ n_x = 39                           # Number of Layers                       [-]
 n_y = 39
 n_z = 53'''
 n = np.array([n_x, n_y, n_z])
-k = 36288 * 5                      # Number of Timesteps                    [-]
-#k = 130320//4                     # Number of Timesteps                    [-]
+#k = 36288 * 5                      # Number of Timesteps                    [-]
+k = 10                    # Number of Timesteps                    [-]
 #Definition of Physical Parameters
 #Material Properties
 lambda_constant = 0.01            # Thermal Conductivity                   [W/(K m)]
