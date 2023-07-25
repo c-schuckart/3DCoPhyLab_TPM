@@ -69,7 +69,7 @@ def create_equidistant_mesh_gradient(n_x, n_y, n_z, temperature_ini, dx, dy, dz)
 
 
 @njit
-def find_surface(n_x, n_y, n_z, limiter_x_start, limiter_y_start, limiter_z_start, limiter_x_end, limiter_y_end, limiter_z_end, mesh, surface, a, a_rad, b, b_rad, initiation):
+def find_surface(n_x, n_y, n_z, limiter_x_start, limiter_y_start, limiter_z_start, limiter_x_end, limiter_y_end, limiter_z_end, mesh, surface, a, a_rad, b, b_rad, initiation, diffusion_mesh):
     surface_elements = 0
     sample_holder = np.zeros((n_z, n_y, n_x), dtype=np.int32)
     mesh_shape_positive = np.zeros((n_z, n_y, n_x), dtype=np.int32)
@@ -115,7 +115,7 @@ def find_surface(n_x, n_y, n_z, limiter_x_start, limiter_y_start, limiter_z_star
                             surface_elements += 1
     mesh_shape_negative = np.abs(mesh_shape_positive - np.full((n_z, n_y, n_x), 1, dtype=np.int32))
     if initiation and not sett.encapsulating_sample_holder:
-        sample_holder, misplaced_voxels = fix_rim(n_x, n_y, limiter_x_start, limiter_y_start, a, a_rad, b, b_rad, sample_holder)
+        sample_holder, misplaced_voxels = fix_rim(n_x, n_y, limiter_x_start, limiter_y_start, a, a_rad, b, b_rad, sample_holder, diffusion_mesh)
     else:
         misplaced_voxels = np.empty((0, 0), dtype=np.int32)
     surface_elements += len(misplaced_voxels)
@@ -209,14 +209,18 @@ def reduce_surface(n_x, n_y, n_z, limiter_x, limiter_y, limiter_z, limiter_x_end
 
 
 @njit
-def fix_rim(n_x, n_y, limiter_x, limiter_y, a, a_rad, b, b_rad, array):
+def fix_rim(n_x, n_y, limiter_x, limiter_y, a, a_rad, b, b_rad, array, diffusion_mesh):
+    if diffusion_mesh:
+        height = 2
+    else:
+        height = 1
     erronous_voxels_nr = 0
     misplaced_voxels = np.zeros((n_x * n_y, 3), dtype=np.int32)
     for j in range(limiter_y, n_y):
         for k in range(limiter_x, n_x):
-            if array[1][j][k] == 1 and max(array[1][j-1][k], array[1][j+1][k]) + max(array[1][j][k-1], array[1][j][k+1]) == 2 and array[2][j][k] == 0: #and ((k - a) / a_rad) ** 2 + ((j - b) / b_rad) ** 2 <= 1.015:
-                array[1][j][k] = 0
-                misplaced_voxels[erronous_voxels_nr] = np.array([k, j, 1], dtype=np.int32)
+            if array[height][j][k] == 1 and max(array[height][j-1][k], array[height][j+1][k]) + max(array[height][j][k-1], array[height][j][k+1]) == 2 and array[height+1][j][k] == 0: #and ((k - a) / a_rad) ** 2 + ((j - b) / b_rad) ** 2 <= 1.015:
+                array[height][j][k] = 0
+                misplaced_voxels[erronous_voxels_nr] = np.array([k, j, height], dtype=np.int32)
                 erronous_voxels_nr += 1
     correct_len = 0
     for each in misplaced_voxels:
@@ -234,6 +238,26 @@ def surrounding_checker(array, surface, n_x_lr, n_y_lr, n_z_lr, temperature):
     for each in array:
         for i in range(0, 6):
             if temperature[each[2] + n_z_lr[i]][each[1] + n_y_lr[i]][each[0] + n_x_lr[i]] == 0:
+                surrounding_surface[count] = np.array([each[0] + n_x_lr[i], each[1] + n_y_lr[i], each[2] + n_z_lr[i]], dtype=np.int32)
+                count += 1
+                if count == len(array) - 1:
+                    nr_of_last_sus_elements += 1
+    for i in range(len(surrounding_surface)):
+        for j in range(i+1-len(surrounding_surface)):
+            if surrounding_surface[i][0] == surrounding_surface[j][0] and surrounding_surface[i][1] == surrounding_surface[j][1] and surrounding_surface[i][2] == surrounding_surface[j][2]:
+                np.delete(surrounding_surface, j)
+                count -= 1
+    return surrounding_surface[0:count]
+
+
+@njit
+def surrounding_checker_moon(array, surface, n_x_lr, n_y_lr, n_z_lr, temperature):
+    surrounding_surface = np.zeros((len(array) * 9, 3), dtype=np.int32)
+    count = 0
+    nr_of_last_sus_elements = 0
+    for each in array:
+        for i in range(0, 6):
+            if temperature[each[2] + n_z_lr[i]][each[1] + n_y_lr[i]][each[0] + n_x_lr[i]] == 400:
                 surrounding_surface[count] = np.array([each[0] + n_x_lr[i], each[1] + n_y_lr[i], each[2] + n_z_lr[i]], dtype=np.int32)
                 count += 1
                 if count == len(array) - 1:

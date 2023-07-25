@@ -382,6 +382,38 @@ def diffusion_parameters(n_x, n_y, n_z, a_1, b_1, c_1, d_1, temperature, temps, 
     return diffusion_coefficient, p_sub, sublimated_mass
 
 
+@njit(parallel=True)
+def diffusion_parameters_moon(n_x, n_y, n_z, a_1, b_1, c_1, d_1, temperature, temps, m_mol, R_gas, VFF, r_mono, Phi, q, pressure, m_H2O, k_B, dx, dy, dz, Dr, dt, sample_holder, sample_holder_diffusion):
+    diffusion_coefficient = np.zeros((n_z, n_y, n_x, 6), dtype=np.float64)
+    p_sub = np.zeros((n_z, n_y, n_x), dtype=np.float64)
+    sublimated_mass = np.zeros((n_z, n_y, n_x), dtype=np.float64)
+    #Using Güttler et al. 2023 calculation for q together with Phi = 13/6
+    q = 1.60 - 0.73 * (1 - VFF)
+    for i in prange(1, n_z-1):
+        for j in range(1, n_y-1):
+            for k in range(1, n_x-1):
+                if sample_holder[i][j][k] == 1 and sample_holder_diffusion[i][j][k] != 1:
+                    temps[i][j][k][4] = 0
+                    temps[i][j][k][5] = 0
+                    temps[i][j][k][2] = 0
+                    temps[i][j][k][3] = 0
+                    temps[i][j][k][0] = temperature[i + 1][j][k] + (temperature[i][j][k] - temperature[i + 1][j][k]) / Dr[i][j][k][0] * 1 / 2 * dz[i + 1][j][k] * (1 - sample_holder[i+1][j][k])
+                    temps[i][j][k][1] = 0
+                    for a in range(len(temps[i][j][k])):
+                        #diff_coeff = permeability * (porosity/(R*T))**-1
+                        if temps[i][j][k][a] == 0:
+                            diffusion_coefficient[i][j][k][a] = 0
+                        else:
+                            diffusion_coefficient[i][j][k][a] = (1/(R_gas * temps[i][j][k][a]))**(-1) * 1/np.sqrt(2 * np.pi * m_mol * R_gas * temps[i][j][k][a]) * (1 - VFF[i][j][k])**2 * 2 * r_mono/(3 * (1 - (1 - VFF[i][j][k]))) * 4 / (Phi * q[i][j][k])
+                if temperature[i][j][k] > 0 and sample_holder[i][j][k] != 1:
+                    p_sub[i][j][k] = 10 ** (a_1[0] + b_1[0] / temperature[i][j][k] + c_1[0] * np.log10(temperature[i][j][k]) + d_1[0] * temperature[i][j][k])
+                    sublimated_mass[i][j][k] = (p_sub[i][j][k] - pressure[i][j][k]) * np.sqrt(m_H2O / (2 * np.pi * k_B * temperature[i][j][k])) * (3 * VFF[i][j][k] / r_mono * dx[i][j][k] * dy[i][j][k] * dz[i][j][k]) * dt
+                    '''Permeability needs to be an interface parameter like Lambda, so VFF needs also be calculated on the interface. r_mono should be r_p from sintering. And look up calculation of D from k_m0'''
+                    for a in range(len(temps[i][j][k])):
+                        #diff_coeff = permeability * (porosity/(R*T))**-1
+                        diffusion_coefficient[i][j][k][a] = (1/(R_gas * temps[i][j][k][a]))**(-1) * 1/np.sqrt(2 * np.pi * m_mol * R_gas * temps[i][j][k][a]) * (1 - VFF[i][j][k])**2 * 2 * r_mono/(3 * (1 - (1 - VFF[i][j][k]))) * 4 / (Phi * q[i][j][k])
+    return diffusion_coefficient, p_sub, sublimated_mass
+
 @njit
 def calculate_source_terms(n_x, n_y, n_z, temperature, pressure, sublimated_mass, dx, dy, dz, dt, surface_reduced, water_mass_per_layer, latent_heat_water, surface):
     S_c_hte = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)

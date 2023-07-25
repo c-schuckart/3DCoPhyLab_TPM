@@ -65,7 +65,7 @@ for i in range(0, const.n_z):
             temperature[i][j][k] = 0
 sample = plot_3D(temperature)'''
 
-#sample = plot_3D(np.array(data_vis['Temperature'][-1]))
+#sample = plot_3D(np.array(data_vis['T']))
 #print(np.sum([data_vis['Outgassing rate'][b] * const.dt for b in range(len(data_vis['Outgassing rate']))]))
 '''for i in range(0, const.n_z):
     if data_vis['Temperature'][len(data_vis['Temperature'])-1][i][const.n_y//2][const.n_x//2] > 0:
@@ -79,10 +79,12 @@ sample_and_surface = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float6
 for i in range(0, const.n_z):
     for j in range(0, const.n_y):
         for k in range(0, const.n_x):
-            if np.sum(data_vis['Surface'][i][j][k]) != 0:
-                sample_and_surface[i][j][k] = 50
-            else:
-                sample_and_surface[i][j][k] = 25
+            if data_vis['SHD'][i][j][k] != 0:
+                sample_and_surface[i][j][k] += 25
+            #if np.sum(data_vis['SSurface'][i][j][k]) != 0:
+                #sample_and_surface[i][j][k] = 50
+            #else:
+                #sample_and_surface[i][j][k] = 25
             #if data_vis['gas mass'][i][j][k] > 0:
                 #sample_and_surface[i][j][k] = 10
             #if np.sum(data_vis['Surface'][i][j][k]) != 0:
@@ -93,9 +95,12 @@ for i in range(0, const.n_z):
 '''for each in data_vis['SuS']:
     sample_and_surface[each[2]][each[1]][each[0]] = 50'''
 #print(data_vis['RSurface'])
-'''for each in data_vis['RSurface']:
-    sample_and_surface[each[2]][each[1]][each[0]] = 100
-for each in data_vis['SSurface']:
+for each in data_vis['RSurface']:
+    if each[0] == 0 and each[1] == 0 and each[2] == 0:
+        pass
+    else:
+        sample_and_surface[each[2]][each[1]][each[0]] += 50
+'''for each in data_vis['SSurface']:
     sample_and_surface[each[2]][each[1]][each[0]] = 50
     #if np.sum(data_vis['Surface'][each[2]][each[1]][each[0]]) != 0:
         #sample_and_surface[each[2]][each[1]][each[0]] = 1

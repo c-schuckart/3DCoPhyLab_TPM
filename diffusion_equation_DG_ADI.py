@@ -212,13 +212,14 @@ def de_implicit_DGADI(n_x, n_y, n_z, surface_reduced, dt, gas_mass, Diffusion_co
             sub_alpha, diag, sub_gamma, rhs = boundary_condition_implicit_x_sweep_de(dt, gas_mass, Diffusion_coefficient, Dr, dx, dy, dz, surface, surface_elements_in_line[0:counter], sub_alpha, diag, sub_gamma, rhs, S_c, S_p, sh_adjacent_voxels, top_layer_zero)
             sub_alpha, diag, sub_gamma = set_matrices_lhs_x_sweep_de(n_x, i, j, sub_alpha, diag, sub_gamma, Diffusion_coefficient, dx, dy, dz, Dr, dt, S_p, gas_mass, surface, sh_adjacent_voxels, temperature)
             rhs = set_matrices_rhs_x_sweep_de(n_x, i, j, rhs, gas_mass, surface,dx, dy, dz, Dr, Diffusion_coefficient, dt, S_c, sh_adjacent_voxels, temperature)
-            '''if (i == 1 or i == 2) and j == 4:
-                print(sub_gamma)
-                print(diag)
-                print(sub_alpha)
-                print(rhs)'''
+            '''print(sub_gamma)
+            print(diag)
+            print(sub_alpha)
+            print(rhs)
+            print(i, j)'''
             x_sweep_gas_mass[i, j, 0:n_x] = tridiagonal_matrix_solver(n_x, diag, sub_gamma, sub_alpha, rhs)
     #print(np.sum(x_sweep_gas_mass * dx * dy * dz) - np.sum(gas_mass * dx * dy * dz))
+    #print((x_sweep_gas_mass * dx * dy * dz)[1:3, 10:20, 10:20], 'x')
     #print(x_sweep_gas_mass[1])
     #print(x_sweep_gas_mass[2])
     for i in range(1, n_z-1):
@@ -242,6 +243,7 @@ def de_implicit_DGADI(n_x, n_y, n_z, surface_reduced, dt, gas_mass, Diffusion_co
             rhs = set_matrices_rhs_y_sweep_de(n_y, i, k, rhs, gas_mass, x_sweep_gas_mass, surface, dx, dy, dz, Dr, Diffusion_coefficient, dt, S_c,sh_adjacent_voxels, temperature)
             y_sweep_gas_mass[i, 0:n_y, k] = tridiagonal_matrix_solver(n_y, diag, sub_gamma, sub_alpha, rhs)
     #print(np.sum(y_sweep_gas_mass * dx * dy * dz) - np.sum(gas_mass * dx * dy * dz))
+    #print((y_sweep_gas_mass * dx * dy * dz)[1:3, 10:20, 10:20], 'y')
     for j in range(1, n_y-1):
         for k in range(1, n_x-1):
             sub_alpha = np.zeros(n_z, dtype=np.float64)
@@ -260,20 +262,21 @@ def de_implicit_DGADI(n_x, n_y, n_z, surface_reduced, dt, gas_mass, Diffusion_co
                     counter += 1
             #print(surface_elements_in_line[0:counter])
             sub_alpha, diag, sub_gamma, rhs = boundary_condition_implicit_z_sweep_de(dt, gas_mass, x_sweep_gas_mass, y_sweep_gas_mass, Diffusion_coefficient, Dr, dx, dy, dz, surface, surface_elements_in_line[0:counter], sub_alpha, diag, sub_gamma, rhs, S_c, S_p, sh_adjacent_voxels, top_layer_zero)
-            '''if j == 4 and k == 4:
+            '''if j == 16 and k == 16:
                 print(sub_gamma)
                 print(diag)
                 print(sub_alpha)
                 print(rhs)'''
             sub_alpha, diag, sub_gamma = set_matrices_lhs_z_sweep_de(n_z, j, k, sub_alpha, diag, sub_gamma, Diffusion_coefficient, dx, dy, dz, Dr, dt, S_p, gas_mass, surface, sh_adjacent_voxels, temperature)
             rhs = set_matrices_rhs_z_sweep_de(n_z, j, k, rhs, gas_mass, x_sweep_gas_mass, y_sweep_gas_mass, surface, dx, dy, dz, Dr, Diffusion_coefficient, dt, S_c, sh_adjacent_voxels, temperature)
-            '''if j == 4 and k == 4:
+            '''if j == 16 and k == 16:
                 print(sub_gamma)
                 print(diag)
                 print(sub_alpha)
                 print(rhs)'''
             next_step_gas_mass[0:n_z, j, k] = tridiagonal_matrix_solver(n_z, diag, sub_gamma, sub_alpha, rhs)
     #print(np.sum(next_step_gas_mass * dx * dy * dz) - np.sum(gas_mass * dx * dy * dz))
+    #print((next_step_gas_mass * dx * dy * dz)[1:3, 10:20, 10:20], 'z')
     return next_step_gas_mass
 
 
