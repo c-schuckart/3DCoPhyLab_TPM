@@ -185,11 +185,13 @@ for j in tqdm(range(0, const.k)):
         sublimated_mass = (gas_density - gas_density_previous) * dx * dy * dz
         #print(np.max(sublimated_mass))
         #print(sublimated_mass[1:3, 10:20, 10:20], 4)
+        sub_gas_begin[0:const.n_z, 0:const.n_y, 0:const.n_x] = sublimated_mass[0:const.n_z, 0:const.n_y, 0:const.n_x]
+        sub_gasdens_begin[0:const.n_z, 0:const.n_y, 0:const.n_x] = gas_density[0:const.n_z, 0:const.n_y, 0:const.n_x]
+        temp_begin[0:const.n_z, 0:const.n_y, 0:const.n_x] = temperature[0:const.n_z, 0:const.n_y, 0:const.n_x]
         if np.abs(np.sum(sub_gas_begin) - np.sum(sublimated_mass)) > 1E-20:
             print(np.abs(np.sum(sub_gas_begin) - np.sum(sublimated_mass)))
             print('Mass conservation warning')
         pressure = pressure_calculation(const.n_x, const.n_y, const.n_z, temperature, gas_density * dx * dy * dz, const.k_boltzmann, const.m_H2O, var.VFF_pack, const.r_mono, dx, dy, dz, const.dt, sample_holder)
-        print(np.max(np.abs(temperature - temp_begin)), np.max(np.abs(gas_density - sub_gasdens_begin)))
         if np.max(np.abs(temperature - temp_begin)) < 1E-7:
             break
         if i < 29:
@@ -197,21 +199,17 @@ for j in tqdm(range(0, const.k)):
             temperature[0:const.n_z, 0:const.n_y, 0:const.n_x] = temperature_previous[0:const.n_z, 0:const.n_y, 0:const.n_x]
         else:
             print('Low Convergence Warning')
-        sub_gas_begin[0:const.n_z, 0:const.n_y, 0:const.n_x] = sublimated_mass[0:const.n_z, 0:const.n_y, 0:const.n_x]
-        sub_gasdens_begin[0:const.n_z, 0:const.n_y, 0:const.n_x] = gas_density[0:const.n_z, 0:const.n_y, 0:const.n_x]
-        temp_begin[0:const.n_z, 0:const.n_y, 0:const.n_x] = temperature[0:const.n_z, 0:const.n_y, 0:const.n_x]
         #break
     #S_c, sublimated_mass, outgassed_mass_timestep = calculate_molecule_flux_moon(const.n_x, const.n_y, const.n_z, temperature, pressure, const.lh_a_1, const.lh_b_1, const.lh_c_1, const.lh_d_1, const.m_H2O, dx, dy, dz, const.dt, const.k_boltzmann, sample_holder, uniform_water_masses, latent_heat_water)
     #temperature = hte_implicit_DGADI(const.n_x, const.n_y, const.n_z, surface_reduced, const.r_H, const.albedo, const.dt, lamp_power, const.sigma, const.epsilon, temperature, Lambda, Dr, heat_capacity, density, dx, dy, dz, surface, S_c, S_p, sample_holder)
     #outgassed_mass_complete += outgassed_mass_timestep
-    break
     outgassed_mass_complete += np.sum(sublimated_mass * mesh_shape_negative)
     sublimated_mass = sublimated_mass * mesh_shape_positive
     gas_density = gas_density * mesh_shape_positive
     uniform_water_masses = uniform_water_masses - sublimated_mass
-    print(np.sum(sublimated_mass))
-    #if np.max(np.abs(temperature - temperature_previous)) < 50E-6:
-        #break
+    #print(np.sum(sublimated_mass))
+    if np.max(np.abs(temperature - temperature_previous)) < 50E-6:
+        break
     #uniform_water_masses_implicit = update_thermal_arrays(const.n_x, const.n_y, const.n_z, temperature, uniform_water_masses_implicit, delta_T, Energy_Increase_per_Layer, sublimated_mass_implicit, resublimated_mass, const.dt, const.avogadro_constant, const.molar_mass_water, const.molar_mass_co2, heat_capacity, const.heat_capacity_water_ice, const.heat_capacity_co2_ice, EIis_0, Latent_Heat_per_Layer, E_Lat_0, E_Rad, E_In, E_sh, E_source_sink)[1]
     #print(sublimated_mass_implicit[1][12][12], temperature_implicit[1][12][12])'
     #if j % sett.data_reduce == 0 or j == 0:

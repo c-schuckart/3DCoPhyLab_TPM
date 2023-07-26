@@ -78,30 +78,25 @@ def find_surface(n_x, n_y, n_z, limiter_x_start, limiter_y_start, limiter_z_star
             for k in range(limiter_x_start, limiter_x_end):
                 surface[i][j][k] = np.zeros(6, dtype=np.int32)
                 if mesh[i][j][k] != 0:
+                    mesh_shape_positive[i][j][k] = 1
                     #Check if it is a surface in positive z direction
                     if mesh[i+1][j][k] == 0:
                         surface[i][j][k][0] = 1
-                        mesh_shape_positive[i][j][k] = 1
                     # Check if it is a surface in negative z direction
                     if mesh[i-1][j][k] == 0:
                         surface[i][j][k][1] = 1
-                        mesh_shape_positive[i][j][k] = 1
                     # Check if it is a surface in positive y direction
                     if mesh[i][j+1][k] == 0:
                         surface[i][j][k][2] = 1
-                        mesh_shape_positive[i][j][k] = 1
                     # Check if it is a surface in negative y direction
                     if mesh[i][j-1][k] == 0:
                         surface[i][j][k][3] = 1
-                        mesh_shape_positive[i][j][k] = 1
                     # Check if it is a surface in positive x direction
                     if mesh[i][j][k+1] == 0:
                         surface[i][j][k][4] = 1
-                        mesh_shape_positive[i][j][k] = 1
                     # Check if it is a surface in negative x direction
                     if mesh[i][j][k-1] == 0:
                         surface[i][j][k][5] = 1
-                        mesh_shape_positive[i][j][k] = 1
                     if sett.mesh_form == 1 and not sett.encapsulating_sample_holder:
                         if ((k - a) / a_rad) ** 2 + ((j - b) / b_rad) ** 2 <= 1 and sum(surface[i][j][k] != 0) and i < n_z - 2:
                             surface_elements += 1
