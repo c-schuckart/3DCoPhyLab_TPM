@@ -216,7 +216,7 @@ def calculate_molecule_surface(n_x, n_y, n_z, temperature, pressure, a_1, b_1, c
 
 
 @njit
-def calculate_molecule_surface_Q(n_x, n_y, n_z, temperature, pressure, a_1, b_1, c_1, d_1, m_H2O, R_gas, VFF, r_grain, Phi, tortuosity, dx, dy, dz, dt, surface_reduced, avogadro_constant, k_B, sample_holder, water_mass_per_layer, n_x_lr, n_y_lr, n_z_lr, Dr, surface_reduction_factor, latent_heat_water):
+def calculate_molecule_surface_Q(n_x, n_y, n_z, temperature, pressure, a_1, b_1, c_1, d_1, m_H2O, dx, dy, dz, dt, surface_reduced, k_B, water_mass_per_layer, latent_heat_water):
     p_sub = np.zeros(np.shape(temperature), dtype=np.float64)
     sublimated_mass = np.zeros(np.shape(temperature), dtype=np.float64)
     resublimated_mass = np.zeros((n_z, n_y, n_x), dtype=np.float64)
@@ -238,6 +238,7 @@ def calculate_molecule_surface_Q(n_x, n_y, n_z, temperature, pressure, a_1, b_1,
         # 3 * VFF[each[2]][each[1]][each[0]] / r_grain * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]]) * surface_reduction_factor
         if sublimated_mass[each[2]][each[1]][each[0]] > water_mass_per_layer[each[2]][each[1]][each[0]]:
             sublimated_mass[each[2]][each[1]][each[0]] = water_mass_per_layer[each[2]][each[1]][each[0]]
+            water_mass_per_layer[each[2]][each[1]][each[0]] = 0
             empty_voxels[empty_voxel_count] = np.array([each[0], each[1], each[2]], dtype=np.int32)
             empty_voxel_count += 1
         outgassed_mass += sublimated_mass[each[2]][each[1]][each[0]]
@@ -246,7 +247,7 @@ def calculate_molecule_surface_Q(n_x, n_y, n_z, temperature, pressure, a_1, b_1,
         S_c[each[2]][each[1]][each[0]] = - sublimated_mass[each[2]][each[1]][each[0]] * latent_heat_water[each[2]][each[1]][each[0]] / (dt * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]])
     # pressure = p_sub
     # Non 100% resublimation missing
-    return S_c, sublimated_mass
+    return S_c, sublimated_mass, empty_voxels[0:empty_voxel_count], water_mass_per_layer
 
 @njit
 def calculate_molecule_flux_test(n_x, n_y, n_z, temperature, pressure, a_1, b_1, c_1, d_1, m_H2O, R_gas, VFF, r_grain, Phi, tortuosity, dx, dy, dz, dt, surface_reduced, avogadro_constant, k_B, sample_holder, water_mass_per_layer, n_x_lr, n_y_lr, n_z_lr, Dr, surface_reduction_factor, surface):
@@ -413,6 +414,7 @@ def diffusion_parameters_moon(n_x, n_y, n_z, a_1, b_1, c_1, d_1, temperature, te
                         #diff_coeff = permeability * (porosity/(R*T))**-1
                         diffusion_coefficient[i][j][k][a] = (1/(R_gas * temps[i][j][k][a]))**(-1) * 1/np.sqrt(2 * np.pi * m_mol * R_gas * temps[i][j][k][a]) * (1 - VFF[i][j][k])**2 * 2 * r_mono/(3 * (1 - (1 - VFF[i][j][k]))) * 4 / (Phi * q[i][j][k])
     return diffusion_coefficient, p_sub, sublimated_mass
+
 
 @njit
 def calculate_source_terms(n_x, n_y, n_z, temperature, pressure, sublimated_mass, dx, dy, dz, dt, surface_reduced, water_mass_per_layer, latent_heat_water, surface):

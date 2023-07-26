@@ -309,6 +309,10 @@ def get_L_chamber_lamp_power(sample_holder):
 				if i % 2 == 1 and j % 2 == 1:
 					new_Z[i-1][j-1] = (Z[i // 2 + 1][j // 2 + 1] + Z[i // 2 + 1][(j + 1) // 2 + 1] + Z[(i+1) // 2 + 1][j // 2 + 1] + Z[(i+1) // 2 + 1][(j + 1) // 2 + 1]) / 4
 		Z = new_Z
+	if sample_holder == 'L':
+		new_Z = np.zeros((33, 33), dtype=np.float64)
+		new_Z[12:23, 12:23] = Z
+		Z = new_Z
 	Lamp_power_per_m2 = Z * 1/0.48
 	return Lamp_power_per_m2
 
