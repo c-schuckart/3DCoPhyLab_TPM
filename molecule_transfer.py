@@ -216,7 +216,7 @@ def calculate_molecule_surface(n_x, n_y, n_z, temperature, pressure, a_1, b_1, c
 
 
 @njit
-def calculate_molecule_surface_Q(n_x, n_y, n_z, temperature, pressure, a_1, b_1, c_1, d_1, m_H2O, R_gas, VFF, r_grain, Phi, tortuosity, dx, dy, dz, dt, surface_reduced, avogadro_constant, k_B, sample_holder, water_mass_per_layer, n_x_lr, n_y_lr, n_z_lr, Dr, surface_reduction_factor, latent_heat_water):
+def calculate_molecule_surface_Q(n_x, n_y, n_z, temperature, pressure, a_1, b_1, c_1, d_1, m_H2O, dx, dy, dz, dt, surface_reduced, k_B, water_mass_per_layer, latent_heat_water):
     p_sub = np.zeros(np.shape(temperature), dtype=np.float64)
     sublimated_mass = np.zeros(np.shape(temperature), dtype=np.float64)
     resublimated_mass = np.zeros((n_z, n_y, n_x), dtype=np.float64)
@@ -238,6 +238,7 @@ def calculate_molecule_surface_Q(n_x, n_y, n_z, temperature, pressure, a_1, b_1,
         # 3 * VFF[each[2]][each[1]][each[0]] / r_grain * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]]) * surface_reduction_factor
         if sublimated_mass[each[2]][each[1]][each[0]] > water_mass_per_layer[each[2]][each[1]][each[0]]:
             sublimated_mass[each[2]][each[1]][each[0]] = water_mass_per_layer[each[2]][each[1]][each[0]]
+            water_mass_per_layer[each[2]][each[1]][each[0]] = 0
             empty_voxels[empty_voxel_count] = np.array([each[0], each[1], each[2]], dtype=np.int32)
             empty_voxel_count += 1
         outgassed_mass += sublimated_mass[each[2]][each[1]][each[0]]
@@ -246,7 +247,7 @@ def calculate_molecule_surface_Q(n_x, n_y, n_z, temperature, pressure, a_1, b_1,
         S_c[each[2]][each[1]][each[0]] = - sublimated_mass[each[2]][each[1]][each[0]] * latent_heat_water[each[2]][each[1]][each[0]] / (dt * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]])
     # pressure = p_sub
     # Non 100% resublimation missing
-    return S_c, sublimated_mass
+    return S_c, sublimated_mass, empty_voxels[0:empty_voxel_count], water_mass_per_layer
 
 @njit
 def calculate_molecule_flux_test(n_x, n_y, n_z, temperature, pressure, a_1, b_1, c_1, d_1, m_H2O, R_gas, VFF, r_grain, Phi, tortuosity, dx, dy, dz, dt, surface_reduced, avogadro_constant, k_B, sample_holder, water_mass_per_layer, n_x_lr, n_y_lr, n_z_lr, Dr, surface_reduction_factor, surface):
@@ -329,7 +330,7 @@ def calculate_molecule_flux_test_Q(n_x, n_y, n_z, temperature, pressure, a_1, b_
     return S_c, sublimated_mass
 
 @njit
-def calculate_molecule_flux_moon(n_x, n_y, n_z, temperature, pressure, a_1, b_1, c_1, d_1, m_H2O, dx, dy, dz, dt, k_B, sample_holder, water_mass_per_layer, latent_heat_water):
+def calculate_molecule_flux_moon(n_x, n_y, n_z, temperature, pressure, a_1, b_1, c_1, d_1, m_H2O, dx, dy, dz, dt, k_B, sample_holder, water_mass_per_layer, latent_heat_water, water_particle_number, r_mono_water):
     p_sub = np.zeros(np.shape(temperature), dtype=np.float64)
     sublimated_mass = np.zeros(np.shape(temperature), dtype=np.float64)
     resublimated_mass = np.zeros((n_z, n_y, n_x), dtype=np.float64)
@@ -341,7 +342,7 @@ def calculate_molecule_flux_moon(n_x, n_y, n_z, temperature, pressure, a_1, b_1,
             for k in range(1, n_x-1):
                 if sample_holder[i][j][k] == 0 and temperature[i][j][k] > 0:
                     p_sub[i][j][k] = 10 ** (a_1[0] + b_1[0] / temperature[i][j][k] + c_1[0] * np.log10(temperature[i][j][k]) + d_1[0] * temperature[i][j][k])
-                    sublimated_mass[i][j][k] = (p_sub[i][j][k] - pressure[i][j][k]) * np.sqrt(m_H2O / (2 * np.pi * k_B * temperature[i][j][k])) * dx[i][j][k] * dy[i][j][k] * dt
+                    sublimated_mass[i][j][k] = (p_sub[i][j][k] - pressure[i][j][k]) * np.sqrt(m_H2O / (2 * np.pi * k_B * temperature[i][j][k])) * (water_particle_number[i][j][k] * 4 * np.pi * r_mono_water**2) * dt
                     if sublimated_mass[i][j][k] > water_mass_per_layer[i][j][k]:
                         sublimated_mass[i][j][k] = water_mass_per_layer[i][j][k]
                     S_c[i][j][k] = - sublimated_mass[i][j][k] * latent_heat_water[i][j][k] / (dt * dx[i][j][k] * dy[i][j][k] * dz[i][j][k])

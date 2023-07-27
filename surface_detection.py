@@ -266,11 +266,11 @@ def surrounding_checker_moon(array, surface, n_x_lr, n_y_lr, n_z_lr, temperature
 
 
 @njit
-def update_surface_arrays(voxels_to_delete, surface, reduced_surface, temperature, n_x, n_y, n_z, a, a_rad, b, b_rad):
+def update_surface_arrays(voxels_to_delete, surface, reduced_surface, temperature, n_x, n_y, n_z, a, a_rad, b, b_rad, diffusion_mesh):
     for each in voxels_to_delete:
         temperature[each[2]][each[1]][each[0]] = 0
         #print(reduced_surface)
-        surface, new_reduced_surface_elements = find_surface(n_x, n_y, n_z, each[0]-1, each[1]-1, each[2]-1, each[0]+2, each[1]+2, each[2]+2, temperature, surface, a, a_rad, b, b_rad, False)[0:2]
+        surface, new_reduced_surface_elements = find_surface(n_x, n_y, n_z, each[0]-1, each[1]-1, each[2]-1, each[0]+2, each[1]+2, each[2]+2, temperature, surface, a, a_rad, b, b_rad, False, diffusion_mesh)[0:2]
         #new_surrounding_surface = surrounding_checker(np.append(new_reduced_surface_elements, ), surface, n_x_lr, n_y_lr, n_z_lr)
         #doubled_elements = np.empty((0, 0), dtype=np.int32)
         #print(new_reduced_surface_elements)
