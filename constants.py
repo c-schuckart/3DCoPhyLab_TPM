@@ -18,14 +18,15 @@ n_y = 32
 n_z = 18'''
 n = np.array([n_x, n_y, n_z])
 #k = 36288 * 5                      # Number of Timesteps                    [-]
-k = 12096 * 5                   # Number of Timesteps                    [-]
+k = int(12096 * 5)                    # Number of Timesteps                    [-]
 #Definition of Physical Parameters
 #Material Properties
 lambda_constant = 0.01            # Thermal Conductivity                   [W/(K m)]
 #lambda_constant = 100000            # Thermal Conductivity                   [W/(K m)]
 lambda_scaling_factor = 1
-#r_mono = 87E-6                     # Radius of Monomeres                    [m]
-r_mono = 2.5E-6                     # Radius of Monomeres                    [m]
+#r_mono = 90E-6                     # Radius of Monomeres                    [m]
+r_mono = 2.5E-6
+r_mono_water = 2.5E-6
 e_1 = 1.34                        # Parameter for mean free path           [-]
 VFF_pack_const = 0.42              # Volume Filling Factor of Packing       [-]
 #VFF_pack_const = 0.55              # Volume Filling Factor of Packing       [-]
@@ -70,7 +71,7 @@ gravitational_pressure = 0        #Placeholder! [Pa]
 surface_reduction_factor = 1
 #Thermal Properties
 #temperature_ini = 150             # Start Temperature                      [K]
-temperature_ini = 77             # Start Temperature                      [K]
+temperature_ini = 77
 sample_holder_starting_temp = 150  # Starting temperature of the sample holder [K]
 Input_Intensity = 6500             # Intensity of the Light Source (Sun)    [W/m^2]
 #epsilon = 1                       # Emissivity                             [-]
@@ -106,7 +107,7 @@ var_lamp_profile = 9/4 * 1E-3            # Variance of the gaussian distribution
 #Moon
 density_highlands = 2900          # [kg/(m^3)]
 density_maria = 3300              # [kg/(m^3)]
-density_TUBS_M = 2960
+density_TUBS_M = 2750
 c0 = -3.6125 # coefficients for specific heat capacity function [J kg^-1 K^-1] (Hayne et al. 2017)
 c1 = 2.7431 # [J kg^-1 K^-2]
 c2 = 2.3616E-3 # ...

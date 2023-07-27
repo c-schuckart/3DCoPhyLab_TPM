@@ -316,8 +316,8 @@ def get_L_chamber_lamp_power(sample_holder):
 	Lamp_power_per_m2 = Z * 1/0.48
 	return Lamp_power_per_m2
 
-def calculate_L_chamber_lamp_bd(Volt, sample_holder, n_x, n_y, n_z):
-	Surface_powers = get_L_chamber_lamp_power(sample_holder) * 0.01**2 * S_chamber_cal_curve(Volt)/S_chamber_cal_curve(24)
+def calculate_L_chamber_lamp_bd(Volt, sample_holder, n_x, n_y, n_z, min_dx, min_dy):
+	Surface_powers = get_L_chamber_lamp_power(sample_holder) * (min_dx * min_dy) * S_chamber_cal_curve(Volt)/S_chamber_cal_curve(24)
 	ggT = GCD(len(Surface_powers[0]), const.n_x-2)
 	length = len(Surface_powers[0])//ggT
 	convolved = convolve(Surface_powers, length, const.n_x-2, len(Surface_powers[0]), n_x, n_y)[0]
