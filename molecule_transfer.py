@@ -342,7 +342,7 @@ def calculate_molecule_flux_moon(n_x, n_y, n_z, temperature, pressure, a_1, b_1,
             for k in range(1, n_x-1):
                 if sample_holder[i][j][k] == 0 and temperature[i][j][k] > 0:
                     p_sub[i][j][k] = 10 ** (a_1[0] + b_1[0] / temperature[i][j][k] + c_1[0] * np.log10(temperature[i][j][k]) + d_1[0] * temperature[i][j][k])
-                    sublimated_mass[i][j][k] = (p_sub[i][j][k] - pressure[i][j][k]) * np.sqrt(m_H2O / (2 * np.pi * k_B * temperature[i][j][k])) * (water_particle_number[i][j][k] * 4 * np.pi * r_mono_water**2) * dt
+                    sublimated_mass[i][j][k] = (p_sub[i][j][k] - pressure[i][j][k]) * np.sqrt(m_H2O / (2 * np.pi * k_B * temperature[i][j][k])) * (water_particle_number[i][j][k] * 4 * np.pi * r_mono_water[i][j][k]**2) * dt
                     if sublimated_mass[i][j][k] > water_mass_per_layer[i][j][k]:
                         sublimated_mass[i][j][k] = water_mass_per_layer[i][j][k]
                     S_c[i][j][k] = - sublimated_mass[i][j][k] * latent_heat_water[i][j][k] / (dt * dx[i][j][k] * dy[i][j][k] * dz[i][j][k])
@@ -384,7 +384,7 @@ def diffusion_parameters(n_x, n_y, n_z, a_1, b_1, c_1, d_1, temperature, temps, 
 
 
 @njit(parallel=True)
-def diffusion_parameters_moon(n_x, n_y, n_z, a_1, b_1, c_1, d_1, temperature, temps, m_mol, R_gas, VFF, r_mono, Phi, q, pressure, m_H2O, k_B, dx, dy, dz, Dr, dt, sample_holder, sample_holder_diffusion):
+def diffusion_parameters_moon(n_x, n_y, n_z, a_1, b_1, c_1, d_1, temperature, temps, m_mol, R_gas, VFF, r_mono, Phi, q, pressure, m_H2O, k_B, dx, dy, dz, Dr, dt, sample_holder, sample_holder_diffusion, water_particle_number, r_mono_water):
     diffusion_coefficient = np.zeros((n_z, n_y, n_x, 6), dtype=np.float64)
     p_sub = np.zeros((n_z, n_y, n_x), dtype=np.float64)
     sublimated_mass = np.zeros((n_z, n_y, n_x), dtype=np.float64)
@@ -408,7 +408,7 @@ def diffusion_parameters_moon(n_x, n_y, n_z, a_1, b_1, c_1, d_1, temperature, te
                             diffusion_coefficient[i][j][k][a] = (1/(R_gas * temps[i][j][k][a]))**(-1) * 1/np.sqrt(2 * np.pi * m_mol * R_gas * temps[i][j][k][a]) * (1 - VFF[i][j][k])**2 * 2 * r_mono/(3 * (1 - (1 - VFF[i][j][k]))) * 4 / (Phi * q[i][j][k])
                 if temperature[i][j][k] > 0 and sample_holder[i][j][k] != 1:
                     p_sub[i][j][k] = 10 ** (a_1[0] + b_1[0] / temperature[i][j][k] + c_1[0] * np.log10(temperature[i][j][k]) + d_1[0] * temperature[i][j][k])
-                    sublimated_mass[i][j][k] = (p_sub[i][j][k] - pressure[i][j][k]) * np.sqrt(m_H2O / (2 * np.pi * k_B * temperature[i][j][k])) * (3 * VFF[i][j][k] / r_mono * dx[i][j][k] * dy[i][j][k] * dz[i][j][k]) * dt
+                    sublimated_mass[i][j][k] = (p_sub[i][j][k] - pressure[i][j][k]) * np.sqrt(m_H2O / (2 * np.pi * k_B * temperature[i][j][k])) * (water_particle_number[i][j][k] * 4 * np.pi * r_mono_water[i][j][k]**2) * dt
                     '''Permeability needs to be an interface parameter like Lambda, so VFF needs also be calculated on the interface. r_mono should be r_p from sintering. And look up calculation of D from k_m0'''
                     for a in range(len(temps[i][j][k])):
                         #diff_coeff = permeability * (porosity/(R*T))**-1
@@ -417,9 +417,11 @@ def diffusion_parameters_moon(n_x, n_y, n_z, a_1, b_1, c_1, d_1, temperature, te
 
 
 @njit
-def calculate_source_terms(n_x, n_y, n_z, temperature, pressure, sublimated_mass, dx, dy, dz, dt, surface_reduced, water_mass_per_layer, latent_heat_water, surface):
+def calculate_source_terms(n_x, n_y, n_z, temperature, gas_density, pressure, sublimated_mass, dx, dy, dz, dt, surface_reduced, water_mass_per_layer, latent_heat_water, surface):
     S_c_hte = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
+    S_p_hte = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
     S_c_de = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
+    S_p_de = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
     outgassed_mass = 0
     mass_flux = np.zeros(np.shape(sublimated_mass), dtype=np.float64)
     # Replace surface_reduced with len(temperature.flatten() because it could technically be that deeper voxels are drained at the same time step
@@ -428,15 +430,21 @@ def calculate_source_terms(n_x, n_y, n_z, temperature, pressure, sublimated_mass
     for i in range(1, n_z-1):
         for j in range(1, n_y-1):
             for k in range(1, n_x-1):
-                if sublimated_mass[i][j][k] > water_mass_per_layer[i][j][k]:
+                '''if sublimated_mass[i][j][k] > water_mass_per_layer[i][j][k]:
                     sublimated_mass[i][j][k] = water_mass_per_layer[i][j][k]
                     empty_voxels[empty_voxel_count] = np.array([k, j, i], dtype=np.int32)
-                    empty_voxel_count += 1
+                    empty_voxel_count += 1'''
                 outgassed_mass += sublimated_mass[i][j][k]
                 # p_sub[each[2]][each[1]][each[0]] = 0
                 S_c_hte[i][j][k] = - sublimated_mass[i][j][k] * latent_heat_water[i][j][k] / (dt * dx[i][j][k] * dy[i][j][k] * dz[i][j][k])
+                if S_c_hte[i][j][k] < 0:
+                    S_p_hte[i][j][k] = 3 * S_c_hte[i][j][k]/temperature[i][j][k]
+                    S_c_hte[i][j][k] = - 2 * S_c_hte[i][j][k]
                 S_c_de[i][j][k] = sublimated_mass[i][j][k] / (dt * dx[i][j][k] * dy[i][j][k] * dz[i][j][k])
-    return S_c_hte, S_c_de
+                if S_c_de[i][j][k] < 0:
+                    S_p_de[i][j][k] = 3 * S_c_de[i][j][k]/gas_density[i][j][k]
+                    S_c_de[i][j][k] = - 2 * S_c_de[i][j][k]
+    return S_c_hte, S_p_hte, S_c_de, S_p_de
 
 
 @njit(parallel=True)

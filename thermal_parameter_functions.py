@@ -268,9 +268,19 @@ def calculate_bulk_density_and_VFF(temperature, VFF, dust_mass, water_mass, dens
 	bulk_density = (dust_mass + water_mass) / (dx * dy * dz)
 	#VFF = ((water_mass + dust_mass) / water_ice_grain_density + (dust_mass + water_mass) / density_dust) / (dx * dy * dz)
 	VFF = bulk_density / (water_ice_grain_density * (water_mass / (water_mass + dust_mass)) + density_dust * (dust_mass / (water_mass + dust_mass)))
-	return bulk_density, VFF
+	return bulk_density, VFF, water_ice_grain_density
 
 
+@njit
+def calculate_water_grain_radius(n_x, n_y, n_z, uniform_water_masses, water_ice_grain_density, water_particle_number, r_mono_water):
+	for i in range(0, n_z):
+		for j in range(0, n_y):
+			for k in range(0, n_x):
+				if uniform_water_masses[i][j][k] > 0:
+					r_mono_water[i][j][k] = (uniform_water_masses[i][j][k] / (water_ice_grain_density[i][j][k] * water_particle_number[i][j][k] * 4 / 3 * np.pi)) ** (1 / 3)
+				else:
+					r_mono_water[i][j][k] = 0
+	return r_mono_water
 @njit
 def thermal_functions(temperature, b_1, c_1, d_1, R_gas, m_mol, VFF):
 	density_grain = 918 - 0.13783 * temperature - 2.53451E-4 * temperature ** 2
