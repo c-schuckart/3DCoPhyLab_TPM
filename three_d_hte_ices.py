@@ -7,7 +7,7 @@ import json
 from os import listdir
 from surface_detection import create_equidistant_mesh, DEBUG_print_3D_arrays, find_surface, surrounding_checker_moon, update_surface_arrays, create_equidistant_mesh_gradient, get_sample_holder_adjacency
 from thermal_parameter_functions import calculate_latent_heat, calculate_density, thermal_functions, calculate_bulk_density_and_VFF, thermal_conductivity_moon_regolith, heat_capacity_moon_regolith, calculate_water_grain_radius
-from molecule_transfer import calculate_molecule_flux_moon, diffusion_parameters_moon, calculate_source_terms, pressure_calculation
+from molecule_transfer import calculate_molecule_flux_moon, diffusion_parameters_moon, calculate_source_terms, pressure_calculation, calculate_source_terms_linearised
 from heat_transfer_equation_DG_ADI import hte_implicit_DGADI
 from diffusion_equation_DG_ADI import de_implicit_DGADI
 from boundary_conditions import sample_holder_data
@@ -174,6 +174,9 @@ for j in tqdm(range(0, const.k)):
         print(temperature[2])
         print('Fluctuation')
         break
+    '''if j == 77:
+        print(temperature[2])
+        print(gas_density[2])'''
     density, VFF, water_ice_grain_density = calculate_bulk_density_and_VFF(temperature, VFF, uniform_dust_masses, uniform_water_masses, const.density_TUBS_M, dx, dy, dz)
     r_mono_water = calculate_water_grain_radius(const.n_x, const.n_y, const.n_z, uniform_water_masses, water_ice_grain_density, water_particle_number, r_mono_water)
     latent_heat_water = calculate_latent_heat(temperature, const.lh_b_1, const.lh_c_1, const.lh_d_1, const.R, const.m_mol)
@@ -193,7 +196,11 @@ for j in tqdm(range(0, const.k)):
         break'''
     #print(sublimated_mass[1:3, 10:20, 10:20], 1)
     for i in range(0, 30):
-        Q_c_hte, Q_p_hte, Q_c_de, Q_p_de = calculate_source_terms(const.n_x,const.n_y, const.n_z, temperature, gas_density, pressure, sublimated_mass, dx, dy, dz, const.dt, surface_reduced, uniform_water_masses, latent_heat_water, surface)
+        #Q_c_hte, Q_p_hte, Q_c_de, Q_p_de = calculate_source_terms(const.n_x,const.n_y, const.n_z, temperature, gas_density, pressure, sublimated_mass, dx, dy, dz, const.dt, surface_reduced, uniform_water_masses, latent_heat_water, surface)
+        Q_c_hte, Q_p_hte, Q_c_de, Q_p_de = calculate_source_terms_linearised(const.n_x, const.n_y, const.n_z, temperature, gas_density, pressure, sublimated_mass, dx, dy, dz, const.dt, surface_reduced, uniform_water_masses, latent_heat_water, surface, const.m_H2O, const.k_boltzmann, const.lh_a_1, const.lh_b_1, const.lh_c_1, const.lh_d_1, sample_holder)
+        '''print(j, i)
+        print(Q_c_hte[2])
+        print(Q_p_hte[2])'''
         #print((Q_c_de * dx * dy * dz * const.dt)[1:3, 10:20, 10:20], 2)
         #print(gas_density[1:3, 10:20, 10:20], 3)
         temperature = hte_implicit_DGADI(const.n_x, const.n_y, const.n_z, surface_reduced, const.r_H, const.albedo, const.dt, lamp_power, const.sigma, const.epsilon, temperature, Lambda, Dr, heat_capacity, density, dx, dy, dz, surface, Q_c_hte, Q_p_hte, sample_holder)

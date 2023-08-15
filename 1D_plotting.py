@@ -431,26 +431,40 @@ writer = Writer
 
 anim.save('D:/TPM_Data/mixing_sqrt10mm_per_50s.mp4', writer=writer, dpi=600)
 Video('D:/TPM_Data/mixing_sqrt10mm_per_50s.mp4')'''
-
-water_mass_one = np.sum(np.load('D:/TPM_Data/Luwex/only_temps_mixing/WATERmixing_sqrt10mm_per_50sec' + str(float(0)) + '.npy'))
-time = np.array([i * 3600 for i in range(0, 93)], dtype=np.float64)
+paths = ['D:/TPM_Data/Luwex/only_temps_mixing_sqrt50mm_per_100s/WATERmixing_sqrt50mm_per_100sec', 'D:/TPM_Data/Luwex/only_temps_mixing_sqrt50mm_per_50s/WATERmixing_sqrt100mm_per_50sec', 'D:/TPM_Data/Luwex/only_temps_mixing_sqrt200mm_per_50s/WATERmixing_sqrt10mm_per_50sec', 'D:/TPM_Data/Luwex/only_temps_mixing_sqrt450mm_per_50s/WATERmixing_sqrt450mm_per_50sec']
+water_array = []
+time = np.array([i * 3600 for i in range(0, 241)], dtype=np.float64)
+'''water_mass_one = np.sum(np.load('D:/TPM_Data/Luwex/only_temps_mixing_sqrt200mm_per_50s/WATERmixing_sqrt10mm_per_50sec' + str(float(0)) + '.npy'))
 water_content_over_time = np.zeros(len(time), dtype=np.float64)
 for t in time:
-    water_content_over_time[int(t//3600)] = np.sum(np.load('D:/TPM_Data/Luwex/only_temps_mixing/WATERmixing_sqrt10mm_per_50sec' + str(float(t)) + '.npy')) / water_mass_one
+    water_content_over_time[int(t//3600)] = np.sum(np.load('D:/TPM_Data/Luwex/only_temps_mixing_sqrt200mm_per_50s/WATERmixing_sqrt10mm_per_50sec' + str(float(t)) + '.npy')) / water_mass_one'''
+for path in paths:
+    #water_mass_one = np.sum(np.load('D:/TPM_Data/Luwex/only_temps_mixing/WATERmixing_sqrt10mm_per_50sec' + str(float(0)) + '.npy'))
+    water_mass_one = np.sum(np.load(path + str(float(0)) + '.npy'))
+    water_content_over_time = np.zeros(len(time), dtype=np.float64)
+    for t in time:
+        #water_content_over_time[int(t//3600)] = np.sum(np.load('D:/TPM_Data/Luwex/only_temps_mixing/WATERmixing_sqrt10mm_per_50sec' + str(float(t)) + '.npy')) / water_mass_one
+        water_content_over_time[int(t // 3600)] = np.sum(np.load(path + str(float(t)) + '.npy')) / water_mass_one
+    water_array.append(water_content_over_time)
 
 fig, ax = plt.subplots(1, 1)
 
 plt.tick_params(axis='x', which='both', direction='in', top=True, labeltop=False)
 plt.tick_params(axis='y', which='both', direction='in', right=True, labelright=False)
-ax.plot(time/(3600 * 24), water_content_over_time)
+#ax.plot(time/(3600 * 24), water_content_over_time)
+ax.plot(time/(3600 * 24), water_array[0], label='7.07mm/100s')
+ax.plot(time/(3600 * 24), water_array[1], label='7.07mm/50s', ls='--')
+ax.plot(time/(3600 * 24), water_array[2], label='14.14mm/50s', ls=':')
+ax.plot(time/(3600 * 24), water_array[3], label='21.21mm/50s', ls='-.')
 ax.set_xlabel('Time (d)')
 ax.set_ylabel('Water content')
 ax.grid(True, which='major')
 ax.xaxis.set_minor_locator(MultipleLocator(5))
 ax.yaxis.set_minor_locator(AutoMinorLocator(2))
 ax.set_ylim(-0.05, 1.05)
-plt.show()
-#plt.savefig('D:/TPM_Data/Luwex/Instant_outgassing_mixing_sqrt200mm_per_50s.png', dpi=600)
+plt.legend()
+#plt.show()
+plt.savefig('D:/TPM_Data/Luwex/Instant_outgassing_mixing.png', dpi=600)
 
 '''with open('test.json') as json_file:
     data = json.load(json_file)
