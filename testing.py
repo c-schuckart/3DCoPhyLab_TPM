@@ -2,6 +2,7 @@ import json
 import numpy as np
 import matplotlib.pyplot as plt
 import constants as const
+import csv
 from data_input import read_temperature_data, getPath
 
 '''with open('test.json') as json_file:
@@ -31,18 +32,35 @@ plt.plot(z, temp_end)
 plt.scatter(z, temp_end_analytical)
 plt.show()'''
 
-surface_temp = np.genfromtxt('D:/Masterarbeit_data/surface_temp.csv', delimiter=',')
-sample_holder_temp = np.genfromtxt('D:/Masterarbeit_data/sample_holder_temp.csv', delimiter=',')
+timestamps = []
+sen_1 = []
+sen_2 = []
+sen_3 = []
+sen_4 = []
+sen_5 = []
+sen_6 = []
 
-time_deltas_data_surface, surface_temp_data = read_temperature_data(getPath(), '2023-02-15 16:45:00', '2023-02-15 17:45:02', [1], [])
-time_deltas_data_interior, sample_holder_temp_data = read_temperature_data(getPath(), '2023-02-15 16:45:00', '2023-02-15 17:45:01', [5], [])
+with open('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/temps_sandy_randy.txt') as csvdatei:
+    dat = csv.reader(csvdatei)
+    b = True
+    for each in dat:
+        if b:
+            start_time = np.datetime64(each[0])
+            b = False
+        timestamps.append(np.datetime64(each[0]) - start_time)
+        sen_1.append(float(each[1]))
+        sen_2.append(float(each[2]))
+        sen_3.append(float(each[3]))
+        sen_4.append(float(each[4]))
+        sen_5.append(float(each[5]))
+        sen_6.append(float(each[6]))
 
-time_surface = [np.sum(time_deltas_data_surface[0:i]) for i in range(len(time_deltas_data_surface))]
-time_interior = [np.sum(time_deltas_data_interior[0:i]) for i in range(len(time_deltas_data_interior))]
-
-#plt.plot([const.dt * i for i in range(0, const.k)], surface_temp)
-#plt.scatter(time_surface, surface_temp_data, color='red', s=4)
-plt.plot([const.dt * i for i in range(0, const.k)], sample_holder_temp)
-plt.scatter(time_interior, sample_holder_temp_data, color='green')
-plt.xlim(-50, 1000)
+plt.plot(timestamps, sen_1, label='1. mid sensor')
+plt.plot(timestamps, sen_2, label='2. mid sensor')
+plt.plot(timestamps, sen_3, label='3. mid sensor')
+plt.plot(timestamps, sen_4, label='4. mid sensor')
+plt.plot(timestamps, sen_5, label='5. mid sensor')
+plt.plot(timestamps, sen_6, label='6. mid sensor')
+plt.ylim(290, 420)
+plt.legend()
 plt.show()

@@ -160,12 +160,12 @@ with open('test.json', 'w') as outfile:
 	json.dump(data_dict, outfile)
 
 for j in tqdm(range(0, const.k)):
-    if (j * const.dt) % 15 == 0:
+    '''if (j * const.dt) % 15 == 0:
         #print(np.sum(uniform_water_masses) + outgassed_mass_complete)
         #np.save('D:/TPM_Data/Luwex/only_temps_equilibriated/only_temperature_sim_' + str(j * const.dt) + '.npy', temperature)
         np.save('D:/TPM_Data/Luwex/sublimation_and_diffusion_test/sublimation_and_diffusion' + str(j * const.dt) + '.npy', temperature)
         np.save('D:/TPM_Data/Luwex/sublimation_and_diffusion_test/WATERsublimation_and_diffusion' + str(j * const.dt) + '.npy', uniform_water_masses)
-        np.save('D:/TPM_Data/Luwex/sublimation_and_diffusion_test/GASsublimation_and_diffusion' + str(j * const.dt) + '.npy', gas_density * dx * dy * dz)
+        np.save('D:/TPM_Data/Luwex/sublimation_and_diffusion_test/GASsublimation_and_diffusion' + str(j * const.dt) + '.npy', gas_density * dx * dy * dz)'''
     #temperature_previous = temperature[0:const.n_z, 0:const.n_y, 0:const.n_x]
     if np.isnan(temperature).any():
         print(temperature[2])
@@ -197,7 +197,7 @@ for j in tqdm(range(0, const.k)):
     #print(sublimated_mass[1:3, 10:20, 10:20], 1)
     for i in range(0, 30):
         #Q_c_hte, Q_p_hte, Q_c_de, Q_p_de = calculate_source_terms(const.n_x,const.n_y, const.n_z, temperature, gas_density, pressure, sublimated_mass, dx, dy, dz, const.dt, surface_reduced, uniform_water_masses, latent_heat_water, surface)
-        Q_c_hte, Q_p_hte, Q_c_de, Q_p_de = calculate_source_terms_linearised(const.n_x, const.n_y, const.n_z, temperature, gas_density, pressure, sublimated_mass, dx, dy, dz, const.dt, surface_reduced, uniform_water_masses, latent_heat_water, surface, const.m_H2O, const.k_boltzmann, const.lh_a_1, const.lh_b_1, const.lh_c_1, const.lh_d_1, sample_holder)
+        Q_c_hte, Q_p_hte, Q_c_de, Q_p_de = calculate_source_terms_linearised(const.n_x, const.n_y, const.n_z, temperature, gas_density, pressure, sublimated_mass, dx, dy, dz, const.dt, surface_reduced, uniform_water_masses, latent_heat_water, surface, const.m_H2O, const.k_boltzmann, const.lh_a_1, const.lh_b_1, const.lh_c_1, const.lh_d_1, sample_holder, water_particle_number, r_mono_water)
         '''print(j, i)
         print(Q_c_hte[2])
         print(Q_p_hte[2])'''

@@ -365,20 +365,16 @@ def calculate_molecule_flux_moon_test(n_x, n_y, n_z, temperature, pressure, a_1,
             for k in range(1, n_x-1):
                 if sample_holder[i][j][k] == 0 and temperature[i][j][k] > 0:
                     p_sub[i][j][k] = 10 ** (a_1[0] + b_1[0] / temperature[i][j][k] + c_1[0] * np.log10(temperature[i][j][k]) + d_1[0] * temperature[i][j][k])
-                    p_first_deriv = 10 ** (a_1[0] + b_1[0] / temperature[i][j][k] + d_1[0] * temperature[i][j][k]) * (np.log(10) * (d_1[0] * temperature[i][j][k] ** 2 - b_1[0]) + c_1[0] * temperature[i][j][k])
+                    p_first_deriv = temperature[i][j][k]**(c_1[0]-2) * 10 ** (a_1[0] + b_1[0] / temperature[i][j][k] + d_1[0] * temperature[i][j][k]) * (np.log(10) * (d_1[0] * temperature[i][j][k] ** 2 - b_1[0]) + c_1[0] * temperature[i][j][k])
                     sublimated_mass[i][j][k] = (p_sub[i][j][k] - pressure[i][j][k]) * np.sqrt(m_H2O / (2 * np.pi * k_B * temperature[i][j][k])) * (water_particle_number[i][j][k] * 4 * np.pi * r_mono_water[i][j][k]**2) * dt
                     if sublimated_mass[i][j][k] > water_mass_per_layer[i][j][k]:
                         sublimated_mass[i][j][k] = water_mass_per_layer[i][j][k]
                     if water_mass_per_layer[i][j][k] > 0:
-                        S_c[i][j][k] = - np.sqrt(m_H2O / (2 * np.pi * k_B * temperature[i][j][k])) * (
-                                    3 / 2 * p_sub[i][j][k] - p_first_deriv + pressure[i][j][k] * (temperature[i][j][k] - 3 / 2)) * \
-                                           latent_heat_water[i][j][k] / (dt * dx[i][j][k] * dy[i][j][k] * dz[i][j][k])
-                        S_p[i][j][k] = - np.sqrt(m_H2O / (2 * np.pi * k_B * temperature[i][j][k])) * (
-                                    p_first_deriv - p_sub[i][j][k] + pressure[i][j][k] * (1 / (2 * temperature[i][j][k]) - 1)) * \
-                                           latent_heat_water[i][j][k] / (dt * dx[i][j][k] * dy[i][j][k] * dz[i][j][k])
+                        S_c[i][j][k] = - np.sqrt(m_H2O / (2 * np.pi * k_B * temperature[i][j][k])) * (3/2 * (p_sub[i][j][k] - pressure[i][j][k]) - p_first_deriv * temperature[i][j][k]) * (water_particle_number[i][j][k] * 4 * np.pi * r_mono_water[i][j][k]**2) * latent_heat_water[i][j][k] / (dx[i][j][k] * dy[i][j][k] * dz[i][j][k])
+                        S_p[i][j][k] = - np.sqrt(m_H2O / (2 * np.pi * k_B * temperature[i][j][k])) * (p_first_deriv - (p_sub[i][j][k] - pressure[i][j][k]) * 1/(2 * temperature[i][j][k])) * latent_heat_water[i][j][k] * (water_particle_number[i][j][k] * 4 * np.pi * r_mono_water[i][j][k]**2) / (dx[i][j][k] * dy[i][j][k] * dz[i][j][k])
                     outgassed_mass += sublimated_mass[i][j][k]
     # pressure = p_sub
-    return S_c, sublimated_mass, outgassed_mass
+    return S_c, S_p, sublimated_mass, outgassed_mass
 
 @njit(parallel=True)
 def diffusion_parameters(n_x, n_y, n_z, a_1, b_1, c_1, d_1, temperature, temps, m_mol, R_gas, VFF, r_mono, Phi, q, pressure, m_H2O, k_B, dx, dy, dz, Dr, dt, sample_holder):
@@ -478,7 +474,7 @@ def calculate_source_terms(n_x, n_y, n_z, temperature, gas_density, pressure, su
 
 
 @njit
-def calculate_source_terms_linearised(n_x, n_y, n_z, temperature, gas_density, pressure, sublimated_mass, dx, dy, dz, dt, surface_reduced, water_mass_per_layer, latent_heat_water, surface, m_H2O, k_b, a_1, b_1, c_1, d_1, sample_holder):
+def calculate_source_terms_linearised(n_x, n_y, n_z, temperature, gas_density, pressure, sublimated_mass, dx, dy, dz, dt, surface_reduced, water_mass_per_layer, latent_heat_water, surface, m_H2O, k_b, a_1, b_1, c_1, d_1, sample_holder, water_particle_number, r_mono_water):
     S_c_hte = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
     S_p_hte = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
     S_c_de = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
@@ -497,22 +493,26 @@ def calculate_source_terms_linearised(n_x, n_y, n_z, temperature, gas_density, p
                     empty_voxel_count += 1'''
                 if temperature[i][j][k] > 0 and sample_holder[i][j][k] == 0:
                     p = 10 ** (a_1[0] + b_1[0] / temperature[i][j][k] + c_1[0] * np.log10(temperature[i][j][k]) + d_1[0] * temperature[i][j][k])
-                    p_first_deriv = 10 ** (a_1[0] + b_1[0]/temperature[i][j][k] + d_1[0] * temperature[i][j][k]) * (np.log(10) * (d_1[0] * temperature[i][j][k]**2 - b_1[0]) + c_1[0] * temperature[i][j][k])
+                    p_first_deriv = temperature[i][j][k]**(c_1[0]-2) * 10 ** (a_1[0] + b_1[0]/temperature[i][j][k] + d_1[0] * temperature[i][j][k]) * (np.log(10) * (d_1[0] * temperature[i][j][k]**2 - b_1[0]) + c_1[0] * temperature[i][j][k])
                     outgassed_mass += sublimated_mass[i][j][k]
                     # p_sub[each[2]][each[1]][each[0]] = 0
-                    S_c_hte[i][j][k] = - np.sqrt(m_H2O/(2 * np.pi * k_b * temperature[i][j][k])) * (3/2 * p - p_first_deriv + pressure[i][j][k] * (temperature[i][j][k] - 3/2)) * latent_heat_water[i][j][k] / (dt * dx[i][j][k] * dy[i][j][k] * dz[i][j][k])
-                    S_p_hte[i][j][k] = - np.sqrt(m_H2O / (2 * np.pi * k_b * temperature[i][j][k])) * (p_first_deriv - p + pressure[i][j][k] * (1 / (2 * temperature[i][j][k]) - 1)) * latent_heat_water[i][j][k] / (dt * dx[i][j][k] * dy[i][j][k] * dz[i][j][k])
-                    if i == 2 and j == 4 and k == 4:
-                        print(S_c_hte[i][j][k], S_p_hte[i][j][k])
+                    S_c_hte[i][j][k] = - np.sqrt(m_H2O/(2 * np.pi * k_b * temperature[i][j][k])) * (3/2 * (p - pressure[i][j][k]) - p_first_deriv * temperature[i][j][k]) * latent_heat_water[i][j][k] * (water_particle_number[i][j][k] * 4 * np.pi * r_mono_water[i][j][k]**2) / (dx[i][j][k] * dy[i][j][k] * dz[i][j][k])
+                    S_p_hte[i][j][k] = - np.sqrt(m_H2O / (2 * np.pi * k_b * temperature[i][j][k])) * (p_first_deriv - (p - pressure[i][j][k]) * 1/(2 * temperature[i][j][k])) * latent_heat_water[i][j][k] * (water_particle_number[i][j][k] * 4 * np.pi * r_mono_water[i][j][k]**2) / (dx[i][j][k] * dy[i][j][k] * dz[i][j][k])
+                    #if i == 2 and j == 4 and k == 4:
+                        #print(S_c_hte[i][j][k], S_p_hte[i][j][k])
                     '''if S_c_hte[i][j][k] < 0:
                         S_p_hte[i][j][k] = - (np.sqrt(m_H2O/(2 * np.pi * k_b * temperature[i][j][k])) * (3/2 * p + pressure[i][j][k] * temperature[i][j][k]) * latent_heat_water[i][j][k] / (dt * dx[i][j][k] * dy[i][j][k] * dz[i][j][k])) / temperature[i][j][k]
                         S_c_hte[i][j][k] = np.sqrt(m_H2O/(2 * np.pi * k_b * temperature[i][j][k])) * (p_first_deriv + 3/2 * pressure[i][j][k]) * latent_heat_water[i][j][k] / (dt * dx[i][j][k] * dy[i][j][k] * dz[i][j][k])'''
                     '''if i == 2 and j == 4 and k == 4:
                         print(S_c_hte[i][j][k], S_p_hte[i][j][k])'''
-                    S_c_de[i][j][k] = np.sqrt(m_H2O/(2 * np.pi * k_b * temperature[i][j][k])) * (3/2 * p - p_first_deriv + pressure[i][j][k] * (temperature[i][j][k] - 3/2)) * 1 / (dt * dx[i][j][k] * dy[i][j][k] * dz[i][j][k])
-                    S_p_de[i][j][k] = np.sqrt(m_H2O / (2 * np.pi * k_b * temperature[i][j][k])) * (p_first_deriv - p + pressure[i][j][k] * (1 / (2 * temperature[i][j][k]) - 1)) * 1 / (dt * dx[i][j][k] * dy[i][j][k] * dz[i][j][k])
-                    if i == 2 and j == 4 and k == 4:
-                        print(S_c_de[i][j][k], S_p_de[i][j][k])
+                    #S_c_de[i][j][k] = np.sqrt(m_H2O/(2 * np.pi * k_b * temperature[i][j][k])) * (3/2 * (p - pressure[i][j][k]) - p_first_deriv * temperature[i][j][k]) * (water_particle_number[i][j][k] * 4 * np.pi * r_mono_water[i][j][k]**2) / (dt * dx[i][j][k] * dy[i][j][k] * dz[i][j][k])
+                    #S_p_de[i][j][k] = np.sqrt(m_H2O / (2 * np.pi * k_b * temperature[i][j][k])) * (p_first_deriv - (p - pressure[i][j][k]) * 1/(2 * temperature[i][j][k])) * (water_particle_number[i][j][k] * 4 * np.pi * r_mono_water[i][j][k]**2) / (dt * dx[i][j][k] * dy[i][j][k] * dz[i][j][k])
+                    S_c_de[i][j][k] = sublimated_mass[i][j][k] / (dt * dx[i][j][k] * dy[i][j][k] * dz[i][j][k])
+                    if S_c_de[i][j][k] < 0:
+                        S_p_de[i][j][k] = 3 * S_c_de[i][j][k] / gas_density[i][j][k]
+                        S_c_de[i][j][k] = - 2 * S_c_de[i][j][k]
+                    #if i == 2 and j == 4 and k == 4:
+                        #print(S_c_de[i][j][k], S_p_de[i][j][k])
                     '''if S_c_de[i][j][k] < 0:
                         S_p_de[i][j][k] = - (np.sqrt(m_H2O/(2 * np.pi * k_b * temperature[i][j][k])) * (p_first_deriv + 3/2 * pressure[i][j][k]) * 1 / (dt * dx[i][j][k] * dy[i][j][k] * dz[i][j][k]))/gas_density[i][j][k]
                         S_c_de[i][j][k] = np.sqrt(m_H2O/(2 * np.pi * k_b * temperature[i][j][k])) * (3/2 * p + pressure[i][j][k] * temperature[i][j][k]) * 1 / (dt * dx[i][j][k] * dy[i][j][k] * dz[i][j][k])'''

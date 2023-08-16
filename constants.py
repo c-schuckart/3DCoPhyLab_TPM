@@ -1,15 +1,15 @@
 import numpy as np
 
 #Definition of Simulation Parameters
-min_dx = 5E-3                      # Layer Thickness of smallest layer in x direction, Numerical Resolution  [m]
+'''min_dx = 5E-3                      # Layer Thickness of smallest layer in x direction, Numerical Resolution  [m]
 min_dy = 5E-3                      # Layer Thickness of smallest layer in y direction, Numerical Resolution  [m]
 min_dz = 5E-3                      # Layer Thickness of smallest layer in z direction, Numerical Resolution  [m]
 dt = 5E0                           # Timestep                               [s]
 #dt = 1E1
 n_x = 64                            # Number of Layers                       [-]
 n_y = 64
-n_z = 36
-'''min_dx = 5E-3                      # Layer Thickness of the smallest layer in x direction, Numerical Resolution  [m]
+n_z = 36'''
+min_dx = 5E-3                      # Layer Thickness of the smallest layer in x direction, Numerical Resolution  [m]
 min_dy = 5E-3                      # Layer Thickness of the smallest layer in y direction, Numerical Resolution  [m]
 min_dz = 5E-3                      # Layer Thickness of the smallest layer in z direction, Numerical Resolution  [m]
 dt = 1E-2                           # Timestep                               [s]
@@ -20,7 +20,7 @@ n_z = 25
 n = np.array([n_x, n_y, n_z])
 k = 36288 * 5                      # Number of Timesteps                    [-]'''
 #k = int(17281)                    # Number of Timesteps                    [-]
-k = 10000
+#k = 10000
 #Definition of Physical Parameters
 #Material Properties
 lambda_constant = 0.01            # Thermal Conductivity                   [W/(K m)]
@@ -29,6 +29,7 @@ lambda_scaling_factor = 1
 r_mono = 90E-6                     # Radius of Monomeres                    [m]
 #r_mono = 2.5E-6
 r_mono_water = 2.5E-6
+absorption_scale_length =1E-3      #                                           [m]
 e_1 = 1.34                        # Parameter for mean free path           [-]
 #VFF_pack_const = 0.42              # Volume Filling Factor of Packing       [-]
 VFF_pack_const = 0.55              # Volume Filling Factor of Packing       [-]
@@ -51,6 +52,7 @@ density_water_ice = 930           # Density if water ice at around 90K     [kg/m
 density_co2_ice = 1600
 density_sand = 1500
 density_sample_holder = 2698.9  # Density of aluminium, the sample holder material  [kg/m^3]
+density_sample_holder_L = 1060  # Density of Plexiglas
 density_copper = 8960                                                  # [kg/m^3]
 molar_mass_water = 18.015E-3    # Molar mass of water                    [kg/mol]
 molar_mass_co2 = 44.010E-3
@@ -58,6 +60,7 @@ heat_capacity_water_ice = 1610      # Heat Capacity of water ice             [J/
 heat_capacity_co2_ice = 850       # Heat Capacity of CO2 ice               [J/(kg * K)]
 heat_capacity_sand = 830
 heat_capacity_sample_holder = 900   #Heat capacity of aluminium, the sample holder material [J/(kg*K)]
+heat_capacity_sample_holder_L = 2440
 heat_capacity_copper = 386      # Heat capacity of copper              [J/(kg * K)]
 latent_heat_water = 2.86E6      # Latent heat of water ice               [J/kg]
 latent_heat_co2 = 0.57E6          # Latent heat of CO2 ice                 [J/kg]
@@ -82,6 +85,7 @@ lambda_water_ice = 651            # thermal conductivity of water ice      [W/(m
 #lambda_water_ice = 567
 lambda_co2_ice = 0.02             # thermal conductivity of water ice      [W/(m * K)]
 lambda_sample_holder = 236        # thermal conductivity of aluminium, the sample holder material   [W/(m*K)]
+lambda_sample_holder_L = 0.181
 lambda_copper = 401               # thermal conductivity of copper      [W/(m * K)]
 lambda_sand = 0.0074
 a_H2O = 3.23E12                   # Sublimation Pressure Coefficient of water [Pa]
