@@ -32,7 +32,7 @@ plt.plot(z, temp_end)
 plt.scatter(z, temp_end_analytical)
 plt.show()'''
 
-timestamps = []
+'''timestamps = []
 sen_1 = []
 sen_2 = []
 sen_3 = []
@@ -63,4 +63,38 @@ plt.plot(timestamps, sen_5, label='5. mid sensor')
 plt.plot(timestamps, sen_6, label='6. mid sensor')
 plt.ylim(290, 420)
 plt.legend()
-plt.show()
+plt.show()'''
+
+with open('D:/TPM_data/Big_sand/sand_L_chamber_test_quick.json') as json_file:
+    data_q = json.load(json_file)
+
+with open('D:/TPM_data/Big_sand/sand_L_chamber_test.json') as json_file:
+    data = json.load(json_file)
+
+fig, ax = plt.subplots(1, 1)
+plt.tick_params(axis='x', which='both', direction='in', top=True, labeltop=False)
+plt.tick_params(axis='y', which='both', direction='in', right=True, labelright=False)
+depth_q = []
+depth = [i * const.min_dz for i in range(0, 320)]
+for i in range(0, 50):
+    if i < 21:
+        depth_q.append(i * const.min_dz)
+    else:
+        depth_q.append(i * const.min_dz * 10 + 20 * const.min_dz)
+def update(t):
+    ax.clear()
+    ax.plot(depth, data['Temperature'][t], label='high resolution everywhere')
+    ax.plot(depth_q, data_q['Temperature'][t], label='high resolution surface')
+    #ax.set_xlim(-15.5, 15.5)
+    ax.set_ylim(290, 420)
+    ax.set_title('homogenous mesh v heterogenous mesh')
+    ax.set_xlabel('depth (m)')
+    ax.set_ylabel('Temperature (K)')
+    #if t >= 4240800.0:
+        #ax[0].text(0, 15.5, 'EQUILIBRATED')
+    #ax[1].set_title('With sublimation')
+    #ax[1].set_xlabel('width (cm)')
+    #ax[1].set_ylabel('height (cm)')
+    fig.canvas.draw()
+    fig.canvas.flush_events()
+    #plt.show()

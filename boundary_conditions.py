@@ -244,7 +244,7 @@ def sample_holder_test(n_x, n_y, n_z, sample_holder, temperature):
 @njit
 def calculate_deeper_layer_source(n_x, n_y, n_z, input_energy, r_H, albedo, surface, dx, dy, dz):
 	S_c = np.zeros((n_z, n_y, n_x), dtype=np.float64)
-	Q = input_energy / r_H ** 2 * (1 - albedo) * surface
+	Q = input_energy / r_H ** 2 * (1 - albedo)
 	S_c[2:const.n_z] = Q[2:const.n_z] / (dx[2:const.n_z] * dy[2:const.n_z] * dz[2:const.n_z])
 	return S_c
 
@@ -334,7 +334,7 @@ def calculate_L_chamber_lamp_bd(Volt, sample_holder, n_x, n_y, n_z, min_dx, min_
 	lamp_energy[:] = convolved
 	if depth_absorption:
 		for i in range(0, n_z):
-			lamp_energy[i] = - lamp_energy[i] (np.exp(- (i+1)*min_dz/absorption_scale_length) - np.exp(- i*min_dz/absorption_scale_length))
+			lamp_energy[i] = - lamp_energy[i] * (np.exp(- (i+1)*min_dz/absorption_scale_length) - np.exp(- i*min_dz/absorption_scale_length))
 			if i * min_dz > 5*absorption_scale_length:
 				lamp_energy[i] = lamp_energy[i] * 0
 	return lamp_energy
