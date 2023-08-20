@@ -2,9 +2,14 @@ import json
 import numpy as np
 import matplotlib.pyplot as plt
 import constants as const
+import matplotlib.pyplot as plt
+from matplotlib import rcParams
+import matplotlib.animation as animation
+from IPython.display import Video
 import csv
 from data_input import read_temperature_data, getPath
 
+rcParams['animation.ffmpeg_path'] = r'C:\\ffmpeg\\bin\\ffmpeg.exe'
 '''with open('test.json') as json_file:
     data_vis = json.load(json_file)'''
 
@@ -32,7 +37,7 @@ plt.plot(z, temp_end)
 plt.scatter(z, temp_end_analytical)
 plt.show()'''
 
-'''timestamps = []
+timestamps = []
 sen_1 = []
 sen_2 = []
 sen_3 = []
@@ -40,7 +45,7 @@ sen_4 = []
 sen_5 = []
 sen_6 = []
 
-with open('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/temps_sandy_randy.txt') as csvdatei:
+with open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/temps_sandy_randy.txt') as csvdatei:
     dat = csv.reader(csvdatei)
     b = True
     for each in dat:
@@ -63,9 +68,9 @@ plt.plot(timestamps, sen_5, label='5. mid sensor')
 plt.plot(timestamps, sen_6, label='6. mid sensor')
 plt.ylim(290, 420)
 plt.legend()
-plt.show()'''
+plt.show()
 
-with open('D:/TPM_data/Big_sand/sand_L_chamber_test_quick.json') as json_file:
+'''with open('D:/TPM_data/Big_sand/sand_L_chamber_test_quick.json') as json_file:
     data_q = json.load(json_file)
 
 with open('D:/TPM_data/Big_sand/sand_L_chamber_test.json') as json_file:
@@ -76,20 +81,22 @@ plt.tick_params(axis='x', which='both', direction='in', top=True, labeltop=False
 plt.tick_params(axis='y', which='both', direction='in', right=True, labelright=False)
 depth_q = []
 depth = [i * const.min_dz for i in range(0, 320)]
+time = [i * const.dt for i in range(0, 500)]
 for i in range(0, 50):
     if i < 21:
         depth_q.append(i * const.min_dz)
     else:
-        depth_q.append(i * const.min_dz * 10 + 20 * const.min_dz)
+        depth_q.append((i-20) * const.min_dz * 10 + 20 * const.min_dz)
 def update(t):
     ax.clear()
-    ax.plot(depth, data['Temperature'][t], label='high resolution everywhere')
-    ax.plot(depth_q, data_q['Temperature'][t], label='high resolution surface')
+    ax.plot(depth, data['Temperature'][int(t//const.dt)][1:321], label='high resolution everywhere')
+    ax.plot(depth_q, data_q['Temperature'][int(t//const.dt)][1:51], label='high resolution surface')
     #ax.set_xlim(-15.5, 15.5)
-    ax.set_ylim(290, 420)
+    #ax.set_ylim(290, 420)
     ax.set_title('homogenous mesh v heterogenous mesh')
     ax.set_xlabel('depth (m)')
     ax.set_ylabel('Temperature (K)')
+    ax.text(0.9, 430, str(time))
     #if t >= 4240800.0:
         #ax[0].text(0, 15.5, 'EQUILIBRATED')
     #ax[1].set_title('With sublimation')
@@ -98,3 +105,12 @@ def update(t):
     fig.canvas.draw()
     fig.canvas.flush_events()
     #plt.show()
+
+anim = animation.FuncAnimation(fig, update, frames=time, interval=200)
+
+#Writer = animation.writers['ffmpeg']
+Writer = animation.FFMpegWriter(fps=24, codec='mpeg4', bitrate=8000)
+#writer = Writer(fps=5, bitrate=1800)
+writer = Writer
+anim.save('D:/TPM_Data/Big_sand/test.mp4', writer=writer, dpi=600)
+Video('D:/TPM_Data/Big_sand/test.mp4')'''

@@ -53,7 +53,7 @@ def create_equidistant_mesh_2_layer(n_x, n_y, n_z, temperature_ini, dx, dy, dz, 
         mask = ((x - a) / a_rad) ** 2 + ((y - b) / b_rad) ** 2 <= 1
         slice[mask] = temperature_ini
         for i in range(0, n_z - 1):
-            if i != 0 and i != 1:
+            if i != 0:
                 mesh[i] = slice
     elif sett.mesh_form == 0:
         mesh = np.zeros((n_z, n_y, n_x), dtype=np.float64)

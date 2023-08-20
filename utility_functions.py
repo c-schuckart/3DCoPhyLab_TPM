@@ -115,3 +115,13 @@ def get_mixing_stats(n_x, n_y, temperature, sample_holder, target_temp, height, 
             if temperature[height][j][k] == target_temp and sample_holder[height][j][k] == 0:
                 count_array[j][k] += 1
     return count_array
+
+
+@njit
+def thermal_reservoir(n_x, n_y, surface_height, temperature, reservoir_temp, sample_holder):
+    for j in range(0, n_y):
+        for k in range(0, n_x):
+            if temperature[surface_height][j][k] > 0 and sample_holder[surface_height][j][k] == 0:
+                if temperature[surface_height][j][k] < reservoir_temp:
+                    temperature[surface_height][j][k] = reservoir_temp
+    return temperature
