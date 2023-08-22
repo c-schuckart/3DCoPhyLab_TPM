@@ -8,6 +8,7 @@ import matplotlib.animation as animation
 from IPython.display import Video
 import csv
 from data_input import read_temperature_data, getPath
+from os import listdir
 
 rcParams['animation.ffmpeg_path'] = r'C:\\ffmpeg\\bin\\ffmpeg.exe'
 '''with open('test.json') as json_file:
@@ -37,7 +38,7 @@ plt.plot(z, temp_end)
 plt.scatter(z, temp_end_analytical)
 plt.show()'''
 
-timestamps = []
+'''timestamps = []
 sen_1 = []
 sen_2 = []
 sen_3 = []
@@ -48,27 +49,59 @@ sen_6 = []
 with open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/temps_sandy_randy.txt') as csvdatei:
     dat = csv.reader(csvdatei)
     b = True
+    start = False
     for each in dat:
-        if b:
-            start_time = np.datetime64(each[0])
-            b = False
-        timestamps.append(np.datetime64(each[0]) - start_time)
-        sen_1.append(float(each[1]))
-        sen_2.append(float(each[2]))
-        sen_3.append(float(each[3]))
-        sen_4.append(float(each[4]))
-        sen_5.append(float(each[5]))
-        sen_6.append(float(each[6]))
+        if each[0] == '2023-07-17 10:53:05' or start:
+            if b:
+                start_time = np.datetime64(each[0])
+                b = False
+                start = True
+            timestamps.append(np.datetime64(each[0]) - start_time)
+            sen_1.append(float(each[1]))
+            sen_2.append(float(each[2]))
+            sen_3.append(float(each[3]))
+            sen_4.append(float(each[4]))
+            sen_5.append(float(each[5]))
+            #sen_6.append(float(each[6]))
+            if timestamps[len(timestamps) - 1] > 150000:
+                break
 
 plt.plot(timestamps, sen_1, label='1. mid sensor')
 plt.plot(timestamps, sen_2, label='2. mid sensor')
 plt.plot(timestamps, sen_3, label='3. mid sensor')
 plt.plot(timestamps, sen_4, label='4. mid sensor')
 plt.plot(timestamps, sen_5, label='5. mid sensor')
-plt.plot(timestamps, sen_6, label='6. mid sensor')
+#plt.plot(timestamps, sen_6, label='6. mid sensor')
+
+time = [i * const.dt for i in range(0, const.k)]
+sen_1_sim = []
+sen_2_sim = []
+sen_3_sim = []
+sen_4_sim = []
+sen_5_sim = []
+#sen_6 = []
+
+#with open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/sand_L_chamber_A_0.95_Absdepth_0.001_Lambda_0.004.json') as json_file:
+with open('D:/TPM_data/Big_sand/testing.json') as json_file:
+    jdata = json.load(json_file)
+
+for i in range(0, const.k):
+    sen_1_sim.append(jdata['Temperature'][i][0])
+    sen_2_sim.append(jdata['Temperature'][i][1])
+    sen_3_sim.append(jdata['Temperature'][i][2])
+    sen_4_sim.append(jdata['Temperature'][i][3])
+    sen_5_sim.append(jdata['Temperature'][i][4])
+
+plt.scatter(time, sen_1_sim, label='1. mid sensor SIM', color='#000000', marker='x', s=2)
+plt.scatter(time, sen_2_sim, label='2. mid sensor SIM', color='#272727', marker='x', s=2)
+plt.scatter(time, sen_3_sim, label='3. mid sensor SIM', color='#474747', marker='x', s=2)
+plt.scatter(time, sen_4_sim, label='4. mid sensor SIM', color='#636363', marker='x', s=2)
+plt.scatter(time, sen_5_sim, label='5. mid sensor SIM', color='#858585', marker='x', s=2)
+
 plt.ylim(290, 420)
-plt.legend()
+plt.legend(fontsize='x-small')
 plt.show()
+#plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/CURBESTFITsand_L_chamber_A_0.95_Absdepth_0.001_Lambda_0.004.png', dpi=600)'''
 
 '''with open('D:/TPM_data/Big_sand/sand_L_chamber_test_quick.json') as json_file:
     data_q = json.load(json_file)
@@ -114,3 +147,73 @@ Writer = animation.FFMpegWriter(fps=24, codec='mpeg4', bitrate=8000)
 writer = Writer
 anim.save('D:/TPM_Data/Big_sand/test.mp4', writer=writer, dpi=600)
 Video('D:/TPM_Data/Big_sand/test.mp4')'''
+
+timestamps = []
+sen_1 = []
+sen_2 = []
+sen_3 = []
+sen_4 = []
+sen_5 = []
+sen_6 = []
+
+with open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/temps_sandy_randy.txt') as csvdatei:
+    dat = csv.reader(csvdatei)
+    b = True
+    start = False
+    for each in dat:
+        if each[0] == '2023-07-17 10:53:05' or start:
+            if b:
+                start_time = np.datetime64(each[0])
+                b = False
+                start = True
+            timestamps.append(np.datetime64(each[0]) - start_time)
+            sen_1.append(float(each[1]))
+            sen_2.append(float(each[2]))
+            sen_3.append(float(each[3]))
+            sen_4.append(float(each[4]))
+            sen_5.append(float(each[5]))
+            #sen_6.append(float(each[6]))
+            if timestamps[len(timestamps) - 1] > 150000:
+                break
+
+sen_1s = []
+sen_2s = []
+sen_3s = []
+sen_4s = []
+sen_5s = []
+counter = 0
+for i in range(len(timestamps)-1):
+    if timestamps[i]//50 == counter:
+        sen_1s.append(sen_1[i])
+        sen_2s.append(sen_2[i])
+        sen_3s.append(sen_3[i])
+        sen_4s.append(sen_4[i])
+        sen_5s.append(sen_5[i])
+        counter += 1
+
+files = listdir('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/')
+target = open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/results.txt', 'w')
+for each in files:
+    if each[0:6] == 'sand_L':
+        with open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/' + each) as json_file:
+            jdata = json.load(json_file)
+        sen_1_sim = []
+        sen_2_sim = []
+        sen_3_sim = []
+        sen_4_sim = []
+        sen_5_sim = []
+        for i in range(0, const.k):
+            sen_1_sim.append(jdata['Temperature'][i][0])
+            sen_2_sim.append(jdata['Temperature'][i][1])
+            sen_3_sim.append(jdata['Temperature'][i][2])
+            sen_4_sim.append(jdata['Temperature'][i][3])
+            sen_5_sim.append(jdata['Temperature'][i][4])
+        json_file.close()
+        deltas_1 = np.abs(np.array(sen_1s, dtype=np.float64) - np.array(sen_1_sim, dtype=np.float64))
+        deltas_2 = np.abs(np.array(sen_2s, dtype=np.float64) - np.array(sen_2_sim, dtype=np.float64))
+        deltas_3 = np.abs(np.array(sen_3s, dtype=np.float64) - np.array(sen_3_sim, dtype=np.float64))
+        deltas_4 = np.abs(np.array(sen_4s, dtype=np.float64) - np.array(sen_4_sim, dtype=np.float64))
+        deltas_5 = np.abs(np.array(sen_5s, dtype=np.float64) - np.array(sen_5_sim, dtype=np.float64))
+        target.write(str(each[:-4]) + '\t' + str(np.average(deltas_1)) + ',' + str(np.max(deltas_1)) + '\t' + str(np.average(deltas_2)) + ',' + str(np.max(deltas_2)) + '\t' + str(np.average(deltas_3)) + ',' + str(np.max(deltas_3)) + '\t' + str(np.average(deltas_4)) + ',' + str(np.max(deltas_4)) + '\t' + str(np.average(deltas_5)) + ',' + str(np.max(deltas_5)) +'\n')
+
+target.close()
