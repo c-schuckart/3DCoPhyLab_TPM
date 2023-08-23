@@ -8,6 +8,7 @@ import matplotlib.animation as animation
 from IPython.display import Video
 import csv
 from data_input import read_temperature_data, getPath
+from utility_functions import sort_csv
 from os import listdir
 
 rcParams['animation.ffmpeg_path'] = r'C:\\ffmpeg\\bin\\ffmpeg.exe'
@@ -46,7 +47,7 @@ sen_4 = []
 sen_5 = []
 sen_6 = []
 
-with open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/temps_sandy_randy.txt') as csvdatei:
+with open('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/temps_sandy_randy.txt') as csvdatei:
     dat = csv.reader(csvdatei)
     b = True
     start = False
@@ -81,8 +82,8 @@ sen_4_sim = []
 sen_5_sim = []
 #sen_6 = []
 
-#with open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/sand_L_chamber_A_0.95_Absdepth_0.001_Lambda_0.004.json') as json_file:
-with open('D:/TPM_data/Big_sand/testing.json') as json_file:
+with open('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/sand_L_chamber_A_0.95_Absdepth_0.001_Lambda_0.004.json') as json_file:
+#with open('D:/TPM_data/Big_sand/testing.json') as json_file:
     jdata = json.load(json_file)
 
 for i in range(0, const.k):
@@ -99,9 +100,12 @@ plt.scatter(time, sen_4_sim, label='4. mid sensor SIM', color='#636363', marker=
 plt.scatter(time, sen_5_sim, label='5. mid sensor SIM', color='#858585', marker='x', s=2)
 
 plt.ylim(290, 420)
+plt.tick_params(axis='x', which='both', direction='in', top=True, labeltop=False)
+plt.tick_params(axis='y', which='both', direction='in', right=True, labelright=False)
+plt.grid(True, lw=0.5)
 plt.legend(fontsize='x-small')
 plt.show()
-#plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/CURBESTFITsand_L_chamber_A_0.95_Absdepth_0.001_Lambda_0.004.png', dpi=600)'''
+#plt.savefig('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/SECBESTFITsand_L_chamber_A_0.95_Absdepth_0.001_Lambda_0.004.png', dpi=600)'''
 
 '''with open('D:/TPM_data/Big_sand/sand_L_chamber_test_quick.json') as json_file:
     data_q = json.load(json_file)
@@ -148,7 +152,7 @@ writer = Writer
 anim.save('D:/TPM_Data/Big_sand/test.mp4', writer=writer, dpi=600)
 Video('D:/TPM_Data/Big_sand/test.mp4')'''
 
-timestamps = []
+'''timestamps = []
 sen_1 = []
 sen_2 = []
 sen_3 = []
@@ -156,7 +160,7 @@ sen_4 = []
 sen_5 = []
 sen_6 = []
 
-with open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/temps_sandy_randy.txt') as csvdatei:
+with open('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/temps_sandy_randy.txt') as csvdatei:
     dat = csv.reader(csvdatei)
     b = True
     start = False
@@ -173,7 +177,7 @@ with open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/temp
             sen_4.append(float(each[4]))
             sen_5.append(float(each[5]))
             #sen_6.append(float(each[6]))
-            if timestamps[len(timestamps) - 1] > 150000:
+            if timestamps[len(timestamps) - 1] > 120000:
                 break
 
 sen_1s = []
@@ -191,18 +195,18 @@ for i in range(len(timestamps)-1):
         sen_5s.append(sen_5[i])
         counter += 1
 
-files = listdir('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/')
-target = open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/results.txt', 'w')
+files = listdir('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/')
+target = open('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/results_csv.csv', 'w')
 for each in files:
     if each[0:6] == 'sand_L':
-        with open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/' + each) as json_file:
+        with open('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/' + each) as json_file:
             jdata = json.load(json_file)
         sen_1_sim = []
         sen_2_sim = []
         sen_3_sim = []
         sen_4_sim = []
         sen_5_sim = []
-        for i in range(0, const.k):
+        for i in range(0, const.k-600):
             sen_1_sim.append(jdata['Temperature'][i][0])
             sen_2_sim.append(jdata['Temperature'][i][1])
             sen_3_sim.append(jdata['Temperature'][i][2])
@@ -214,6 +218,33 @@ for each in files:
         deltas_3 = np.abs(np.array(sen_3s, dtype=np.float64) - np.array(sen_3_sim, dtype=np.float64))
         deltas_4 = np.abs(np.array(sen_4s, dtype=np.float64) - np.array(sen_4_sim, dtype=np.float64))
         deltas_5 = np.abs(np.array(sen_5s, dtype=np.float64) - np.array(sen_5_sim, dtype=np.float64))
-        target.write(str(each[:-4]) + '\t' + str(np.average(deltas_1)) + ',' + str(np.max(deltas_1)) + '\t' + str(np.average(deltas_2)) + ',' + str(np.max(deltas_2)) + '\t' + str(np.average(deltas_3)) + ',' + str(np.max(deltas_3)) + '\t' + str(np.average(deltas_4)) + ',' + str(np.max(deltas_4)) + '\t' + str(np.average(deltas_5)) + ',' + str(np.max(deltas_5)) +'\n')
+        #target.write(str(each[:-4]) + '\t' + str(np.average(deltas_1)) + ',' + str(np.max(deltas_1)) + '\t' + str(np.average(deltas_2)) + ',' + str(np.max(deltas_2)) + '\t' + str(np.average(deltas_3)) + ',' + str(np.max(deltas_3)) + '\t' + str(np.average(deltas_4)) + ',' + str(np.max(deltas_4)) + '\t' + str(np.average(deltas_5)) + ',' + str(np.max(deltas_5)) +'\n')
+        target.write(str(each[:-5]) + ',' + str(np.average(deltas_1)) + ',' + str(np.max(deltas_1)) + ',' + str(np.average(deltas_2)) + ',' + str(np.max(deltas_2)) + ',' + str(np.average(deltas_3)) + ',' + str(np.max(deltas_3)) + ',' + str(np.average(deltas_4)) + ',' + str(np.max(deltas_4)) + ',' + str(np.average(deltas_5)) + ',' + str(np.max(deltas_5)) +'\n')
 
-target.close()
+target.close()'''
+
+#sort_csv('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/results_csv.csv', True, 'C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/results_csv_sorted.csv')
+with open('D:/TPM_data/Big_sand/sand_L_chamber_A_0.95_Absdepth_0.001_Lambda_0.004.json') as json_file:
+    jdata1 = json.load(json_file)
+
+'''with open('D:/TPM_data/Big_sand/sand_L_chamber_A_0.9_Absdepth_0.0005_Lambda_0.004.json') as json_file:
+    jdata2 = json.load(json_file)'''
+
+depth = []
+for i in range(0, const.n_z-2):
+    if i <= 20:
+        depth.append(i * const.min_dz)
+    else:
+        depth.append(0.01 + (i-20) * const.min_dz * 10)
+print(depth)
+#print(len(depth), len(jdata1['Temperature'][len(jdata1['Temperature'])-1]))
+plt.plot(depth, jdata1['Temperature'][len(jdata1['Temperature'])-1][1:const.n_z-1], label='Best fit')
+#plt.plot(depth, jdata2['Temperature'][len(jdata1['Temperature'])-1][1:const.n_z-1], label='Second best fit', ls='--')
+
+plt.ylim(290, 420)
+plt.tick_params(axis='x', which='both', direction='in', top=True, labeltop=False)
+plt.tick_params(axis='y', which='both', direction='in', right=True, labelright=False)
+plt.grid(True, lw=0.5)
+plt.legend(fontsize='x-small')
+plt.show()
+#plt.savefig('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/Temp_profile.png', dpi=600)

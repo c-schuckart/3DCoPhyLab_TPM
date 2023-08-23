@@ -1,5 +1,7 @@
 import numpy as np
 from numba import njit, prange
+import csv
+import pandas as pd
 
 
 @njit
@@ -125,3 +127,23 @@ def thermal_reservoir(n_x, n_y, surface_height, temperature, reservoir_temp, sam
                 if temperature[surface_height][j][k] < reservoir_temp:
                     temperature[surface_height][j][k] = reservoir_temp
     return temperature
+
+
+def sort_csv(path, sort_avrg, outpath):
+    csvdf = pd.read_csv(path, names=['Name', 'S1_avrg', 'S1_max', 'S2_avrg', 'S2_max', 'S3_avrg', 'S3_max', 'S4_avrg', 'S4_max', 'S5_avrg', 'S5_max'])
+    csvdf_mirror = csvdf.copy()
+    s1 = csvdf['Name']
+    s2 = csvdf['S1_avrg'] + csvdf['S2_avrg'] + csvdf['S3_avrg'] + csvdf['S4_avrg'] + csvdf['S5_avrg']
+    s3 = csvdf['S1_max'] + csvdf['S2_max'] + csvdf['S3_max'] + csvdf['S4_max'] + csvdf['S5_max']
+    content_arr = pd.DataFrame({'A': s1, 'B': s2, 'C': s3})
+    if sort_avrg:
+        content_arr.sort_values(by='B', inplace=True)
+    else:
+        content_arr.sort_values(by='C', inplace=True)
+    #print(content_arr)
+    #print(csvdf_mirror)
+    for i in range(len(csvdf)):
+        #print(csvdf.iloc[content_arr.iloc[[i]].index[0]][1])
+        csvdf_mirror.iloc[i] = csvdf.iloc[content_arr.iloc[[i]].index[0]][0], csvdf.iloc[content_arr.iloc[[i]].index[0]][1], csvdf.iloc[content_arr.iloc[[i]].index[0]][2], csvdf.iloc[content_arr.iloc[[i]].index[0]][3], csvdf.iloc[content_arr.iloc[[i]].index[0]][4], csvdf.iloc[content_arr.iloc[[i]].index[0]][5], csvdf.iloc[content_arr.iloc[[i]].index[0]][6], csvdf.iloc[content_arr.iloc[[i]].index[0]][7], csvdf.iloc[content_arr.iloc[[i]].index[0]][8], csvdf.iloc[content_arr.iloc[[i]].index[0]][9], csvdf.iloc[content_arr.iloc[[i]].index[0]][10]
+    #print(csvdf_mirror)
+    csvdf_mirror.to_csv(outpath)
