@@ -1,5 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.ticker import AutoMinorLocator
+import matplotlib.animation as animation
+from matplotlib import rcParams
+from matplotlib.gridspec import GridSpec
 from matplotlib.ticker import (AutoLocator, AutoMinorLocator, MultipleLocator, LogLocator, LogFormatterMathtext)
 import matplotlib.lines as mlines
 import json
@@ -7,7 +11,10 @@ import csv
 import constants as const
 from scipy import interpolate
 from data_input import read_temperature_data, getPath
+from IPython.display import Video
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 
+rcParams['animation.ffmpeg_path'] = r'C:\\ffmpeg\\bin\\ffmpeg.exe'
 '''file_name = 'Check_Knudsen_regime'
 #path = 'C:/Users/Christian Schuckart/Documents/Masterarbeit/Plots/' + file_name + '.png'
 path = 'C:/Users/Christian/Documents/Masterarbeit/Plots/' + file_name + '.png'
@@ -274,7 +281,7 @@ plt.legend()
 #plt.savefig('Constant_lambda_test_sand_' + str(const.lambda_sand) + '.png', dpi=600)
 plt.savefig('C:/Users/Christian Schuckart/Documents/Masterarbeit/Plots/activity_fraction_0.10_max_surface_temp.png', dpi=600)'''
 
-with open('test_gmt_08.json') as json_file:
+'''with open('test_gmt_08.json') as json_file:
     data_08 = json.load(json_file)
 
 with open('test_gmt_07.json') as json_file:
@@ -316,4 +323,176 @@ ax[1].set_xlim(0, 1)
 
 plt.legend()
 plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Plots/gas_diffusion_testing_9_9_9_dt1E-3.png', dpi=600)
-plt.show()
+plt.show()'''
+
+'''fig, ax = plt.subplots(1, 1)
+#fig.tight_layout()
+#fig = plt.figure(figsize=(10, 5))
+#grid = GridSpec(1, 2)
+#ax = [fig.add_subplot(grid[0, 0], aspect='equal'), fig.add_subplot(grid[0, 1], aspect='equal')]
+#ax = [fig.add_subplot(1, 2, 1, aspect='equal', adjustable='box'), fig.add_subplot(1, 2, 2, aspect='equal', adjustable='box')]
+ny, nz = const.n_y * 1j, const.n_z * 1j
+y, z = np.mgrid[-16:16:ny, -1:17:nz]
+
+time = [i * 3600 for i in range(0, 310)]
+#time = [i * 3600 for i in range(0, 168)]
+scalars = np.load('D:/TPM_Data/Luwex/only_temps_mixing/mixing_sqrt10mm_per_50sec' + str(float(0)) + '.npy')
+#scalars = np.load('D:/TPM_Data/Luwex/sublimation_and_diffusion_test/sublimation_and_diffusion' + str(float(0)) + '.npy')
+#scalars_2 = np.load('D:/TPM_Data/Luwex/only_temps_equilibriated/only_temperature_sim_' + str(float(0)) + '.npy')
+#water_mass_one = np.sum(np.load('D:/TPM_Data/Luwex/sublimation_and_diffusion_test/WATERsublimation_and_diffusion' + str(float(0)) + '.npy'))
+water_mass_one = np.sum(np.load('D:/TPM_Data/Luwex/only_temps_mixing/WATERmixing_sqrt10mm_per_50sec' + str(float(0)) + '.npy'))
+swapped_scalars = np.zeros((const.n_y, const.n_z), dtype=np.float64)
+#swapped_scalars_2 = np.zeros((const.n_y, const.n_z), dtype=np.float64)
+for j in range(0, const.n_y):
+    for i in range(const.n_z-1, -1, -1):
+        if scalars[i][j][const.n_x//2] > 0: #and scalars_2[i][j][const.n_x//2] > 0:
+            swapped_scalars[j][const.n_z-1-i] = scalars[i][j][const.n_x//2] #- scalars_2[i][j][const.n_x//2]
+        else:
+            swapped_scalars[j][const.n_z-1-i] = np.nan
+        #if scalars_2[i][j][const.n_x//2] > 0:
+            #swapped_scalars_2[j][const.n_z-1-i] = scalars_2[i][j][const.n_x//2]
+        #else:
+            #swapped_scalars_2[j][const.n_z-1-i] = np.nan
+#print(np.nanmin(swapped_scalars), np.nanmax(swapped_scalars))
+#levels = [-180, -160, -140, -120, -100, -80, -60, -40, -20, 0, 20, 40]
+levels = 10
+cont_f = ax.contourf(y, z, swapped_scalars, levels=levels, cmap=plt.cm.viridis)
+#cont_f0 = ax.contourf(y, z, swapped_scalars_2, levels=levels, cmap=plt.cm.viridis)
+ax.set_xlim(-15.5, 15.5)
+ax.set_ylim(-0.5, 16.5)
+#ax[1].set_xlim(-15.5, 15.5)
+#ax[1].set_ylim(-0.5, 16.5)
+
+#divider1 = make_axes_locatable(ax[0])
+#cax0 = divider1.append_axes("right", size="5%", pad=0.05)
+#divider2 = make_axes_locatable(ax[1])
+#cax1 = divider2.append_axes("right", size="5%", pad=0.05)
+
+#cbar_0 = fig.colorbar(cont_f0)
+#fig.delaxes(fig.axes[2])
+cbar = fig.colorbar(cont_f)
+cbar.ax.set_ylabel('Temperatures (K)')
+#cbar_0 = fig.colorbar(None)
+#cbar.set_ticks(levels)
+#cbar.set_ticklabels(['-180', '-160', '-140', '-120', '-100', '-80', '-60', '-40', '-20', '0', '20', '40'])
+#cbar.set_over('cyan')
+#cbar.set_under('red')
+def update(t):
+    ax.clear()
+    #ax[1].clear()
+    #cbar = None
+    #scalars = np.load('D:/TPM_Data/Luwex/sublimation_and_diffusion_test/sublimation_and_diffusion' + str(float(t)) + '.npy')
+    scalars = np.load('D:/TPM_Data/Luwex/only_temps_mixing/mixing_sqrt10mm_per_50sec' + str(float(t)) + '.npy')
+    #scalars_2 = np.load('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Noria/WATERpure_water_top_sublimation' + str(float(t)) + '.npy')
+    #water_percent = np.round(np.sum(np.load('D:/TPM_Data/Luwex/sublimation_and_diffusion_test/WATERsublimation_and_diffusion' + str(float(t)) + '.npy')) / water_mass_one, 3) * 100
+    water_percent = np.round(np.sum(np.load('D:/TPM_Data/Luwex/only_temps_mixing/WATERmixing_sqrt10mm_per_50sec' + str(float(t)) + '.npy')) / water_mass_one, 3) * 100
+    swapped_scalars = np.zeros((const.n_y, const.n_z), dtype=np.float64)
+    swapped_scalars_2 = np.zeros((const.n_y, const.n_z), dtype=np.float64)
+    for j in range(0, const.n_y):
+        for i in range(const.n_z-1, -1, -1):
+            if scalars[i][j][const.n_x//2] > 0: #or scalars_2[i][j][const.n_x//2] > 0:
+                swapped_scalars[j][const.n_z-1-i] = scalars[i][j][const.n_x//2] #- scalars_2[i][j][const.n_x//2]
+            else:
+                 swapped_scalars[j][const.n_z - 1 - i] = np.nan
+            #if scalars_2[i][j][const.n_x // 2] > 0:
+                #swapped_scalars_2[j][const.n_z - 1 - i] = scalars_2[i][j][const.n_x // 2]
+            #else:
+                #swapped_scalars_2[j][const.n_z - 1 - i] = np.nan
+    cont_f = ax.contourf(y, z, swapped_scalars, levels=levels, cmap=plt.cm.viridis)
+    #ax.contourf(y, z, swapped_scalars_2, levels=levels, cmap=plt.cm.viridis)
+    #CS2 = ax.contour(cont_f, levels=cont_f.levels[::2], colors='black')
+    ax.set_xlim(-15.5, 15.5)
+    ax.set_ylim(-0.5, 16.5)
+    #ax[1].set_xlim(-15.5, 15.5)
+    #ax[1].set_ylim(-0.5, 16.5)
+    #if t == 0:
+        #cbar = fig.colorbar(cont_f)
+        #cbar.ax.set_ylabel('Temperatures (K)')
+    ax.text(14, 18, 'Time: ' + str((t//3600)//24) + 'd ' + str((t//3600) % 24) + 'h')
+    ax.text(14, 17, 'Remaining water: ' + str(water_percent)[0:4] + '%')
+    ax.set_title('Cross section isotherms evolution')
+    ax.set_xlabel('width (cm)')
+    ax.set_ylabel('height (cm)')
+    #if t >= 4240800.0:
+        #ax[0].text(0, 15.5, 'EQUILIBRATED')
+    #ax[1].set_title('With sublimation')
+    #ax[1].set_xlabel('width (cm)')
+    #ax[1].set_ylabel('height (cm)')
+    fig.canvas.draw()
+    fig.canvas.flush_events()
+    #plt.show()
+
+anim = animation.FuncAnimation(fig, update, frames=time, interval=200)
+
+#Writer = animation.writers['ffmpeg']
+Writer = animation.FFMpegWriter(fps=24, codec='mpeg4', bitrate=8000)
+#writer = Writer(fps=5, bitrate=1800)
+writer = Writer
+
+anim.save('D:/TPM_Data/mixing_sqrt10mm_per_50s.mp4', writer=writer, dpi=600)
+Video('D:/TPM_Data/mixing_sqrt10mm_per_50s.mp4')'''
+paths = ['D:/TPM_Data/Luwex/only_temps_mixing_sqrt50mm_per_100s/WATERmixing_sqrt50mm_per_100sec', 'D:/TPM_Data/Luwex/only_temps_mixing_sqrt50mm_per_50s/WATERmixing_sqrt100mm_per_50sec', 'D:/TPM_Data/Luwex/only_temps_mixing_sqrt200mm_per_50s/WATERmixing_sqrt10mm_per_50sec', 'D:/TPM_Data/Luwex/only_temps_mixing_sqrt450mm_per_50s/WATERmixing_sqrt450mm_per_50sec']
+water_array = []
+time = np.array([i * 3600 for i in range(0, 241)], dtype=np.float64)
+'''water_mass_one = np.sum(np.load('D:/TPM_Data/Luwex/only_temps_mixing_sqrt200mm_per_50s/WATERmixing_sqrt10mm_per_50sec' + str(float(0)) + '.npy'))
+water_content_over_time = np.zeros(len(time), dtype=np.float64)
+for t in time:
+    water_content_over_time[int(t//3600)] = np.sum(np.load('D:/TPM_Data/Luwex/only_temps_mixing_sqrt200mm_per_50s/WATERmixing_sqrt10mm_per_50sec' + str(float(t)) + '.npy')) / water_mass_one'''
+for path in paths:
+    #water_mass_one = np.sum(np.load('D:/TPM_Data/Luwex/only_temps_mixing/WATERmixing_sqrt10mm_per_50sec' + str(float(0)) + '.npy'))
+    water_mass_one = np.sum(np.load(path + str(float(0)) + '.npy'))
+    water_content_over_time = np.zeros(len(time), dtype=np.float64)
+    for t in time:
+        #water_content_over_time[int(t//3600)] = np.sum(np.load('D:/TPM_Data/Luwex/only_temps_mixing/WATERmixing_sqrt10mm_per_50sec' + str(float(t)) + '.npy')) / water_mass_one
+        water_content_over_time[int(t // 3600)] = np.sum(np.load(path + str(float(t)) + '.npy')) / water_mass_one
+    water_array.append(water_content_over_time)
+
+fig, ax = plt.subplots(1, 1)
+
+plt.tick_params(axis='x', which='both', direction='in', top=True, labeltop=False)
+plt.tick_params(axis='y', which='both', direction='in', right=True, labelright=False)
+#ax.plot(time/(3600 * 24), water_content_over_time)
+ax.plot(time/(3600 * 24), water_array[0], label='7.07mm/100s')
+ax.plot(time/(3600 * 24), water_array[1], label='7.07mm/50s', ls='--')
+ax.plot(time/(3600 * 24), water_array[2], label='14.14mm/50s', ls=':')
+ax.plot(time/(3600 * 24), water_array[3], label='21.21mm/50s', ls='-.')
+ax.set_xlabel('Time (d)')
+ax.set_ylabel('Water content')
+ax.grid(True, which='major')
+ax.xaxis.set_minor_locator(MultipleLocator(5))
+ax.yaxis.set_minor_locator(AutoMinorLocator(2))
+ax.set_ylim(-0.05, 1.05)
+plt.legend()
+#plt.show()
+plt.savefig('D:/TPM_Data/Luwex/Instant_outgassing_mixing.png', dpi=600)
+
+'''with open('test.json') as json_file:
+    data = json.load(json_file)
+
+stop = 90104
+
+time = [i * const.dt for i in range(0, stop)]
+plt.plot(time, data['OR'][0:stop])
+plt.yscale('log')
+#plt.xscale('log')
+#plt.xlim(95, 100)
+plt.show()'''
+
+'''with open('test.json') as json_file:
+    data = json.load(json_file)
+
+fig, ax = plt.subplots(1, 1)
+time = [i for i in range(0, 1000)]
+def update(t):
+    ax.clear()
+    ax.imshow(np.array(data['mix'][t], dtype=np.float64))
+
+anim = animation.FuncAnimation(fig, update, frames=time, interval=200)
+
+#Writer = animation.writers['ffmpeg']
+Writer = animation.FFMpegWriter(fps=25, codec='mpeg4', bitrate=6000)
+#writer = Writer(fps=5, bitrate=1800)
+writer = Writer
+
+anim.save('D:/TPM_Data/Testing data/radial_mixing_test_long.mp4', writer=writer, dpi=600)
+Video('D:/TPM_Data/Testing data/radial_mixing_test_long.mp4')'''

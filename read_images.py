@@ -37,8 +37,8 @@ def convolve(Surface_temperatures, length, size, width, n_x, n_y):
     for j in range(0, length * size):
         for k in range(0, length * size):
             im2_scaled[j][k] = Surface_temperatures[j // factor][k // factor]
-    for j in range(0, size):
-        for k in range(0, size):
+    for j in range(0, size-2):
+        for k in range(0, size-2):
             convolved[j + 1][k + 1] = np.average(im2_scaled[length * j:length * (j + 1), length * k:length * (k + 1)])
     return convolved, im2_scaled
 

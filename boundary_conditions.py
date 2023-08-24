@@ -240,6 +240,14 @@ def sample_holder_test(n_x, n_y, n_z, sample_holder, temperature):
 					temperature[i][j][k] = np.max(temps)
 	return temperature
 
+
+@njit
+def calculate_deeper_layer_source(n_x, n_y, n_z, input_energy, r_H, albedo, surface, dx, dy, dz):
+	S_c = np.zeros((n_z, n_y, n_x), dtype=np.float64)
+	Q = input_energy / r_H ** 2 * (1 - albedo)
+	S_c[2:const.n_z] = Q[2:const.n_z] / (dx[2:const.n_z] * dy[2:const.n_z] * dz[2:const.n_z])
+	return S_c
+
 @njit
 def sample_holder_test_2(n_x, n_y, n_z, sample_holder, temperature, target_temp, target_height):
 	for i in prange(target_height, target_height+1):
@@ -292,6 +300,7 @@ def get_energy_input_lamp(n_x, n_y, n_z, dx, dy, amplitude, sigma, temperature, 
 
 	return lamp_power
 
+
 def get_L_chamber_lamp_power(sample_holder):
 	X=np.array([[-5,-4,-3,-2,-1,0,1,2,3,4,5],[-5,-4,-3,-2,-1,0,1,2,3,4,5],[-5,-4,-3,-2,-1,0,1,2,3,4,5],[-5,-4,-3,-2,-1,0,1,2,3,4,5],[-5,-4,-3,-2,-1,0,1,2,3,4,5],[-5,-4,-3,-2,-1,0,1,2,3,4,5],[-5,-4,-3,-2,-1,0,1,2,3,4,5],[-5,-4,-3,-2,-1,0,1,2,3,4,5],[-5,-4,-3,-2,-1,0,1,2,3,4,5],[-5,-4,-3,-2,-1,0,1,2,3,4,5],[-5,-4,-3,-2,-1,0,1,2,3,4,5]])
 	Y=np.array([[-5,-5,-5,-5,-5,-5,-5,-5,-5,-5,-5],[-4,-4,-4,-4,-4,-4,-4,-4,-4,-4,-4],[-3,-3,-3,-3,-3,-3,-3,-3,-3,-3,-3],[-2,-2,-2,-2,-2,-2,-2,-2,-2,-2,-2],[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1],[0,0,0,0,0,0,0,0,0,0,0],[1,1,1,1,1,1,1,1,1,1,1],[2,2,2,2,2,2,2,2,2,2,2],[3,3,3,3,3,3,3,3,3,3,3],[4,4,4,4,4,4,4,4,4,4,4],[5,5,5,5,5,5,5,5,5,5,5]])
@@ -309,16 +318,27 @@ def get_L_chamber_lamp_power(sample_holder):
 				if i % 2 == 1 and j % 2 == 1:
 					new_Z[i-1][j-1] = (Z[i // 2 + 1][j // 2 + 1] + Z[i // 2 + 1][(j + 1) // 2 + 1] + Z[(i+1) // 2 + 1][j // 2 + 1] + Z[(i+1) // 2 + 1][(j + 1) // 2 + 1]) / 4
 		Z = new_Z
+	if sample_holder == 'L':
+		new_Z = np.zeros((27, 27), dtype=np.float64)
+		new_Z[8:19, 8:19] = Z
+		Z = new_Z
 	Lamp_power_per_m2 = Z * 1/0.48
 	return Lamp_power_per_m2
 
-def calculate_L_chamber_lamp_bd(Volt, sample_holder, n_x, n_y, n_z):
-	Surface_powers = get_L_chamber_lamp_power(sample_holder) * 0.01**2 * S_chamber_cal_curve(Volt)/S_chamber_cal_curve(24)
-	ggT = GCD(len(Surface_powers[0]), const.n_x-2)
+def calculate_L_chamber_lamp_bd(Volt, sample_holder, n_x, n_y, n_z, min_dx, min_dy, min_dz, depth_absorption, absorption_scale_length):
+	Surface_powers = get_L_chamber_lamp_power(sample_holder) * (min_dx * min_dy) * S_chamber_cal_curve(Volt)/S_chamber_cal_curve(24)
+	ggT = GCD(len(Surface_powers[0]), const.n_x)
 	length = len(Surface_powers[0])//ggT
-	convolved = convolve(Surface_powers, length, const.n_x-2, len(Surface_powers[0]), n_x, n_y)[0]
+	convolved = convolve(Surface_powers, length, const.n_x, len(Surface_powers[0]), n_x, n_y)[0]
+	for i in range(2, n_y-2):
+		convolved[i] = convolved[i+1]
 	lamp_energy = np.zeros((n_z, n_y, n_x), dtype=np.float64)
 	lamp_energy[:] = convolved
+	if depth_absorption:
+		for i in range(0, n_z):
+			lamp_energy[i] = - lamp_energy[i] * (np.exp(- (i+1)*min_dz/absorption_scale_length) - np.exp(- i*min_dz/absorption_scale_length))
+			if i * min_dz > 5*absorption_scale_length:
+				lamp_energy[i] = lamp_energy[i] * 0
 	return lamp_energy
 
 
