@@ -26,7 +26,7 @@ def create_equidistant_mesh(n_x, n_y, n_z, temperature_ini, dx, dy, dz, diffusio
     elif sett.mesh_form == 0:
         mesh = np.zeros((n_z, n_y, n_x), dtype=np.float64)
         mesh[1:n_z-1, 1:n_y-1, 1:n_x-1] = np.full((n_z-2, n_y-2, n_x-2), temperature_ini, dtype=np.float64)
-        a, a_rad, b, b_rad = 0, np.infty, 0, np.infty
+        a, a_rad, b, b_rad = n_x//2, np.infty, n_y//2, np.infty
     else:
         raise NotImplementedError
     dx_arr = np.full((n_z, n_y, n_x), dx, dtype=np.float64)
@@ -313,6 +313,50 @@ def update_surface_arrays(voxels_to_delete, surface, reduced_surface, temperatur
         #reduced_surface = np.append(reduced_surface, new_reduced_surface_elements, axis=0)
         reduced_surface = new_r_temp
     return surface, reduced_surface
+
+
+@njit
+def update_surface_arrays_periodic(voxels_to_delete, surface, reduced_surface, temperature, n_x, n_y, n_z, a, a_rad, b, b_rad, diffusion_mesh, r_n, r_p):
+    for each in voxels_to_delete:
+        temperature[each[2]][each[1]][each[0]] = 0
+        r_n[each[2]][each[1]][each[0]] = 0
+        r_p[each[2]][each[1]][each[0]] = 0
+        #print(reduced_surface)
+        surface, new_reduced_surface_elements = find_surface_periodic(n_x, n_y, n_z, each[0]-1, each[1]-1, each[2]-1, each[0]+2, each[1]+2, each[2]+2, temperature, surface, a, a_rad, b, b_rad, False, diffusion_mesh)[0:2]
+        #new_surrounding_surface = surrounding_checker(np.append(new_reduced_surface_elements, ), surface, n_x_lr, n_y_lr, n_z_lr)
+        #doubled_elements = np.empty((0, 0), dtype=np.int32)
+        #print(new_reduced_surface_elements)
+        #print(reduced_surface)
+        non_duplicate_indicies = np.empty(0, dtype=np.int32)
+        mask = np.arange(len(reduced_surface))
+        empty_voxel_counted = np.nan
+        #delete_indicies = np.array([])
+        for count, red_elements in enumerate(new_reduced_surface_elements):
+            is_in = False
+            for count_el, elements in enumerate(reduced_surface):
+                if red_elements[0] == elements[0] and red_elements[1] == elements[1] and red_elements[2] == elements[2]:
+                    is_in = True
+                    break
+                if elements[0] == each[0] and elements[1] == each[1] and elements[2] == each[2]:
+                    empty_voxel_counted = count_el
+            if not is_in:
+                non_duplicate_indicies = np.append(non_duplicate_indicies, np.int32(count))
+        if empty_voxel_counted != np.nan:
+            mask = np.delete(mask, int(empty_voxel_counted))
+            reduced_surface  = reduced_surface[mask]
+        new_r_temp = np.zeros((len(reduced_surface) + len(non_duplicate_indicies), 3), dtype=np.int32)
+        new_r_temp[0:len(reduced_surface)] = reduced_surface
+        count_2 = len(reduced_surface)
+        for i in non_duplicate_indicies:
+            new_r_temp[count_2] = new_reduced_surface_elements[i]
+            count_2 += 1
+        #print(new_reduced_surface_elements)
+        #new_reduced_surface_elements = np.delete(new_reduced_surface_elements, delete_indicies, axis=0)
+        #print(new_reduced_surface_elements)
+        #reduced_surface = np.append(reduced_surface, new_reduced_surface_elements, axis=0)
+        reduced_surface = new_r_temp
+    return surface, reduced_surface, temperature, r_n, r_p
+
 
 #@jit
 def DEBUG_print_3D_arrays(n_x, n_y, n_z, mesh):

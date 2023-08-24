@@ -376,6 +376,38 @@ def calculate_molecule_flux_moon_test(n_x, n_y, n_z, temperature, pressure, a_1,
     # pressure = p_sub
     return S_c, S_p, sublimated_mass, outgassed_mass
 
+
+@njit
+def calculate_molecule_flux_sintering(n_x, n_y, n_z, temperature, dx, dy, dz, dt, sample_holder, water_mass_per_layer, latent_heat_water, sublimated_mass):
+    S_c = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
+    S_p = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
+    outgassed_mass = 0
+    empty_voxels = np.zeros((n_x*n_y*n_z, 3), dtype=np.int32)
+    empty_voxel_count = 0
+    for i in range(1, n_z-1):
+        for j in range(1, n_y-1):
+            for k in range(1, n_x-1):
+                if sample_holder[i][j][k] == 0 and temperature[i][j][k] > 0:
+                    if sublimated_mass[i][j][k] > water_mass_per_layer[i][j][k]:
+                        sublimated_mass[i][j][k] = water_mass_per_layer[i][j][k]
+                        empty_voxels[empty_voxel_count] = np.array([k, j, i], dtype=np.int32)
+                        empty_voxel_count += 1
+                    S_c[i][j][k] = - sublimated_mass * latent_heat_water[i][j][k] / (dt * dx[i][j][k] * dy[i][j][k] * dz[i][j][k])
+                    outgassed_mass += sublimated_mass[i][j][k]
+    # pressure = p_sub
+    return S_c, S_p, empty_voxels
+
+
+@njit
+def sintered_surface_checker(n_x, n_y, n_z, surface_reduced, r_n, r_p):
+    blocked_lanes = np.full((n_z, n_y, n_x), 1, dtype=np.int32)
+    for each in surface_reduced:
+        if r_p[each[2]][each[1]][each[0]] > r_n[each[2]][each[1]][each[0]]:
+            for i in range(each[2]+1, n_z-1):
+                blocked_lanes[i][each[1]][each[0]] = 0
+    return blocked_lanes
+
+
 @njit(parallel=True)
 def diffusion_parameters(n_x, n_y, n_z, a_1, b_1, c_1, d_1, temperature, temps, m_mol, R_gas, VFF, r_mono, Phi, q, pressure, m_H2O, k_B, dx, dy, dz, Dr, dt, sample_holder):
     diffusion_coefficient = np.zeros((n_z, n_y, n_x, 6), dtype=np.float64)
@@ -569,6 +601,33 @@ def sinter_neck_calculation(r_n, dt, temperature, a_1, b_1, c_1, d_1, omega, sur
     rate = ((omega ** 2 * surface_energy * p_sub) / (R_gas * temperature) * 1 / np.sqrt(2 * np.pi * m_mol * R_gas * temperature) * d_s / (d_s + delta * np.arctan(r_p / (r_n + delta))) * (2 / r_p + 1 / delta - 1 / r_n) - Z / density * np.exp(- r_c / (delta)))
     r_n = r_n + dt * rate
     return r_n, rate, r_p
+
+
+@njit
+def sinter_neck_calculation_time_dependent(r_n, r_p, dt, temperature, a_1, b_1, c_1, d_1, omega, surface_energy, R_gas, r_grain, alpha, m_mol, density, pressure, m_H2O, k_B, k_factor, water_particle_number, blocked_voxels, n_x, n_y, n_z, sample_holder):
+    p_sub = np.zeros((n_z, n_y, n_x), dtype=np.float64)
+    for i in range(1, n_z-1):
+        for j in range(1, n_y-1):
+            for k in range(1, n_x-1):
+                if temperature[i][j][k] > 0 and sample_holder[i][j][k] == 0:
+                    p_sub[i][j][k] = 10 ** (a_1[0] + b_1[0] / temperature[i][j][k] + c_1[0] * np.log10(temperature) + d_1[0] * temperature[i][j][k]) * blocked_voxels[i][j][k]
+                    pressure[i][j][k] = 10 ** (a_1[0] + b_1[0] / temperature[i][j][k] + c_1[0] * np.log10(temperature) + d_1[0] * temperature[i][j][k]) * (1 - blocked_voxels[i][j][k])
+    #p_sub = 10 ** (a_1[0] + b_1[0] / temperature + c_1[0] * np.log10(temperature) + d_1[0] * temperature)
+    #print(omega, surface_energy, r_grain, alpha, total_passed_time)
+    #p_sub = 3.23E12 * np.exp(-6134.6/temperature)
+    #m_H2O, k_B Hertz-Knudsen_eq ausprobieren
+    #Z = (p_sub - pressure) * (1/np.sqrt(2 * np.pi * m_mol * R_gas * temperature))
+    Z = (p_sub - pressure) * np.sqrt(m_H2O/(2 * np.pi * k_B * temperature))
+    r_c = 2 * m_mol * surface_energy / (density * R_gas * temperature)
+    r_p = r_p - Z * np.exp(r_c/r_p) * dt / density
+    delta = r_n**2 / (2 * (r_p - r_n)) * k_factor
+    d_s = r_p * (alpha/2 + np.arctan(r_p/(r_n + delta)) - np.pi/2)
+    rate = ((omega**2 * surface_energy * p_sub)/(R_gas * temperature) * 1/np.sqrt(2*np.pi * m_mol * R_gas * temperature) * d_s / (d_s + delta * np.arctan(r_p/(r_n + delta))) * (2/r_p + 1/delta - 1/r_n) - Z/density * np.exp(- r_c/(r_n * k_factor)))
+    neck_area = 4 * np.pi * delta * ((r_n + delta) * np.arcsin((r_p*delta/(r_p + delta) * 1/delta)) - r_p*delta/(r_p + delta))
+    cond_rate = (omega**2 * surface_energy * p_sub)/(R_gas * temperature) * 1/np.sqrt(2*np.pi * m_mol * R_gas * temperature) * d_s / (d_s + delta * np.arctan(r_p/(r_n + delta))) * (2/r_p + 1/delta - 1/r_n) * neck_area
+    sublimated_mass = Z * (water_particle_number * np.exp(r_c/r_p) * 4 * np.pi * r_p**2 + 3 * np.exp(-r_c/(r_n * k_factor)) * neck_area - 3 * cond_rate) * dt
+    r_n = r_n + dt * rate
+    return r_n, r_p, sublimated_mass, pressure
 
 
 @njit

@@ -224,11 +224,12 @@ for each in files:
 target.close()'''
 
 #sort_csv('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/results_csv.csv', True, 'C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/results_csv_sorted.csv')
-with open('D:/TPM_data/Big_sand/sand_L_chamber_A_0.95_Absdepth_0.001_Lambda_0.004.json') as json_file:
+
+'''with open('D:/TPM_data/Big_sand/sand_L_chamber_A_0.95_Absdepth_0.001_Lambda_0.004.json') as json_file:
     jdata1 = json.load(json_file)
 
-'''with open('D:/TPM_data/Big_sand/sand_L_chamber_A_0.9_Absdepth_0.0005_Lambda_0.004.json') as json_file:
-    jdata2 = json.load(json_file)'''
+with open('D:/TPM_data/Big_sand/sand_L_chamber_A_0.9_Absdepth_0.0005_Lambda_0.004.json') as json_file:
+    jdata2 = json.load(json_file)
 
 depth = []
 for i in range(0, const.n_z-2):
@@ -247,4 +248,4 @@ plt.tick_params(axis='y', which='both', direction='in', right=True, labelright=F
 plt.grid(True, lw=0.5)
 plt.legend(fontsize='x-small')
 plt.show()
-#plt.savefig('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/Temp_profile.png', dpi=600)
+#plt.savefig('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/Temp_profile.png', dpi=600)'''

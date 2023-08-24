@@ -134,3 +134,7 @@ f2 = 5.26 # empirical constant
 sigma = 5.67E-8 # Stefan-Boltzmann constant [J s^-1 m^-2 K^-4]
 epsilon = 0.95 # material emissivity of the regolith grains
 e1 = 1.34 # empirical constant
+
+R_JKL = r_mono_water/2
+K_JKL = 3/4*np.pi*2*(1 - poisson_ratio_par**2)/(np.pi * young_modulus_par)
+P_JKL = np.pi*R_JKL*surface_energy_par
