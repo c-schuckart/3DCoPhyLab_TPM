@@ -136,7 +136,7 @@ def find_surface(n_x, n_y, n_z, limiter_x_start, limiter_y_start, limiter_z_star
 
 
 @njit
-def find_surface_periodic(n_x, n_y, n_z, limiter_x_start, limiter_y_start, limiter_z_start, limiter_x_end, limiter_y_end, limiter_z_end, mesh, surface, a, a_rad, b, b_rad, initiation):
+def find_surface_periodic(n_x, n_y, n_z, limiter_x_start, limiter_y_start, limiter_z_start, limiter_x_end, limiter_y_end, limiter_z_end, mesh, surface, a, a_rad, b, b_rad, initiation, diffusion_mesh):
     surface_elements = 0
     sample_holder = np.zeros((n_z, n_y, n_x), dtype=np.int32)
     for i in range(limiter_z_start, limiter_z_end-2):
@@ -183,7 +183,7 @@ def find_surface_periodic(n_x, n_y, n_z, limiter_x_start, limiter_y_start, limit
                         if np.sum(surface[i][j][k]) != 0:
                             surface_elements += 1
     if initiation:
-        sample_holder, misplaced_voxels = fix_rim(n_x, n_y, limiter_x_start, limiter_y_start, a, a_rad, b, b_rad, sample_holder)
+        sample_holder, misplaced_voxels = fix_rim(n_x, n_y, limiter_x_start, limiter_y_start, a, a_rad, b, b_rad, sample_holder, diffusion_mesh)
     else:
         misplaced_voxels = np.empty((0, 0), dtype=np.int32)
     surface_elements += len(misplaced_voxels)
