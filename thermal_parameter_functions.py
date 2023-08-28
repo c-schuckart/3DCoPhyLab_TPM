@@ -22,67 +22,122 @@ def lambda_granular(n_x, n_y, n_z, temperature, Dr, dx, dy, dz, lambda_water_ice
 					T_z_neg = temperature[i][j][k] + (temperature[i - 1][j][k] - temperature[i][j][k]) / Dr[i][j][k][1] * 1 / 2 * dz[i][j][k]
 					temps = np.array([T_z_pos, T_z_neg, T_y_pos, T_y_neg, T_x_pos, T_x_neg])
 					interface_temperatures[i][j][k] = temps
-					'''if i == 1 and j == 50 and k == 50:
-						print(T_x_pos)
-					if i == 1 and j == 50 and k == 51:
-						print(T_x_neg)'''
 					if r_n[i][j][k] == 0:
-						lambda_grain = (lambda_water_ice / temps) * (9 * np.pi / 4 * (1 - poisson_ratio_par ** 2) / young_modulus_par * surface_energy_par * r_mono ** 2) ** (1 / 3) * f_1 * np.exp(f_2 * VFF_pack[i][j][k]) / r_mono
+						lambda_grain = (lambda_water_ice / temps) * (9 * np.pi / 4 * (1 - poisson_ratio_par ** 2) / young_modulus_par * surface_energy_par * r_mono[i][j][k] ** 2) ** (1 / 3) * f_1 * np.exp(f_2 * VFF_pack[i][j][k]) / r_mono[i][j][k]
+					elif r_n[i][j][k] < r_mono[i][j][k]:
+						lambda_grain = (lambda_water_ice / temps) * (3 / 4 * (1 - poisson_ratio_par ** 2) / young_modulus_par * np.sqrt(3/2 * np.pi * surface_energy_par * 2/3 * young_modulus_par * 1/(1 - poisson_ratio_par**2))) ** (1 / 3) * f_1 * np.exp(f_2 * VFF_pack[i][j][k]) * r_n[i][j][k]**(1/2) / r_mono[i][j][k]**(2/3)
 					else:
-						lambda_grain = (lambda_water_ice / temps) * (3 / 4 * (1 - poisson_ratio_par ** 2) / young_modulus_par * np.sqrt(3/2 * np.pi * surface_energy_par * 2/3 * young_modulus_par * 1/(1 - poisson_ratio_par**2))) ** (1 / 3) * f_1 * np.exp(f_2 * VFF_pack[i][j][k]) * r_n[i][j][k]**(1/2) / r_mono**(2/3)
+						lambda_grain = (lambda_water_ice / temps)
 					lambda_cond = lambda_grain
 					for a in range(0, len(lambda_grain)):
 						if sample_holder[i + var.n_z_lr[a]][j + var.n_y_lr[a]][k + var.n_x_lr[a]] == 1 or sample_holder[i][j][k] == 1:
 							#lambda_cond[a] = 0.01
 							lambda_cond[a] = ((lambda_grain[a] / (Dr[i][j][k][a] / 2) * lambda_sample_holder / (Dr[i][j][k][a] / 2)) / (lambda_grain[a] / (Dr[i][j][k][a] / 2) + lambda_sample_holder / (Dr[i][j][k][a] / 2))) * Dr[i][j][k][a]
-						lambda_total[i][j][k][a] = lambda_cond[a] + 16 / 3 * sigma * temps[a] ** 3 * e_1 * (1 - VFF_pack[i][j][k]) / VFF_pack[i][j][k] * r_mono
+						lambda_total[i][j][k][a] = lambda_cond[a] + 16 / 3 * sigma * temps[a] ** 3 * e_1 * (1 - VFF_pack[i][j][k]) / VFF_pack[i][j][k] * r_mono[i][j][k]
 	return lambda_total, interface_temperatures
 
 
 @njit(parallel=True)
-def lambda_granular_periodic(n_x, n_y, n_z, temperature, Dr, dx, dy, dz, lambda_water_ice, poisson_ratio_par, young_modulus_par, surface_energy_par, r_mono, f_1, f_2, VFF_pack, sigma, e_1, sample_holder, lambda_sample_holder, r_n):
+def lambda_granular_periodic(n_x, n_y, n_z, temperature, Dr, dx, dy, dz, lambda_water_ice, poisson_ratio_par, young_modulus_par, surface_energy_par, r_mono, f_1, f_2, VFF_pack, sigma, e_1, sample_holder, lambda_sample_holder, r_n, enable_full_sintering):
 	lambda_total = np.zeros((n_z, n_y, n_x, 6), dtype=np.float64)
+	lambda_centre = np.zeros((n_z, n_y, n_x), dtype=np.float64)
 	lambda_cond = np.zeros(6, dtype=np.float64)
+	lambda_grain = np.zeros(6, dtype=np.float64)
+	r_n_interface = np.zeros(6, dtype=np.float64)
+	r_mono_interface = np.zeros(6, dtype=np.float64)
 	interface_temperatures = np.zeros((n_z, n_y, n_x, 6), dtype=np.float64)
+	interface_rns = np.zeros((n_z, n_y, n_x, 6), dtype=np.float64)
+	interface_rmonos = np.zeros((n_z, n_y, n_x, 6), dtype=np.float64)
 	for i in prange(1, n_z-1):
 		for j in range(1, n_y-1):
 			for k in range(1, n_x-1):
 				if temperature[i][j][k] > 0:
 					#Temperature calculated between the layers
-					if k == n_x-2:
-						T_x_pos = temperature[i][j][1] + (temperature[i][j][k] - temperature[i][j][1]) / Dr[i][j][k][4] * 1 / 2 * dx[i][j][1]
+					if sample_holder[i][j][k] != 0:
+						lambda_centre[i][j][k] = lambda_sample_holder
+					elif r_n[i][j][k] > r_mono[i][j][k] and enable_full_sintering:
+						lambda_centre[i][j][k] = lambda_water_ice/temperature[i][j][k]
 					else:
-						T_x_pos = temperature[i][j][k + 1] + (temperature[i][j][k] - temperature[i][j][k + 1]) / Dr[i][j][k][4] * 1/2 * dx[i][j][k + 1]
+						lambda_centre[i][j][k] = (lambda_water_ice / temperature[i][j][k]) * (3 / 4 * (1 - poisson_ratio_par ** 2) / young_modulus_par * np.sqrt(3 / 2 * np.pi * surface_energy_par * 2 / 3 * young_modulus_par * 1 / (1 - poisson_ratio_par ** 2))) ** (1 / 3) * f_1 * np.exp(f_2 * VFF_pack[i][j][k]) * r_n[i][j][k] ** (1 / 2) / r_mono[i][j][k] ** (2 / 3)
+					'''if k == n_x-2:
+						T_x_pos = 2 * (temperature[i][j][1] * temperature[i][j][k]) / (temperature[i][j][1] + temperature[i][j][k])
+						r_n_interface[4] = 2 * (r_n[i][j][1] * r_n[i][j][k]) / (r_n[i][j][1] + r_n[i][j][k])
+						r_mono_interface[4] = 2 * (r_mono[i][j][1] * r_mono[i][j][k]) / (r_mono[i][j][1] + r_mono[i][j][k])
+					else:
+						T_x_pos = 2 * (temperature[i][j][k + 1] * temperature[i][j][k]) / (temperature[i][j][k+1] + temperature[i][j][k])
+						r_n_interface[4] = 2 * (r_n[i][j][k + 1] * r_n[i][j][k]) / (temperature[i][j][k+1] + temperature[i][j][k])
+						r_mono_interface[4] = r_mono[i][j][k + 1] + (r_mono[i][j][k] - r_mono[i][j][k + 1]) / Dr[i][j][k][4] * 1/2 * dx[i][j][k + 1]
 					if k == 1:
 						T_x_neg = temperature[i][j][k] + (temperature[i][j][n_x - 2] - temperature[i][j][k]) / Dr[i][j][k][5] * 1 / 2 * dx[i][j][k]
+						r_n_interface[5] = r_n[i][j][k] + (r_n[i][j][n_x - 2] - r_n[i][j][k]) / Dr[i][j][k][5] * 1 / 2 * dx[i][j][k]
+						r_mono_interface[5] = r_mono[i][j][k] + (r_mono[i][j][n_x - 2] - r_mono[i][j][k]) / Dr[i][j][k][5] * 1 / 2 * dx[i][j][k]
 					else:
 						T_x_neg = temperature[i][j][k] + (temperature[i][j][k - 1] - temperature[i][j][k]) / Dr[i][j][k][5] * 1 / 2 * dx[i][j][k]
+						r_n_interface[5] = r_n[i][j][k] + (r_n[i][j][k - 1] - r_n[i][j][k]) / Dr[i][j][k][5] * 1 / 2 * dx[i][j][k]
+						r_mono_interface[5] = r_mono[i][j][k] + (r_mono[i][j][k - 1] - r_mono[i][j][k]) / Dr[i][j][k][5] * 1 / 2 * dx[i][j][k]
 					if j == n_y-2:
 						T_y_pos = temperature[i][1][k] + (temperature[i][j][k] - temperature[i][1][k]) / Dr[i][j][k][2] * 1 / 2 * dy[i][1][k]
+						r_n_interface[2] = r_n[i][1][k] + (r_n[i][j][k] - r_n[i][1][k]) / Dr[i][j][k][2] * 1 / 2 * dy[i][1][k]
+						r_mono_interface[2] = r_mono[i][1][k] + (r_mono[i][j][k] - r_mono[i][1][k]) / Dr[i][j][k][2] * 1 / 2 * dy[i][1][k]
 					else:
 						T_y_pos = temperature[i][j + 1][k] + (temperature[i][j][k] - temperature[i][j + 1][k]) / Dr[i][j][k][2] * 1 / 2 * dy[i][j + 1][k]
+						r_n_interface[2] = r_n[i][j + 1][k] + (r_n[i][j][k] - r_n[i][j + 1][k]) / Dr[i][j][k][2] * 1 / 2 * dy[i][j + 1][k]
+						r_mono_interface[2] = r_mono[i][j + 1][k] + (r_mono[i][j][k] - r_mono[i][j + 1][k]) / Dr[i][j][k][2] * 1 / 2 * dy[i][j + 1][k]
 					if j == 1:
 						T_y_neg = temperature[i][j][k] + (temperature[i][n_y - 2][k] - temperature[i][j][k]) / Dr[i][j][k][3] * 1 / 2 * dy[i][j][k]
+						r_n_interface[3] = r_n[i][j][k] + (r_n[i][n_y - 2][k] - r_n[i][j][k]) / Dr[i][j][k][3] * 1 / 2 * dy[i][j][k]
+						r_mono_interface[3] = r_mono[i][j][k] + (r_mono[i][n_y - 2][k] - r_mono[i][j][k]) / Dr[i][j][k][3] * 1 / 2 * dy[i][j][k]
 					else:
 						T_y_neg = temperature[i][j][k] + (temperature[i][j - 1][k] - temperature[i][j][k]) / Dr[i][j][k][3] * 1 / 2 * dy[i][j][k]
+						r_n_interface[3] = r_n[i][j][k] + (r_n[i][j - 1][k] - r_n[i][j][k]) / Dr[i][j][k][3] * 1 / 2 * dy[i][j][k]
+						r_mono_interface[3] = r_mono[i][j][k] + (r_mono[i][j - 1][k] - r_mono[i][j][k]) / Dr[i][j][k][3] * 1 / 2 * dy[i][j][k]
 					T_z_pos = temperature[i + 1][j][k] + (temperature[i][j][k] - temperature[i + 1][j][k]) / Dr[i][j][k][0] * 1 / 2 * dz[i + 1][j][k]
+					r_n_interface[0] = r_n[i + 1][j][k] + (r_n[i][j][k] - r_n[i + 1][j][k]) / Dr[i][j][k][0] * 1 / 2 * dz[i + 1][j][k]
+					r_mono_interface[0] = r_mono[i + 1][j][k] + (r_mono[i][j][k] - r_mono[i + 1][j][k]) / Dr[i][j][k][0] * 1 / 2 * dz[i + 1][j][k]
 					T_z_neg = temperature[i][j][k] + (temperature[i - 1][j][k] - temperature[i][j][k]) / Dr[i][j][k][1] * 1 / 2 * dz[i][j][k]
+					r_n_interface[1] = r_n[i][j][k] + (r_n[i - 1][j][k] - r_n[i][j][k]) / Dr[i][j][k][1] * 1 / 2 * dz[i][j][k]
+					r_mono_interface[1] = r_mono[i][j][k] + (r_mono[i - 1][j][k] - r_mono[i][j][k]) / Dr[i][j][k][1] * 1 / 2 * dz[i][j][k]
 					temps = np.array([T_z_pos, T_z_neg, T_y_pos, T_y_neg, T_x_pos, T_x_neg])
 					interface_temperatures[i][j][k] = temps
-					'''if i == 1 and j == 50 and k == 50:
-						print(T_x_pos)
-					if i == 1 and j == 50 and k == 51:
-						print(T_x_neg)'''
-					if r_n[i][j][k] == 0:
-						lambda_grain = (lambda_water_ice / temps) * (9 * np.pi / 4 * (1 - poisson_ratio_par ** 2) / young_modulus_par * surface_energy_par * r_mono ** 2) ** (1 / 3) * f_1 * np.exp(f_2 * VFF_pack[i][j][k]) / r_mono
-					else:
-						lambda_grain = (lambda_water_ice / temps) * (3 / 4 * (1 - poisson_ratio_par ** 2) / young_modulus_par * np.sqrt(3/2 * np.pi * surface_energy_par * 2/3 * young_modulus_par * 1/(1 - poisson_ratio_par**2))) ** (1 / 3) * f_1 * np.exp(f_2 * VFF_pack[i][j][k]) * r_n[i][j][k]**(1/2) / r_mono**(2/3)
-					lambda_cond = lambda_grain
-					for a in range(0, len(lambda_grain)):
-						if sample_holder[i + var.n_z_lr[a]][j + var.n_y_lr[a]][k + var.n_x_lr[a]] == 1 or sample_holder[i][j][k] == 1:
-							#lambda_cond[a] = 0.01
-							lambda_cond[a] = ((lambda_grain[a] / (Dr[i][j][k][a] / 2) * lambda_sample_holder / (Dr[i][j][k][a] / 2)) / (lambda_grain[a] / (Dr[i][j][k][a] / 2) + lambda_sample_holder / (Dr[i][j][k][a] / 2))) * Dr[i][j][k][a]
-						lambda_total[i][j][k][a] = lambda_cond[a] + 16 / 3 * sigma * temps[a] ** 3 * e_1 * (1 - VFF_pack[i][j][k]) / VFF_pack[i][j][k] * r_mono
+					interface_rns[i][j][k] = r_n_interface
+					interface_rmonos[i][j][k] = r_mono_interface
+					#lambda_cond = lambda_grain
+					for a in range(0, len(lambda_cond)):
+						lambda_grain[a] = (lambda_water_ice / temps[a]) * (3 / 4 * (1 - poisson_ratio_par ** 2) / young_modulus_par * np.sqrt(3 / 2 * np.pi * surface_energy_par * 2 / 3 * young_modulus_par * 1 / (1 - poisson_ratio_par ** 2))) ** (1 / 3) * f_1 * np.exp(f_2 * VFF_pack[i][j][k]) * r_n_interface[a] ** (1 / 2) / r_mono_interface[a] ** (2 / 3)
+						lambda_cond[a] = lambda_grain[a]
+						if sample_holder[i + var.n_z_lr[a]][j + var.n_y_lr[a]][k + var.n_x_lr[a]] == 1 or \
+								sample_holder[i][j][k] == 1:
+							# lambda_cond[a] = 0.01
+							lambda_cond[a] = ((lambda_grain[a] / (Dr[i][j][k][a] / 2) * lambda_sample_holder / (
+										Dr[i][j][k][a] / 2)) / (lambda_grain[a] / (
+										Dr[i][j][k][a] / 2) + lambda_sample_holder / (Dr[i][j][k][a] / 2))) * \
+											 Dr[i][j][k][a]
+						lambda_total[i][j][k][a] = lambda_cond[a] + 16 / 3 * sigma * temps[a] ** 3 * e_1 * (
+									1 - VFF_pack[i][j][k]) / VFF_pack[i][j][k] * r_mono_interface[a]
+					if i == 2 and j == 25 and k == 25:
+						print(lambda_grain)'''
+	#print(lambda_centre[1][25][25], lambda_centre[2][25][25], lambda_centre[3][25][25])
+	for i in prange(1, n_z-1):
+		for j in range(1, n_y-1):
+			for k in range(1, n_x-1):
+				if k == n_x-2:
+					lambda_total[i][j][k][4] = 2 * (lambda_centre[i][j][1] * lambda_centre[i][j][k]) / (lambda_centre[i][j][1] + lambda_centre[i][j][k])
+				else:
+					lambda_total[i][j][k][4] = 2 * (lambda_centre[i][j][k + 1] * lambda_centre[i][j][k]) / (lambda_centre[i][j][k+1] + lambda_centre[i][j][k])
+				if k == 1:
+					lambda_total[i][j][k][5] = 2 * (lambda_centre[i][j][k] * lambda_centre[i][j][n_x - 2]) / (lambda_centre[i][j][k] + lambda_centre[i][j][n_x-2])
+				else:
+					lambda_total[i][j][k][5] = 2 * (lambda_centre[i][j][k] * lambda_centre[i][j][k - 1]) / (lambda_centre[i][j][k] + lambda_centre[i][j][k-1])
+				if j == n_y-2:
+					lambda_total[i][j][k][2] = 2 * (lambda_centre[i][1][k] * lambda_centre[i][j][k]) / (lambda_centre[i][1][k] + lambda_centre[i][j][k])
+				else:
+					lambda_total[i][j][k][2] = 2 * (lambda_centre[i][j + 1][k] * lambda_centre[i][j][k]) / (lambda_centre[i][j+1][k] + lambda_centre[i][j][k])
+				if j == 1:
+					lambda_total[i][j][k][3] = 2 * (lambda_centre[i][j][k] * lambda_centre[i][n_y - 2][k]) / (lambda_centre[i][j][k] + lambda_centre[i][n_y-2][k])
+				else:
+					lambda_total[i][j][k][3] = 2 * (lambda_centre[i][j][k] * lambda_centre[i][j - 1][k]) / (lambda_centre[i][j][k] + lambda_centre[i][j-1][k])
+				lambda_total[i][j][k][0] = 2 * (lambda_centre[i + 1][j][k] * lambda_centre[i][j][k]) / (lambda_centre[i+1][j][k] + lambda_centre[i][j][k])
+				lambda_total[i][j][k][1] = 2 * (lambda_centre[i][j][k] * lambda_centre[i - 1][j][k]) / (lambda_centre[i][j][k] + lambda_centre[i-1][j][k])
 	return lambda_total, interface_temperatures
 
 

@@ -1,38 +1,38 @@
 import numpy as np
 
 #Definition of Simulation Parameters
-'''min_dx = 5E-3                      # Layer Thickness of smallest layer in x direction, Numerical Resolution  [m]
-min_dy = 5E-3                      # Layer Thickness of smallest layer in y direction, Numerical Resolution  [m]
-min_dz = 5E-3                      # Layer Thickness of smallest layer in z direction, Numerical Resolution  [m]
-dt = 5E0                           # Timestep                               [s]
+min_dx = 5E-6                      # Layer Thickness of smallest layer in x direction, Numerical Resolution  [m]
+min_dy = 5E-6                      # Layer Thickness of smallest layer in y direction, Numerical Resolution  [m]
+min_dz = 5E-6                      # Layer Thickness of smallest layer in z direction, Numerical Resolution  [m]
+dt = 1E0                           # Timestep                               [s]
 #dt = 1E1
-n_x = 64                            # Number of Layers                       [-]
-n_y = 64
-n_z = 36'''
-min_dx = 5E-3                      # Layer Thickness of the smallest layer in x direction, Numerical Resolution  [m]
+n_x = 50                            # Number of Layers                       [-]
+n_y = 50
+n_z = 50
+'''min_dx = 5E-3                      # Layer Thickness of the smallest layer in x direction, Numerical Resolution  [m]
 min_dy = 5E-3                      # Layer Thickness of the smallest layer in y direction, Numerical Resolution  [m]
 min_dz = 0.5E-3                      # Layer Thickness of the smallest layer in z direction, Numerical Resolution  [m]
 #dt = 1E-2                           # Timestep                               [s]
 dt = 5E1
 n_x = 54                           # Number of Layers                       [-]
 n_y = 54
-n_z = 42
+n_z = 42'''
 n = np.array([n_x, n_y, n_z])
 #k = 36288 * 5                      # Number of Timesteps                    [-]'''
 #k = int(17281)                    # Number of Timesteps                    [-]
-k = 3000
+k = 100 * 50
 #Definition of Physical Parameters
 #Material Properties
 lambda_constant = 0.01            # Thermal Conductivity                   [W/(K m)]
 #lambda_constant = 100000            # Thermal Conductivity                   [W/(K m)]
 lambda_scaling_factor = 1
-r_mono = 90E-6                     # Radius of Monomeres                    [m]
-#r_mono = 2.5E-6
+#r_mono = 90E-6                     # Radius of Monomeres                    [m]
+r_mono = 2.5E-6
 r_mono_water = 2.5E-6
 absorption_scale_length =1E-3      #                                           [m]
 e_1 = 1.34                        # Parameter for mean free path           [-]
 #VFF_pack_const = 0.42              # Volume Filling Factor of Packing       [-]
-VFF_pack_const = 0.55              # Volume Filling Factor of Packing       [-]
+VFF_pack_const = 0.35              # Volume Filling Factor of Packing       [-]
 poisson_ratio_par = 0.31          # Poisson`s ratio of Particle            [-]
 young_modulus_par = 10.5E9        # Young`s modulus of Particle            [Pa]
 tortuosity = 1.10                 # Tortuosity factor for monodisperse spherical particles for VFF 0.2
@@ -75,9 +75,9 @@ x_0 = 5E-2                        # Length scaling factor used to calculate the 
 gravitational_pressure = 0        #Placeholder! [Pa]
 surface_reduction_factor = 1
 #Thermal Properties
-temperature_ini = 300             # Start Temperature                      [K]
+temperature_ini = 77             # Start Temperature                      [K]
 #temperature_ini = 77
-sample_holder_starting_temp = 150  # Starting temperature of the sample holder [K]
+sample_holder_starting_temp = 77  # Starting temperature of the sample holder [K]
 Input_Intensity = 6500             # Intensity of the Light Source (Sun)    [W/m^2]
 #epsilon = 1                       # Emissivity                             [-]
 albedo = 0.94                  # Albedo                                 [-]
