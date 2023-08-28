@@ -38,8 +38,53 @@ plt.plot(z, temp_begin)
 plt.plot(z, temp_end)
 plt.scatter(z, temp_end_analytical)
 plt.show()'''
+'''print(np.datetime64('2023-07-17 10:53:05') + np.timedelta64(120000, 's'))
 
-'''timestamps = []
+A_arr = []
+D_arr = []
+L_arr = []
+
+with open('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/results_csv_sorted.csv') as csvdatei:
+    dat = csv.reader(csvdatei)
+    for each in dat:
+        path = 'C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/' + str(each[1]) + '.json'
+        A = ''
+        L = ''
+        D = ''
+        nr = 0
+        last_letter_num = False
+        for letters in each[1]:
+            if letters.isnumeric() or letters == '.':
+                if nr == 0:
+                    A = A + letters
+                if nr == 1:
+                    D = D + letters
+                if nr == 2:
+                    L = L + letters
+                last_letter_num = True
+            elif last_letter_num:
+                nr += 1
+                last_letter_num = False
+        print(A, D, L)
+        if each[0].isnumeric():
+            A_arr.append(A)
+            D_arr.append(D)
+            L_arr.append(L)
+        if each[0] == '15':
+            break
+
+print(A_arr)
+
+for i in range(0, 16):
+    fig, ax = plt.subplots(1, 1)
+    A = A_arr[i]
+    D = D_arr[i]
+    L = L_arr[i]
+'''
+fig, ax = plt.subplots(1, 1)
+A, D, L = '0.95', '0.001', '0.003'
+
+timestamps = []
 sen_1 = []
 sen_2 = []
 sen_3 = []
@@ -58,20 +103,25 @@ with open('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG
                 b = False
                 start = True
             timestamps.append(np.datetime64(each[0]) - start_time)
-            sen_1.append(float(each[1]))
+            '''sen_1.append(float(each[1]))
             sen_2.append(float(each[2]))
             sen_3.append(float(each[3]))
             sen_4.append(float(each[4]))
-            sen_5.append(float(each[5]))
+            sen_5.append(float(each[5]))'''
+            sen_1.append(float(each[7]))
+            sen_2.append(float(each[8]))
+            sen_3.append(float(each[9]))
+            sen_4.append(float(each[10]))
+            sen_5.append(float(each[11]))
             #sen_6.append(float(each[6]))
             if timestamps[len(timestamps) - 1] > 150000:
                 break
 
-plt.plot(timestamps, sen_1, label='1. mid sensor')
-plt.plot(timestamps, sen_2, label='2. mid sensor')
-plt.plot(timestamps, sen_3, label='3. mid sensor')
-plt.plot(timestamps, sen_4, label='4. mid sensor')
-plt.plot(timestamps, sen_5, label='5. mid sensor')
+ax.plot(timestamps, sen_1, label='1. out sensor')
+ax.plot(timestamps, sen_2, label='2. out sensor')
+ax.plot(timestamps, sen_3, label='3. out sensor')
+ax.plot(timestamps, sen_4, label='4. out sensor')
+ax.plot(timestamps, sen_5, label='5. out sensor')
 #plt.plot(timestamps, sen_6, label='6. mid sensor')
 
 time = [i * const.dt for i in range(0, const.k)]
@@ -82,30 +132,35 @@ sen_4_sim = []
 sen_5_sim = []
 #sen_6 = []
 
-with open('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/sand_L_chamber_A_0.95_Absdepth_0.001_Lambda_0.004.json') as json_file:
-#with open('D:/TPM_data/Big_sand/testing.json') as json_file:
+#with open('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/sand_L_chamber_A_0.95_Absdepth_0.001_Lambda_0.003.json') as json_file:
+with open('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/YPOSXNEGsand_L_chamber_A_' + A + '_Absdepth_' + D + '_Lambda_' + L +'.json') as json_file:
     jdata = json.load(json_file)
 
 for i in range(0, const.k):
-    sen_1_sim.append(jdata['Temperature'][i][0])
-    sen_2_sim.append(jdata['Temperature'][i][1])
-    sen_3_sim.append(jdata['Temperature'][i][2])
-    sen_4_sim.append(jdata['Temperature'][i][3])
-    sen_5_sim.append(jdata['Temperature'][i][4])
+    sen_1_sim.append(jdata['Temperature Outer'][i][0])
+    sen_2_sim.append(jdata['Temperature Outer'][i][1])
+    sen_3_sim.append(jdata['Temperature Outer'][i][2])
+    sen_4_sim.append(jdata['Temperature Outer'][i][3])
+    sen_5_sim.append(jdata['Temperature Outer'][i][4])
 
-plt.scatter(time, sen_1_sim, label='1. mid sensor SIM', color='#000000', marker='x', s=2)
-plt.scatter(time, sen_2_sim, label='2. mid sensor SIM', color='#272727', marker='x', s=2)
-plt.scatter(time, sen_3_sim, label='3. mid sensor SIM', color='#474747', marker='x', s=2)
-plt.scatter(time, sen_4_sim, label='4. mid sensor SIM', color='#636363', marker='x', s=2)
-plt.scatter(time, sen_5_sim, label='5. mid sensor SIM', color='#858585', marker='x', s=2)
+ax.scatter(time, sen_1_sim, label='1. out sensor SIM', color='#000000', marker='x', s=2)
+ax.scatter(time, sen_2_sim, label='2. out sensor SIM', color='#272727', marker='x', s=2)
+ax.scatter(time, sen_3_sim, label='3. out sensor SIM', color='#474747', marker='x', s=2)
+ax.scatter(time, sen_4_sim, label='4. out sensor SIM', color='#636363', marker='x', s=2)
+ax.scatter(time, sen_5_sim, label='5. out sensor SIM', color='#858585', marker='x', s=2)
 
-plt.ylim(290, 420)
+ax.set_ylim(290, 420)
 plt.tick_params(axis='x', which='both', direction='in', top=True, labeltop=False)
 plt.tick_params(axis='y', which='both', direction='in', right=True, labelright=False)
-plt.grid(True, lw=0.5)
+ax.grid(True, lw=0.5)
 plt.legend(fontsize='x-small')
-plt.show()
-#plt.savefig('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/SECBESTFITsand_L_chamber_A_0.95_Absdepth_0.001_Lambda_0.004.png', dpi=600)'''
+#plt.title('Albedo: ' + A + '; Abs. depth: ' + D + 'm; Lambda: ' + L + 'W/(mK)')
+plt.title('Best fit (inner sensors): Outer sensors')
+#plt.show()
+#plt.savefig('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/Plots/YNEGXPOSPresentation_sand_L_chamber_A_' + A + '_Absdepth_' + D + '_Lambda_' + L + '.png', dpi=600)
+plt.savefig('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/Plots/YPOSXNEGOuter_sensors_sand_L_chamber_A_0.95_Absdepth_0.001_Lambda_0.003.png', dpi=600)
+ax.clear()
+fig.clear()
 
 '''with open('D:/TPM_data/Big_sand/sand_L_chamber_test_quick.json') as json_file:
     data_q = json.load(json_file)

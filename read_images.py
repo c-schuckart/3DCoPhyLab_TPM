@@ -7,14 +7,24 @@ from numba import njit
 from tqdm import tqdm
 from pims import ImageSequence
 from os import listdir
+import json
 
 
-def calibration(OS):
+def calibration_low(OS):
     B = 537.42945148
     R = 122.25819449
     F = 7.56861749
     OFF = 1.95976821
     return B/(np.log((R/(OS-OFF))+F))
+
+
+def calibration_high(OS):
+    B = 1415.3
+    R = 13402.6
+    F = 2.67783
+    OFF = 15.5951
+    return B/(np.log((R/(OS-OFF))+F))
+
 
 @njit
 def GCD(a, b):
@@ -164,3 +174,48 @@ ax1.imshow(current_surface_temp)
 ax2.imshow(im2_scaled)
 plt.show()'''
 
+'''with open('D:/TPM_data/Big_sand/sand_L_chamber_A_0.95_Absdepth_0.001_Lambda_0.003.json') as json_file:
+    jdata = json.load(json_file)
+im = np.array(PIL.Image.open('D:/Laboratory_data/Big_sand/sand_daten1/screenshots/2023_07_18_20h_12m_55s.png').convert('L'))
+temps = np.array(jdata['Temperature Surface'])
+for j in range(0, const.n_y-2):
+    for k in range(0, const.n_x-2):
+        if temps[j][k] == 0:
+            temps[j][k] = np.nan
+#im = np.array(PIL.Image.open('D:/Masterarbeit_data/IR/ice_block/2023_02_22_11h_35m_12s.png').convert('L'))
+#images = ImageSequence('D:/Masterarbeit_data/IR/ice_block/2023_02_*.png')
+#filenames = listdir('D:/Masterarbeit_data/IR/ice_block')
+#x=626
+#y=653
+#width=183
+#height=183
+width=929-655
+height=929-655
+x=578
+y=655
+ggT = GCD(const.n_x, width)
+length = width//ggT
+Surface_temperatures_cam = np.zeros((const.k, const.n_x, const.n_y), dtype=np.float64)
+im_cur = im[int(y-height/2):int(y+height/2), int(x-width/2):int(x+width/2)]
+print(np.max(im_cur))
+OS_cur = (im_cur / 255) * 255 + 145
+print(np.max(OS_cur))
+Surface_temperatures_cur = calibration_high(OS_cur)
+convolved_cur = convolve(Surface_temperatures_cur, length, const.n_x, len(Surface_temperatures_cur[0]), const.n_x, const.n_y)[0]
+fig, (ax1, ax2, ax3) = plt.subplots(1, 3)
+fig.set_figheight(15)
+fig.set_figwidth(15)
+im_one = ax1.imshow(np.rot90(Surface_temperatures_cur, 3), cmap='viridis')
+im_two = ax2.imshow(np.rot90(convolved_cur[1:const.n_y-1, 1:const.n_x-1], 3), cmap='viridis')
+im_three = ax3.imshow(temps, cmap='viridis')
+plt.colorbar(im_one, ax=ax1, shrink=0.3)
+plt.colorbar(im_two, ax=ax2, shrink=0.3)
+plt.colorbar(im_three, ax=ax3, shrink=0.3)
+ax1.set_title('IR cam')
+ax1.set_title('IR cam scaled')
+ax1.set_title('Simulation')
+for each in [ax1, ax2, ax3]:
+    each.set_xticks([])
+    each.set_yticks([])
+plt.savefig('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/Plots/Comparison_surface.png', dpi=600)
+plt.show()'''
