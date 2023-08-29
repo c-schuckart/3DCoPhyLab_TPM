@@ -174,14 +174,15 @@ ax1.imshow(current_surface_temp)
 ax2.imshow(im2_scaled)
 plt.show()'''
 
-'''with open('D:/TPM_data/Big_sand/sand_L_chamber_A_0.95_Absdepth_0.001_Lambda_0.003.json') as json_file:
+with open('D:/TPM_Data/Big_sand/YNEGXPOSsand_L_chamber_A_0.95_Absdepth_0.001_Lambda_0.003.json') as json_file:
     jdata = json.load(json_file)
-im = np.array(PIL.Image.open('D:/Laboratory_data/Big_sand/sand_daten1/screenshots/2023_07_18_20h_12m_55s.png').convert('L'))
+im = np.array(PIL.Image.open('D:/TPM_Data/Big_sand/sand_daten1/screenshots/2023_07_18_20h_12m_55s.png').convert('L'))
 temps = np.array(jdata['Temperature Surface'])
 for j in range(0, const.n_y-2):
     for k in range(0, const.n_x-2):
         if temps[j][k] == 0:
             temps[j][k] = np.nan
+#temps[(const.n_y-1)//2][(const.n_x-3)] = 400
 #im = np.array(PIL.Image.open('D:/Masterarbeit_data/IR/ice_block/2023_02_22_11h_35m_12s.png').convert('L'))
 #images = ImageSequence('D:/Masterarbeit_data/IR/ice_block/2023_02_*.png')
 #filenames = listdir('D:/Masterarbeit_data/IR/ice_block')
@@ -189,8 +190,8 @@ for j in range(0, const.n_y-2):
 #y=653
 #width=183
 #height=183
-width=929-655
-height=929-655
+width=(929-655)*2
+height=(929-655)*2
 x=578
 y=655
 ggT = GCD(const.n_x, width)
@@ -200,22 +201,30 @@ im_cur = im[int(y-height/2):int(y+height/2), int(x-width/2):int(x+width/2)]
 print(np.max(im_cur))
 OS_cur = (im_cur / 255) * 255 + 145
 print(np.max(OS_cur))
-Surface_temperatures_cur = calibration_high(OS_cur)
+Surface_temperatures_cur = np.rot90(calibration_high(OS_cur), 3)
+for i in range(np.shape(Surface_temperatures_cur)[0]):
+    for j in range(np.shape(Surface_temperatures_cur)[1]):
+        if Surface_temperatures_cur[i][j] <= 309:
+            Surface_temperatures_cur[i][j] = np.nan
 convolved_cur = convolve(Surface_temperatures_cur, length, const.n_x, len(Surface_temperatures_cur[0]), const.n_x, const.n_y)[0]
+Sur_shifted = np.full(np.shape(Surface_temperatures_cur), np.nan)
+Sur_shifted[0:height-48, 0:width] = Surface_temperatures_cur[48:height, 0:width]
+Con_shifted = np.full(np.shape(Surface_temperatures_cur), np.nan)
+Con_shifted[0:const.n_y-5-1, 0:const.n_x] = convolved_cur[5:const.n_y-1, 0:const.n_x]
 fig, (ax1, ax2, ax3) = plt.subplots(1, 3)
-fig.set_figheight(15)
+fig.set_figheight(10)
 fig.set_figwidth(15)
-im_one = ax1.imshow(np.rot90(Surface_temperatures_cur, 3), cmap='viridis')
-im_two = ax2.imshow(np.rot90(convolved_cur[1:const.n_y-1, 1:const.n_x-1], 3), cmap='viridis')
+im_one = ax1.imshow(Sur_shifted, cmap='viridis')
+im_two = ax2.imshow(Con_shifted[1:const.n_y-1, 1:const.n_x-1], cmap='viridis')
 im_three = ax3.imshow(temps, cmap='viridis')
 plt.colorbar(im_one, ax=ax1, shrink=0.3)
 plt.colorbar(im_two, ax=ax2, shrink=0.3)
 plt.colorbar(im_three, ax=ax3, shrink=0.3)
 ax1.set_title('IR cam')
-ax1.set_title('IR cam scaled')
-ax1.set_title('Simulation')
+ax2.set_title('IR cam scaled')
+ax3.set_title('Simulation')
 for each in [ax1, ax2, ax3]:
     each.set_xticks([])
     each.set_yticks([])
-plt.savefig('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/Plots/Comparison_surface.png', dpi=600)
-plt.show()'''
+plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/Plots/Comparison_surface_309Kco.png', dpi=600)
+#plt.show()

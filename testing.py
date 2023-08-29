@@ -92,7 +92,7 @@ sen_4 = []
 sen_5 = []
 sen_6 = []
 
-with open('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/temps_sandy_randy.txt') as csvdatei:
+with open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/temps_sandy_randy.txt') as csvdatei:
     dat = csv.reader(csvdatei)
     b = True
     start = False
@@ -103,25 +103,25 @@ with open('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG
                 b = False
                 start = True
             timestamps.append(np.datetime64(each[0]) - start_time)
-            '''sen_1.append(float(each[1]))
+            sen_1.append(float(each[1]))
             sen_2.append(float(each[2]))
             sen_3.append(float(each[3]))
             sen_4.append(float(each[4]))
-            sen_5.append(float(each[5]))'''
-            sen_1.append(float(each[7]))
+            sen_5.append(float(each[5]))
+            '''sen_1.append(float(each[7]))
             sen_2.append(float(each[8]))
             sen_3.append(float(each[9]))
             sen_4.append(float(each[10]))
-            sen_5.append(float(each[11]))
+            sen_5.append(float(each[11]))'''
             #sen_6.append(float(each[6]))
             if timestamps[len(timestamps) - 1] > 150000:
                 break
 
-ax.plot(timestamps, sen_1, label='1. out sensor')
-ax.plot(timestamps, sen_2, label='2. out sensor')
-ax.plot(timestamps, sen_3, label='3. out sensor')
-ax.plot(timestamps, sen_4, label='4. out sensor')
-ax.plot(timestamps, sen_5, label='5. out sensor')
+ax.plot(timestamps, sen_1, label='1. mid sensor')
+ax.plot(timestamps, sen_2, label='2. mid sensor')
+ax.plot(timestamps, sen_3, label='3. mid sensor')
+ax.plot(timestamps, sen_4, label='4. mid sensor')
+ax.plot(timestamps, sen_5, label='5. mid sensor')
 #plt.plot(timestamps, sen_6, label='6. mid sensor')
 
 time = [i * const.dt for i in range(0, const.k)]
@@ -133,32 +133,32 @@ sen_5_sim = []
 #sen_6 = []
 
 #with open('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/sand_L_chamber_A_0.95_Absdepth_0.001_Lambda_0.003.json') as json_file:
-with open('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/YPOSXNEGsand_L_chamber_A_' + A + '_Absdepth_' + D + '_Lambda_' + L +'.json') as json_file:
+with open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/CORRsand_L_chamber_A_' + A + '_Absdepth_' + D + '_Lambda_' + L +'.json') as json_file:
     jdata = json.load(json_file)
 
 for i in range(0, const.k):
-    sen_1_sim.append(jdata['Temperature Outer'][i][0])
-    sen_2_sim.append(jdata['Temperature Outer'][i][1])
-    sen_3_sim.append(jdata['Temperature Outer'][i][2])
-    sen_4_sim.append(jdata['Temperature Outer'][i][3])
-    sen_5_sim.append(jdata['Temperature Outer'][i][4])
+    sen_1_sim.append(jdata['Temperature'][i][0])
+    sen_2_sim.append(jdata['Temperature'][i][1])
+    sen_3_sim.append(jdata['Temperature'][i][2])
+    sen_4_sim.append(jdata['Temperature'][i][3])
+    sen_5_sim.append(jdata['Temperature'][i][4])
 
-ax.scatter(time, sen_1_sim, label='1. out sensor SIM', color='#000000', marker='x', s=2)
-ax.scatter(time, sen_2_sim, label='2. out sensor SIM', color='#272727', marker='x', s=2)
-ax.scatter(time, sen_3_sim, label='3. out sensor SIM', color='#474747', marker='x', s=2)
-ax.scatter(time, sen_4_sim, label='4. out sensor SIM', color='#636363', marker='x', s=2)
-ax.scatter(time, sen_5_sim, label='5. out sensor SIM', color='#858585', marker='x', s=2)
+ax.plot(time, sen_1_sim, label='1. mid sensor SIM', color='#000000')
+ax.plot(time, sen_2_sim, label='2. mid sensor SIM', color='#272727', ls='--')
+ax.plot(time, sen_3_sim, label='3. mid sensor SIM', color='#474747', ls=':')
+ax.plot(time, sen_4_sim, label='4. mid sensor SIM', color='#636363', ls='-.')
+ax.plot(time, sen_5_sim, label='5. mid sensor SIM', color='#858585')
 
 ax.set_ylim(290, 420)
 plt.tick_params(axis='x', which='both', direction='in', top=True, labeltop=False)
 plt.tick_params(axis='y', which='both', direction='in', right=True, labelright=False)
 ax.grid(True, lw=0.5)
 plt.legend(fontsize='x-small')
-#plt.title('Albedo: ' + A + '; Abs. depth: ' + D + 'm; Lambda: ' + L + 'W/(mK)')
-plt.title('Best fit (inner sensors): Outer sensors')
+plt.title('Albedo: ' + A + '; Abs. depth: ' + D + 'm; Lambda: ' + L + 'W/(mK)')
+#plt.title('Best fit (inner sensors): Outer sensors')
 #plt.show()
-#plt.savefig('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/Plots/YNEGXPOSPresentation_sand_L_chamber_A_' + A + '_Absdepth_' + D + '_Lambda_' + L + '.png', dpi=600)
-plt.savefig('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/Plots/YPOSXNEGOuter_sensors_sand_L_chamber_A_0.95_Absdepth_0.001_Lambda_0.003.png', dpi=600)
+plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/Plots/CORRPresentation_sand_L_chamber_A_' + A + '_Absdepth_' + D + '_Lambda_' + L + '.png', dpi=600)
+#plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/Plots/CORROuter_sensors_sand_L_chamber_A_0.95_Absdepth_0.001_Lambda_0.003.png', dpi=600)
 ax.clear()
 fig.clear()
 
