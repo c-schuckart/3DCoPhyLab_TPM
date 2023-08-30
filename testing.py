@@ -38,8 +38,8 @@ plt.plot(z, temp_begin)
 plt.plot(z, temp_end)
 plt.scatter(z, temp_end_analytical)
 plt.show()'''
-'''print(np.datetime64('2023-07-17 10:53:05') + np.timedelta64(120000, 's'))
-
+print(np.datetime64('2023-07-17 10:53:05') + np.timedelta64(270000, 's'))
+'''
 A_arr = []
 D_arr = []
 L_arr = []
@@ -82,7 +82,7 @@ for i in range(0, 16):
     L = L_arr[i]
 '''
 fig, ax = plt.subplots(1, 1)
-A, D, L = '0.95', '0.001', '0.003'
+A, D, L = '0.95', '0.003', '0.05'
 
 timestamps = []
 sen_1 = []
@@ -92,12 +92,13 @@ sen_4 = []
 sen_5 = []
 sen_6 = []
 
-with open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/temps_sandy_randy.txt') as csvdatei:
+with open('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/temps_sandy_randy.txt') as csvdatei:
     dat = csv.reader(csvdatei)
     b = True
     start = False
     for each in dat:
         if each[0] == '2023-07-17 10:53:05' or start:
+        #if each[0] == '2023-07-20 13:53:07' or start:
             if b:
                 start_time = np.datetime64(each[0])
                 b = False
@@ -115,6 +116,7 @@ with open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/temp
             sen_5.append(float(each[11]))'''
             #sen_6.append(float(each[6]))
             if timestamps[len(timestamps) - 1] > 150000:
+            #if timestamps[len(timestamps) - 1] > 330000:
                 break
 
 ax.plot(timestamps, sen_1, label='1. mid sensor')
@@ -133,7 +135,7 @@ sen_5_sim = []
 #sen_6 = []
 
 #with open('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/sand_L_chamber_A_0.95_Absdepth_0.001_Lambda_0.003.json') as json_file:
-with open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/CORRsand_L_chamber_A_' + A + '_Absdepth_' + D + '_Lambda_' + L +'.json') as json_file:
+with open('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/sand_L_chamber_A_' + A + '_Absdepth_' + D + '_Lambda_' + L +'.json') as json_file:
     jdata = json.load(json_file)
 
 for i in range(0, const.k):
@@ -149,6 +151,16 @@ ax.plot(time, sen_3_sim, label='3. mid sensor SIM', color='#474747', ls=':')
 ax.plot(time, sen_4_sim, label='4. mid sensor SIM', color='#636363', ls='-.')
 ax.plot(time, sen_5_sim, label='5. mid sensor SIM', color='#858585')
 
+with open('D:/TPM_data/Big_sand/sand_L_chamber_A_' + A + '_Absdepth_' + D + '_Lambda_' + L + '.json') as json_file:
+    jdata_2 = json.load(json_file)
+
+surface_temp = []
+for each in  jdata_2['Temperature']:
+    surface_temp.append(each[1])
+
+
+ax.plot(time, surface_temp, color='#000000', ls='-.')
+
 ax.set_ylim(290, 420)
 plt.tick_params(axis='x', which='both', direction='in', top=True, labeltop=False)
 plt.tick_params(axis='y', which='both', direction='in', right=True, labelright=False)
@@ -156,8 +168,8 @@ ax.grid(True, lw=0.5)
 plt.legend(fontsize='x-small')
 plt.title('Albedo: ' + A + '; Abs. depth: ' + D + 'm; Lambda: ' + L + 'W/(mK)')
 #plt.title('Best fit (inner sensors): Outer sensors')
-#plt.show()
-plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/Plots/CORRPresentation_sand_L_chamber_A_' + A + '_Absdepth_' + D + '_Lambda_' + L + '.png', dpi=600)
+plt.show()
+#plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/Plots/CORRPresentation_sand_L_chamber_A_' + A + '_Absdepth_' + D + '_Lambda_' + L + '.png', dpi=600)
 #plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/Plots/CORROuter_sensors_sand_L_chamber_A_0.95_Absdepth_0.001_Lambda_0.003.png', dpi=600)
 ax.clear()
 fig.clear()

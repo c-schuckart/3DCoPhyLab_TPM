@@ -248,6 +248,18 @@ def calculate_deeper_layer_source(n_x, n_y, n_z, input_energy, r_H, albedo, surf
 	S_c[2:const.n_z] = Q[2:const.n_z] / (dx[2:const.n_z] * dy[2:const.n_z] * dz[2:const.n_z])
 	return S_c
 
+
+@njit
+def day_night_cycle(lamp_power, S_c, period, current_time):
+	time_factor = np.sin(2 * current_time / period * np.pi)
+	if time_factor >= 0:
+		lamp_power = lamp_power * time_factor
+		S_c = S_c * time_factor
+	else:
+		lamp_power = lamp_power * 0
+		S_c = S_c * 0
+	return lamp_power, S_c
+
 @njit
 def sample_holder_test_2(n_x, n_y, n_z, sample_holder, temperature, target_temp, target_height):
 	for i in prange(target_height, target_height+1):

@@ -174,7 +174,7 @@ ax1.imshow(current_surface_temp)
 ax2.imshow(im2_scaled)
 plt.show()'''
 
-with open('D:/TPM_Data/Big_sand/YNEGXPOSsand_L_chamber_A_0.95_Absdepth_0.001_Lambda_0.003.json') as json_file:
+'''with open('D:/TPM_Data/Big_sand/YNEGXPOSsand_L_chamber_A_0.95_Absdepth_0.001_Lambda_0.003.json') as json_file:
     jdata = json.load(json_file)
 im = np.array(PIL.Image.open('D:/TPM_Data/Big_sand/sand_daten1/screenshots/2023_07_18_20h_12m_55s.png').convert('L'))
 temps = np.array(jdata['Temperature Surface'])
@@ -227,4 +227,4 @@ for each in [ax1, ax2, ax3]:
     each.set_xticks([])
     each.set_yticks([])
 plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/Plots/Comparison_surface_309Kco.png', dpi=600)
-#plt.show()
+#plt.show()'''
