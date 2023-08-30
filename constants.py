@@ -1,22 +1,22 @@
 import numpy as np
 
 #Definition of Simulation Parameters
-'''min_dx = 5E-6                      # Layer Thickness of smallest layer in x direction, Numerical Resolution  [m]
+min_dx = 5E-6                      # Layer Thickness of smallest layer in x direction, Numerical Resolution  [m]
 min_dy = 5E-6                      # Layer Thickness of smallest layer in y direction, Numerical Resolution  [m]
 min_dz = 5E-6                      # Layer Thickness of smallest layer in z direction, Numerical Resolution  [m]
 dt = 1E0                           # Timestep                               [s]
 #dt = 1E1
 n_x = 50                            # Number of Layers                       [-]
 n_y = 50
-n_z = 50'''
-min_dx = 5E-3                      # Layer Thickness of the smallest layer in x direction, Numerical Resolution  [m]
+n_z = 50
+'''min_dx = 5E-3                      # Layer Thickness of the smallest layer in x direction, Numerical Resolution  [m]
 min_dy = 5E-3                      # Layer Thickness of the smallest layer in y direction, Numerical Resolution  [m]
 min_dz = 0.5E-3                      # Layer Thickness of the smallest layer in z direction, Numerical Resolution  [m]
 #dt = 1E-2                           # Timestep                               [s]
 dt = 5E1
 n_x = 54                           # Number of Layers                       [-]
 n_y = 54
-n_z = 42
+n_z = 42'''
 n = np.array([n_x, n_y, n_z])
 #k = 36288 * 5                      # Number of Timesteps                    [-]'''
 k = int(3000)                    # Number of Timesteps                    [-]
@@ -75,12 +75,12 @@ x_0 = 5E-2                        # Length scaling factor used to calculate the 
 gravitational_pressure = 0        #Placeholder! [Pa]
 surface_reduction_factor = 1
 #Thermal Properties
-temperature_ini = 311.5             # Start Temperature                      [K]
-#temperature_ini = 77
+#temperature_ini = 311.5             # Start Temperature                      [K]
+temperature_ini = 77
 sample_holder_starting_temp = 77  # Starting temperature of the sample holder [K]
 Input_Intensity = 6500             # Intensity of the Light Source (Sun)    [W/m^2]
 #epsilon = 1                       # Emissivity                             [-]
-albedo = 0.94                  # Albedo                                 [-]
+albedo = 0.95                  # Albedo                                 [-]
 lambda_water_ice = 651            # thermal conductivity of water ice      [W/(m * T)], depending on T!
 #lambda_water_ice = 567
 lambda_co2_ice = 0.02             # thermal conductivity of water ice      [W/(m * K)]

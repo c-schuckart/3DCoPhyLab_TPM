@@ -317,6 +317,9 @@ def update_surface_arrays(voxels_to_delete, surface, reduced_surface, temperatur
 
 @njit
 def update_surface_arrays_periodic(voxels_to_delete, surface, reduced_surface, temperature, n_x, n_y, n_z, a, a_rad, b, b_rad, diffusion_mesh, r_n, r_p):
+    if len(voxels_to_delete) > 0:
+        print(len(voxels_to_delete))
+        print(voxels_to_delete)
     for each in voxels_to_delete:
         temperature[each[2]][each[1]][each[0]] = 0
         r_n[each[2]][each[1]][each[0]] = 0

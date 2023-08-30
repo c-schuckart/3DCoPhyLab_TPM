@@ -392,10 +392,10 @@ def calculate_molecule_flux_sintering(n_x, n_y, n_z, temperature, dx, dy, dz, dt
                         sublimated_mass[i][j][k] = water_mass_per_layer[i][j][k]
                         empty_voxels[empty_voxel_count] = np.array([k, j, i], dtype=np.int32)
                         empty_voxel_count += 1
-                    S_c[i][j][k] = - sublimated_mass * latent_heat_water[i][j][k] / (dt * dx[i][j][k] * dy[i][j][k] * dz[i][j][k])
+                    S_c[i][j][k] = - sublimated_mass[i][j][k] * latent_heat_water[i][j][k] / (dt * dx[i][j][k] * dy[i][j][k] * dz[i][j][k])
                     outgassed_mass += sublimated_mass[i][j][k]
     # pressure = p_sub
-    return S_c, S_p, empty_voxels
+    return S_c, S_p, empty_voxels[0:empty_voxel_count]
 
 
 @njit
@@ -641,8 +641,10 @@ def sinter_neck_calculation_time_dependent(r_n, r_p, dt, temperature, a_1, b_1, 
     for i in range(1, n_z-1):
         for j in range(1, n_y-1):
             for k in range(1, n_x-1):
-                if blocked_voxels[i][j][k] == 1:
-                    sublimated_mass[i][j][k] = sublimated_mass[i][j][k] + (Z[i][j][k] * (water_particle_number[i][j][k] * np.exp(r_c[i][j][k] / r_p[i][j][k]) * 4 * np.pi * r_p[i][j][k] ** 2 + 3 * np.exp(-r_c[i][j][k] / (r_n[i][j][k] * k_factor)) * neck_area[i][j][k]) - 3 * cond_rate[i][j][k]) * dt
+                if blocked_voxels[i][j][k] == 1 and delta[i][j][k] > 0:
+                    sublimated_mass[i][j][k] = (Z[i][j][k] * (water_particle_number[i][j][k] * np.exp(r_c[i][j][k] / r_p[i][j][k]) * 4 * np.pi * r_p[i][j][k] ** 2 + 3 * np.exp(-r_c[i][j][k] / (r_n[i][j][k] * k_factor)) * neck_area[i][j][k]) - 3 * cond_rate[i][j][k]) * dt
+                #if np.isnan(sublimated_mass[i][j][k]):
+                    #print(Z[i][j][k], water_particle_number[i][j][k], r_p[i][j][k], neck_area[i][j][k], cond_rate[i][j][k], delta[i][j][k], r_n[i][j][k])
     r_n = r_n + dt * rate
     return r_n, r_p, sublimated_mass, pressure
 
