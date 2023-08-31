@@ -2,6 +2,7 @@ import numpy as np
 from numba import njit, prange
 import csv
 import pandas as pd
+from os import path
 
 
 @njit
@@ -147,3 +148,22 @@ def sort_csv(path, sort_avrg, outpath):
         csvdf_mirror.iloc[i] = csvdf.iloc[content_arr.iloc[[i]].index[0]][0], csvdf.iloc[content_arr.iloc[[i]].index[0]][1], csvdf.iloc[content_arr.iloc[[i]].index[0]][2], csvdf.iloc[content_arr.iloc[[i]].index[0]][3], csvdf.iloc[content_arr.iloc[[i]].index[0]][4], csvdf.iloc[content_arr.iloc[[i]].index[0]][5], csvdf.iloc[content_arr.iloc[[i]].index[0]][6], csvdf.iloc[content_arr.iloc[[i]].index[0]][7], csvdf.iloc[content_arr.iloc[[i]].index[0]][8], csvdf.iloc[content_arr.iloc[[i]].index[0]][9], csvdf.iloc[content_arr.iloc[[i]].index[0]][10]
     #print(csvdf_mirror)
     csvdf_mirror.to_csv(outpath)
+
+
+def auto_path(path_string):
+    seperator = 0
+    path_components = []
+    out_path = ''
+    for i in range(len(path_string)):
+        if path_string[i] == r"\ "[0]:
+            path_components.append(path_string[seperator:i])
+            seperator = i+1
+        if i == len(path_string)-1:
+            path_components.append(path_string[seperator:i+1])
+    for i in range(len(path_components)):
+        if i == 0:
+            out_path = path_components[0]
+        else:
+            out_path = path.join(out_path, path_components[i])
+    return out_path.replace("\\", "/")
+
