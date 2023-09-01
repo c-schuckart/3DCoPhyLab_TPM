@@ -5,7 +5,7 @@ import settings as sett
 from tqdm import tqdm
 import json
 from os import listdir
-from surface_detection import create_equidistant_mesh, DEBUG_print_3D_arrays, find_surface, surrounding_checker_moon, update_surface_arrays, create_equidistant_mesh_gradient, get_sample_holder_adjacency
+from surface_detection import create_equidistant_mesh, DEBUG_print_3D_arrays, find_surface, surrounding_checker_moon, update_surface_arrays, get_sample_holder_adjacency
 from thermal_parameter_functions import calculate_latent_heat, calculate_density, thermal_functions, calculate_bulk_density_and_VFF, thermal_conductivity_moon_regolith, heat_capacity_moon_regolith, calculate_water_grain_radius
 from molecule_transfer import calculate_molecule_flux_moon, diffusion_parameters_moon, calculate_source_terms, pressure_calculation, calculate_source_terms_linearised
 from heat_transfer_equation_DG_ADI import hte_implicit_DGADI
@@ -197,13 +197,13 @@ for j in tqdm(range(0, const.k)):
     #print(sublimated_mass[1:3, 10:20, 10:20], 1)
     for i in range(0, 30):
         #Q_c_hte, Q_p_hte, Q_c_de, Q_p_de = calculate_source_terms(const.n_x,const.n_y, const.n_z, temperature, gas_density, pressure, sublimated_mass, dx, dy, dz, const.dt, surface_reduced, uniform_water_masses, latent_heat_water, surface)
-        Q_c_hte, Q_p_hte, Q_c_de, Q_p_de = calculate_source_terms_linearised(const.n_x, const.n_y, const.n_z, temperature, gas_density, pressure, sublimated_mass, dx, dy, dz, const.dt, surface_reduced, uniform_water_masses, latent_heat_water, surface, const.m_H2O, const.k_boltzmann, const.lh_a_1, const.lh_b_1, const.lh_c_1, const.lh_d_1, sample_holder, water_particle_number, r_mono_water)
+        Q_c_hte, Q_p_hte, Q_c_de, Q_p_de = calculate_source_terms_linearised(const.n_x, const.n_y, const.n_z, temperature, gas_density, pressure, sublimated_mass, dx, dy, dz, const.dt, surface_reduced, uniform_water_masses, latent_heat_water, surface, const.m_H2O, const.k_boltzmann, const.lh_a_1, const.lh_b_1, const.lh_c_1, const.lh_d_1, sample_holder, water_particle_number, r_mono_water, True)
         '''print(j, i)
         print(Q_c_hte[2])
         print(Q_p_hte[2])'''
         #print((Q_c_de * dx * dy * dz * const.dt)[1:3, 10:20, 10:20], 2)
         #print(gas_density[1:3, 10:20, 10:20], 3)
-        temperature = hte_implicit_DGADI(const.n_x, const.n_y, const.n_z, surface_reduced, const.r_H, const.albedo, const.dt, lamp_power, const.sigma, const.epsilon, temperature, Lambda, Dr, heat_capacity, density, dx, dy, dz, surface, Q_c_hte, Q_p_hte, sample_holder)
+        temperature = hte_implicit_DGADI(const.n_x, const.n_y, const.n_z, surface_reduced, const.r_H, const.albedo, const.dt, lamp_power, const.sigma, const.epsilon, temperature, Lambda, Dr, heat_capacity, density, dx, dy, dz, surface, Q_c_hte, Q_p_hte, sample_holder, const.ambient_radiative_temperature)
         gas_density = de_implicit_DGADI(const.n_x, const.n_y, const.n_z, surface_reduced_diffusion, const.dt, gas_density, diffusion_coefficient, Dr, dx, dy, dz, surface, Q_c_de, Q_p_de, sh_adjacent_voxel, temperature, False, surrounding_surface)
         sublimated_mass = (gas_density - gas_density_previous) * dx * dy * dz
         #print(np.max(sublimated_mass))
@@ -237,6 +237,9 @@ for j in tqdm(range(0, const.k)):
     '''if np.max(np.abs(temperature - temperature_previous)) < 50E-6:
         print('Equilibrated :3')
         break'''
+    if np.min(gas_density) < 0:
+        print('We need roads :C')
+        break
     #uniform_water_masses_implicit = update_thermal_arrays(const.n_x, const.n_y, const.n_z, temperature, uniform_water_masses_implicit, delta_T, Energy_Increase_per_Layer, sublimated_mass_implicit, resublimated_mass, const.dt, const.avogadro_constant, const.molar_mass_water, const.molar_mass_co2, heat_capacity, const.heat_capacity_water_ice, const.heat_capacity_co2_ice, EIis_0, Latent_Heat_per_Layer, E_Lat_0, E_Rad, E_In, E_sh, E_source_sink)[1]
     #print(sublimated_mass_implicit[1][12][12], temperature_implicit[1][12][12])'
     #if j % sett.data_reduce == 0 or j == 0:
@@ -272,9 +275,8 @@ for j in tqdm(range(0, const.k)):
 
 #Data saving and output
 #save_current_arrays(temperature, water_content_per_layer, co2_content_per_layer, dust_ice_ratio_per_layer, co2_h2o_ratio_per_layer, heat_capacity, highest_pressure, highest_pressure_co2, ejection_times, var.time_passed + const.dt * const.k)
-data_dict = {'Temperature': temperature.tolist()}
-#with open('D:/Masterarbeit_data/Sand_no_tubes/Results/temperature_data_lambda_' + str(round(lambda_sand_val, 5)) + '.json', 'w') as outfile:
-with open('test.json', 'w') as outfile:
+data_dict = {'Temperature': temperature.tolist(), 'OR': outgassing_rate.tolist()}
+with open('test_or.json', 'w') as outfile:
     json.dump(data_dict, outfile)
 
 #data_save_sensors(const.k * const.dt, sensor_10mm, sensor_20mm, sensor_35mm, sensor_55mm, sensor_90mm, file)

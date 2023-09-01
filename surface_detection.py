@@ -317,16 +317,13 @@ def update_surface_arrays(voxels_to_delete, surface, reduced_surface, temperatur
 
 @njit
 def update_surface_arrays_periodic(voxels_to_delete, surface, reduced_surface, temperature, n_x, n_y, n_z, a, a_rad, b, b_rad, diffusion_mesh, r_n, r_p):
-    if len(voxels_to_delete) > 0:
-        print(len(voxels_to_delete))
-        print(voxels_to_delete)
     for each in voxels_to_delete:
         temperature[each[2]][each[1]][each[0]] = 0
         r_n[each[2]][each[1]][each[0]] = 0
         r_p[each[2]][each[1]][each[0]] = 0
         #print(reduced_surface)
-        surface, new_reduced_surface_elements = find_surface_periodic(n_x, n_y, n_z, each[0]-1, each[1]-1, each[2]-1, each[0]+2, each[1]+2, each[2]+2, temperature, surface, a, a_rad, b, b_rad, False, diffusion_mesh)[0:2]
-        #new_surrounding_surface = surrounding_checker(np.append(new_reduced_surface_elements, ), surface, n_x_lr, n_y_lr, n_z_lr)
+        #surface, new_reduced_surface_elements = find_surface_periodic(n_x, n_y, n_z, each[0]-1, each[1]-1, each[2]-1, each[0]+2, each[1]+2, each[2]+2, temperature, surface, a, a_rad, b, b_rad, False, diffusion_mesh)[0:2]
+        '''#new_surrounding_surface = surrounding_checker(np.append(new_reduced_surface_elements, ), surface, n_x_lr, n_y_lr, n_z_lr)
         #doubled_elements = np.empty((0, 0), dtype=np.int32)
         #print(new_reduced_surface_elements)
         #print(reduced_surface)
@@ -344,7 +341,7 @@ def update_surface_arrays_periodic(voxels_to_delete, surface, reduced_surface, t
                     empty_voxel_counted = count_el
             if not is_in:
                 non_duplicate_indicies = np.append(non_duplicate_indicies, np.int32(count))
-        if empty_voxel_counted != np.nan:
+        if not np.isnan(empty_voxel_counted):
             mask = np.delete(mask, int(empty_voxel_counted))
             reduced_surface  = reduced_surface[mask]
         new_r_temp = np.zeros((len(reduced_surface) + len(non_duplicate_indicies), 3), dtype=np.int32)
@@ -357,7 +354,8 @@ def update_surface_arrays_periodic(voxels_to_delete, surface, reduced_surface, t
         #new_reduced_surface_elements = np.delete(new_reduced_surface_elements, delete_indicies, axis=0)
         #print(new_reduced_surface_elements)
         #reduced_surface = np.append(reduced_surface, new_reduced_surface_elements, axis=0)
-        reduced_surface = new_r_temp
+        reduced_surface = new_r_temp'''
+    surface, reduced_surface = find_surface_periodic(n_x, n_y, n_z, 0, 0, 0, n_x, n_y, n_z, temperature, surface, a, a_rad, b, b_rad, False, diffusion_mesh)[0:2]
     return surface, reduced_surface, temperature, r_n, r_p
 
 

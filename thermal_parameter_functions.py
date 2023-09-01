@@ -138,6 +138,9 @@ def lambda_granular_periodic(n_x, n_y, n_z, temperature, Dr, dx, dy, dz, lambda_
 					lambda_total[i][j][k][3] = 2 * (lambda_centre[i][j][k] * lambda_centre[i][j - 1][k]) / (lambda_centre[i][j][k] + lambda_centre[i][j-1][k])
 				lambda_total[i][j][k][0] = 2 * (lambda_centre[i + 1][j][k] * lambda_centre[i][j][k]) / (lambda_centre[i+1][j][k] + lambda_centre[i][j][k])
 				lambda_total[i][j][k][1] = 2 * (lambda_centre[i][j][k] * lambda_centre[i - 1][j][k]) / (lambda_centre[i][j][k] + lambda_centre[i-1][j][k])
+				for a in range(len(lambda_total[i][j][k])):
+					if np.isnan(lambda_total[i][j][k][a]):
+						lambda_total[i][j][k][a] = 0
 	return lambda_total, interface_temperatures
 
 
