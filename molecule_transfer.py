@@ -512,7 +512,7 @@ def calculate_source_terms(n_x, n_y, n_z, temperature, gas_density, pressure, su
 
 
 @njit
-def calculate_source_terms_linearised(n_x, n_y, n_z, temperature, gas_density, pressure, sublimated_mass, dx, dy, dz, dt, surface_reduced, water_mass_per_layer, latent_heat_water, surface, m_H2O, k_b, a_1, b_1, c_1, d_1, sample_holder, water_particle_number, r_mono_water, Fluxkompensator):
+def calculate_source_terms_linearised(n_x, n_y, n_z, temperature, gas_density, pressure, sublimated_mass, dx, dy, dz, Dr, dt, surface_reduced, water_mass_per_layer, latent_heat_water, surface, m_H2O, k_b, a_1, b_1, c_1, d_1, sample_holder, water_particle_number, r_mono_water, diffusion_coefficients, Fluxkompensator):
     S_c_hte = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
     S_p_hte = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
     S_c_de = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
@@ -544,10 +544,11 @@ def calculate_source_terms_linearised(n_x, n_y, n_z, temperature, gas_density, p
                         print(S_c_hte[i][j][k], S_p_hte[i][j][k])'''
                     #S_c_de[i][j][k] = np.sqrt(m_H2O/(2 * np.pi * k_b * temperature[i][j][k])) * (3/2 * (p - pressure[i][j][k]) - p_first_deriv * temperature[i][j][k]) * (water_particle_number[i][j][k] * 4 * np.pi * r_mono_water[i][j][k]**2) / (dt * dx[i][j][k] * dy[i][j][k] * dz[i][j][k])
                     #S_p_de[i][j][k] = np.sqrt(m_H2O / (2 * np.pi * k_b * temperature[i][j][k])) * (p_first_deriv - (p - pressure[i][j][k]) * 1/(2 * temperature[i][j][k])) * (water_particle_number[i][j][k] * 4 * np.pi * r_mono_water[i][j][k]**2) / (dt * dx[i][j][k] * dy[i][j][k] * dz[i][j][k])
-                    if Fluxkompensator and - sublimated_mass[i][j][k] > gas_density[i][j][k] * dx[i][j][k] * dy[i][j][k] * dz[i][j][k]:
-                        sublimated_mass[i][j][k] = - gas_density[i][j][k] * dx[i][j][k] * dy[i][j][k] * dz[i][j][k]
-                    S_c_de[i][j][k] = sublimated_mass[i][j][k] / (dt * dx[i][j][k] * dy[i][j][k] * dz[i][j][k])
+                    '''if Fluxkompensator and sublimated_mass[i][j][k] < (dx[i][j][k] * dy[i][j][k] * dz[i][j][k] / dt - 6 * np.average(diffusion_coefficients[i][j][k]) * np.min(Dr[i][j][k])) * gas_density[i][j][k] * dt:
+                        #print(sublimated_mass[i][j][k], (gas_density[i][j][k] / dt) * dx[i][j][k] * dy[i][j][k] * dz[i][j][k])
+                        sublimated_mass[i][j][k] = sublimated_mass[i][j][k] + (dx[i][j][k] * dy[i][j][k] * dz[i][j][k] / dt - 6 * np.max(diffusion_coefficients[i][j][k]) * np.max(Dr[i][j][k])) * gas_density[i][j][k] * dt * 5'''
                         #print('1.21 GigaWatts Marty')
+                    S_c_de[i][j][k] = sublimated_mass[i][j][k] / (dt * dx[i][j][k] * dy[i][j][k] * dz[i][j][k])
                     if S_c_de[i][j][k] < 0:
                         S_p_de[i][j][k] = 3 * S_c_de[i][j][k] / gas_density[i][j][k]
                         S_c_de[i][j][k] = - 2 * S_c_de[i][j][k]

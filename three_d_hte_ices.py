@@ -197,14 +197,15 @@ for j in tqdm(range(0, const.k)):
     #print(sublimated_mass[1:3, 10:20, 10:20], 1)
     for i in range(0, 30):
         #Q_c_hte, Q_p_hte, Q_c_de, Q_p_de = calculate_source_terms(const.n_x,const.n_y, const.n_z, temperature, gas_density, pressure, sublimated_mass, dx, dy, dz, const.dt, surface_reduced, uniform_water_masses, latent_heat_water, surface)
-        Q_c_hte, Q_p_hte, Q_c_de, Q_p_de = calculate_source_terms_linearised(const.n_x, const.n_y, const.n_z, temperature, gas_density, pressure, sublimated_mass, dx, dy, dz, const.dt, surface_reduced, uniform_water_masses, latent_heat_water, surface, const.m_H2O, const.k_boltzmann, const.lh_a_1, const.lh_b_1, const.lh_c_1, const.lh_d_1, sample_holder, water_particle_number, r_mono_water, True)
+        Q_c_hte, Q_p_hte, Q_c_de, Q_p_de = calculate_source_terms_linearised(const.n_x, const.n_y, const.n_z, temperature, gas_density, pressure, sublimated_mass, dx, dy, dz, Dr, const.dt, surface_reduced, uniform_water_masses, latent_heat_water, surface, const.m_H2O, const.k_boltzmann, const.lh_a_1, const.lh_b_1, const.lh_c_1, const.lh_d_1, sample_holder, water_particle_number, r_mono_water, diffusion_coefficient, True)
         '''print(j, i)
         print(Q_c_hte[2])
         print(Q_p_hte[2])'''
         #print((Q_c_de * dx * dy * dz * const.dt)[1:3, 10:20, 10:20], 2)
         #print(gas_density[1:3, 10:20, 10:20], 3)
         temperature = hte_implicit_DGADI(const.n_x, const.n_y, const.n_z, surface_reduced, const.r_H, const.albedo, const.dt, lamp_power, const.sigma, const.epsilon, temperature, Lambda, Dr, heat_capacity, density, dx, dy, dz, surface, Q_c_hte, Q_p_hte, sample_holder, const.ambient_radiative_temperature)
-        gas_density = de_implicit_DGADI(const.n_x, const.n_y, const.n_z, surface_reduced_diffusion, const.dt, gas_density, diffusion_coefficient, Dr, dx, dy, dz, surface, Q_c_de, Q_p_de, sh_adjacent_voxel, temperature, False, surrounding_surface)
+        gas_density = de_implicit_DGADI(const.n_x, const.n_y, const.n_z, surface_reduced_diffusion, const.dt, gas_density, diffusion_coefficient, Dr, dx, dy, dz, surface, Q_c_de, Q_p_de, sh_adjacent_voxel, temperature, False, surrounding_surface, j)
+        gas_density = np.maximum(np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64), gas_density)
         sublimated_mass = (gas_density - gas_density_previous) * dx * dy * dz
         #print(np.max(sublimated_mass))
         #print(sublimated_mass[1:3, 10:20, 10:20], 4)
@@ -227,6 +228,7 @@ for j in tqdm(range(0, const.k)):
     #temperature = hte_implicit_DGADI(const.n_x, const.n_y, const.n_z, surface_reduced, const.r_H, const.albedo, const.dt, lamp_power, const.sigma, const.epsilon, temperature, Lambda, Dr, heat_capacity, density, dx, dy, dz, surface, S_c, S_p, sample_holder)
     #outgassed_mass_complete += outgassed_mass_timestep
     #print(diffusion_coefficient[2])
+    #print(np.min(gas_density))
     outgassing_rate[j] = np.sum(sublimated_mass * mesh_shape_negative)/const.dt
     max_temp[j] = np.max(temperature[2])
     outgassed_mass_complete += np.sum(sublimated_mass * mesh_shape_negative)
