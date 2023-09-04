@@ -517,6 +517,7 @@ def calculate_source_terms_linearised(n_x, n_y, n_z, temperature, gas_density, p
     S_p_hte = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
     S_c_de = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
     S_p_de = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
+    flux_corrector = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
     outgassed_mass = 0
     mass_flux = np.zeros(np.shape(sublimated_mass), dtype=np.float64)
     # Replace surface_reduced with len(temperature.flatten() because it could technically be that deeper voxels are drained at the same time step
@@ -544,14 +545,18 @@ def calculate_source_terms_linearised(n_x, n_y, n_z, temperature, gas_density, p
                         print(S_c_hte[i][j][k], S_p_hte[i][j][k])'''
                     #S_c_de[i][j][k] = np.sqrt(m_H2O/(2 * np.pi * k_b * temperature[i][j][k])) * (3/2 * (p - pressure[i][j][k]) - p_first_deriv * temperature[i][j][k]) * (water_particle_number[i][j][k] * 4 * np.pi * r_mono_water[i][j][k]**2) / (dt * dx[i][j][k] * dy[i][j][k] * dz[i][j][k])
                     #S_p_de[i][j][k] = np.sqrt(m_H2O / (2 * np.pi * k_b * temperature[i][j][k])) * (p_first_deriv - (p - pressure[i][j][k]) * 1/(2 * temperature[i][j][k])) * (water_particle_number[i][j][k] * 4 * np.pi * r_mono_water[i][j][k]**2) / (dt * dx[i][j][k] * dy[i][j][k] * dz[i][j][k])
-                    '''if Fluxkompensator and sublimated_mass[i][j][k] < (dx[i][j][k] * dy[i][j][k] * dz[i][j][k] / dt - 6 * np.average(diffusion_coefficients[i][j][k]) * np.min(Dr[i][j][k])) * gas_density[i][j][k] * dt:
+                    if Fluxkompensator:# and sublimated_mass[i][j][k] < (dx[i][j][k] * dy[i][j][k] * dz[i][j][k] / dt - 6 * np.average(diffusion_coefficients[i][j][k]) * np.min(Dr[i][j][k])) * gas_density[i][j][k] * dt:
                         #print(sublimated_mass[i][j][k], (gas_density[i][j][k] / dt) * dx[i][j][k] * dy[i][j][k] * dz[i][j][k])
-                        sublimated_mass[i][j][k] = sublimated_mass[i][j][k] + (dx[i][j][k] * dy[i][j][k] * dz[i][j][k] / dt - 6 * np.max(diffusion_coefficients[i][j][k]) * np.max(Dr[i][j][k])) * gas_density[i][j][k] * dt * 5'''
+                        flux_corrector[i][j][k] = (dx[i][j][k] * dy[i][j][k] * dz[i][j][k] / dt - 6 * np.max(diffusion_coefficients[i][j][k]) * np.max(Dr[i][j][k])) * gas_density[i][j][k] * dt / (dt * dx[i][j][k] * dy[i][j][k] * dz[i][j][k])
+                        #sublimated_mass[i][j][k] = sublimated_mass[i][j][k] + (dx[i][j][k] * dy[i][j][k] * dz[i][j][k] / dt - 6 * np.max(diffusion_coefficients[i][j][k]) * np.max(Dr[i][j][k])) * gas_density[i][j][k] * dt
                         #print('1.21 GigaWatts Marty')
-                    S_c_de[i][j][k] = sublimated_mass[i][j][k] / (dt * dx[i][j][k] * dy[i][j][k] * dz[i][j][k])
+                    #S_c_de[i][j][k] = sublimated_mass[i][j][k] / (dt * dx[i][j][k] * dy[i][j][k] * dz[i][j][k])
+                    S_c_de[i][j][k] = (10 ** (a_1[0] + b_1[0] / temperature[i][j][k] + c_1[0] * np.log10(temperature[i][j][k]) + d_1[0] * temperature[i][j][k]) - pressure[i][j][k]) * np.sqrt(m_H2O/(2 * np.pi * k_b * temperature[i][j][k])) * (water_particle_number[i][j][k] * 4 * np.pi * r_mono_water[i][j][k]**2) / (dx[i][j][k] * dy[i][j][k] * dz[i][j][k])
+                    '''if i == 2 and j == 4 and k == 4:
+                        print(S_c_de[i][j][k], flux_corrector[i][j][k], 10 ** (a_1[0] + b_1[0] / temperature[i][j][k] + c_1[0] * np.log10(temperature[i][j][k]) + d_1[0] * temperature[i][j][k]) * np.sqrt(m_H2O/(2 * np.pi * k_b * temperature[i][j][k])))'''
                     if S_c_de[i][j][k] < 0:
-                        S_p_de[i][j][k] = 3 * S_c_de[i][j][k] / gas_density[i][j][k]
-                        S_c_de[i][j][k] = - 2 * S_c_de[i][j][k]
+                        S_p_de[i][j][k] = 3 * S_c_de[i][j][k] / gas_density[i][j][k] + 2 * flux_corrector[i][j][k] / gas_density[i][j][k]
+                        S_c_de[i][j][k] = - 2 * S_c_de[i][j][k] - 2 * flux_corrector[i][j][k]
                     #if i == 2 and j == 4 and k == 4:
                         #print(S_c_de[i][j][k], S_p_de[i][j][k])
                     outgassed_mass += sublimated_mass[i][j][k]

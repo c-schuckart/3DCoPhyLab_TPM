@@ -186,9 +186,11 @@ def boundary_condition_implicit_x_sweep_de(dt, gas_mass, Diffusion_coefficient, 
             sub_alpha[each[0]] = - a_e
             sub_gamma[each[0]] = - a_w
             rhs[each[0]] = a_t * gas_mass[each[2] + 1][each[1]][each[0]] + a_b * gas_mass[each[2] - 1][each[1]][each[0]] + a_n * gas_mass[each[2]][each[1] + 1][each[0]] + a_s * gas_mass[each[2]][each[1] - 1][each[0]] + a_e * gas_mass[each[2]][each[1]][each[0] + 1] + a_w * gas_mass[each[2]][each[1]][each[0] - 1] + S_c[each[2]][each[1]][each[0]] * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] + (dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] / dt - a_t - a_b - a_n - a_s - a_e - a_w) * gas_mass[each[2]][each[1]][each[0]]
-        '''if rhs[each[0]] < 0:
+        if rhs[each[0]] < 0:
             print(gas_mass[each[2]][each[1]][each[0]], gas_mass[each[2]+1][each[1]][each[0]], gas_mass[each[2]-1][each[1]][each[0]], gas_mass[each[2]][each[1]+1][each[0]], gas_mass[each[2]][each[1]-1][each[0]], gas_mass[each[2]][each[1]][each[0]+1], gas_mass[each[2]][each[1]][each[0]-1])
-            print((dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] / dt - a_t - a_b - a_n - a_s - a_e - a_w), S_c[each[2]][each[1]][each[0]])'''
+            print(a_t, a_b, a_n, a_s, a_e, a_w, Diffusion_coefficient[each[2]][each[1]][each[0]])
+            print((dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] / dt - a_t - a_b - a_n - a_s - a_e - a_w), S_c[each[2]][each[1]][each[0]])
+            print((dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] / dt - a_t - a_b - a_n - a_s - a_e - a_w) * gas_mass[each[2]][each[1]][each[0]], S_c[each[2]][each[1]][each[0]] * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]])
     return sub_alpha, diag, sub_gamma, rhs
 
 
