@@ -13,12 +13,12 @@ from save_and_load import data_store, data_store_sensors, data_save_sensors
 from utility_functions import thermal_reservoir
 
 
-'''albedo_arr = [0.95, 0.90]
+albedo_arr = [0.95, 0.90, 0.85]
 lambda_arr = [0.005, 0.0074, 0.01, 0.0015, 0.02, 0.025, 0.03, 0.05, 0.075, 0.1, 0.27]
-absorption_depth_arr = [2E-3, 3E-3, 5E-3, 10E-3]'''
-albedo_arr = [0.95]
+absorption_depth_arr = [2E-3, 3E-3, 5E-3, 10E-3]
+'''albedo_arr = [0.95]
 lambda_arr = [0.02]
-absorption_depth_arr = [2E-3]
+absorption_depth_arr = [2E-3]'''
 for albedo in albedo_arr:
     for lambda_sand_c in lambda_arr:
         for abs_depth in absorption_depth_arr:
