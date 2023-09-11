@@ -10,6 +10,7 @@ import csv
 from data_input import read_temperature_data, getPath
 from utility_functions import sort_csv
 from os import listdir
+from scipy.interpolate import interp1d
 
 rcParams['animation.ffmpeg_path'] = r'C:\\ffmpeg\\bin\\ffmpeg.exe'
 '''with open('test.json') as json_file:
@@ -81,7 +82,7 @@ for i in range(0, 16):
     D = D_arr[i]
     L = L_arr[i]
 '''
-fig, ax = plt.subplots(1, 1)
+'''fig, ax = plt.subplots(1, 1)
 A, D, L = '0.95', '0.003', '0.05'
 
 timestamps = []
@@ -109,11 +110,11 @@ with open('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG
             sen_3.append(float(each[3]))
             sen_4.append(float(each[4]))
             sen_5.append(float(each[5]))
-            '''sen_1.append(float(each[7]))
-            sen_2.append(float(each[8]))
-            sen_3.append(float(each[9]))
-            sen_4.append(float(each[10]))
-            sen_5.append(float(each[11]))'''
+            #sen_1.append(float(each[7]))
+            #sen_2.append(float(each[8]))
+            #sen_3.append(float(each[9]))
+            #sen_4.append(float(each[10]))
+            #sen_5.append(float(each[11]))
             #sen_6.append(float(each[6]))
             if timestamps[len(timestamps) - 1] > 150000:
             #if timestamps[len(timestamps) - 1] > 330000:
@@ -172,7 +173,7 @@ plt.show()
 #plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/Plots/CORRPresentation_sand_L_chamber_A_' + A + '_Absdepth_' + D + '_Lambda_' + L + '.png', dpi=600)
 #plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/Plots/CORROuter_sensors_sand_L_chamber_A_0.95_Absdepth_0.001_Lambda_0.003.png', dpi=600)
 ax.clear()
-fig.clear()
+fig.clear()'''
 
 '''with open('D:/TPM_data/Big_sand/sand_L_chamber_test_quick.json') as json_file:
     data_q = json.load(json_file)
@@ -316,3 +317,28 @@ plt.grid(True, lw=0.5)
 plt.legend(fontsize='x-small')
 plt.show()
 #plt.savefig('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/Temp_profile.png', dpi=600)'''
+
+with open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Light_absorption_curve.csv') as csvdatei:
+    dat = csv.reader(csvdatei, delimiter=';')
+    depth = [0.0]
+    energy = [0.0]
+    for each in dat:
+        depth.append(float(each[0]))
+        energy.append(float(each[1]))
+
+depth = np.sort(np.array(depth))
+energy = np.sort(np.array(energy))
+
+curve = interp1d(depth, energy)
+z = np.zeros(const.n_z+1, dtype=np.float64)
+for i in range(0, const.n_z+1):
+    z[i] = i*const.min_dz * 1E6
+intensity = curve(z)
+int_per_layer = np.zeros(const.n_z, dtype=np.float64)
+for i in range(0, const.n_z):
+    int_per_layer[i] = (intensity[i+1] - intensity[i])/energy[len(energy)-1]
+
+data_dict = {'factors': int_per_layer.tolist()}
+
+with open('lamp_layer_absorption_factors_periodic200.json', 'w') as outfile:
+    json.dump(data_dict, outfile)

@@ -548,6 +548,8 @@ def calculate_source_terms_linearised(n_x, n_y, n_z, temperature, gas_density, p
                     if Fluxkompensator:# and sublimated_mass[i][j][k] < (dx[i][j][k] * dy[i][j][k] * dz[i][j][k] / dt - 6 * np.average(diffusion_coefficients[i][j][k]) * np.min(Dr[i][j][k])) * gas_density[i][j][k] * dt:
                         #print(sublimated_mass[i][j][k], (gas_density[i][j][k] / dt) * dx[i][j][k] * dy[i][j][k] * dz[i][j][k])
                         flux_corrector[i][j][k] = (dx[i][j][k] * dy[i][j][k] * dz[i][j][k] / dt - 6 * np.max(diffusion_coefficients[i][j][k]) * np.max(Dr[i][j][k])) * gas_density[i][j][k] * dt / (dt * dx[i][j][k] * dy[i][j][k] * dz[i][j][k])
+                        #if i == 2 and j == 4 and k == 4:
+                            #print(flux_corrector[i][j][k], diffusion_coefficients[i][j][k])
                         #sublimated_mass[i][j][k] = sublimated_mass[i][j][k] + (dx[i][j][k] * dy[i][j][k] * dz[i][j][k] / dt - 6 * np.max(diffusion_coefficients[i][j][k]) * np.max(Dr[i][j][k])) * gas_density[i][j][k] * dt
                         #print('1.21 GigaWatts Marty')
                     #S_c_de[i][j][k] = sublimated_mass[i][j][k] / (dt * dx[i][j][k] * dy[i][j][k] * dz[i][j][k])
@@ -681,11 +683,12 @@ def gas_mass_function(T, pressure, VFF, dx, dy, dz, target_mass):
 
 
 @njit
-def pressure_calculation(n_x, n_y, n_z, temperature, gas_mass, k_boltzmann, m_H2O, VFF, r_mono, dx, dy, dz, dt, sample_holder):
+def pressure_calculation(n_x, n_y, n_z, temperature, gas_density, k_boltzmann, m_H2O, VFF, r_mono, dx, dy, dz, dt, sample_holder, sublimated_mass, water_particle_number):
     pressure = np.zeros((n_z, n_y, n_x), dtype=np.float64)
     for a in range(0, n_z):
         for b in range(0, n_y):
             for c in range(0, n_x):
                 if temperature[a][b][c] > 0 and sample_holder[a][b][c] != 1:
-                    pressure[a][b][c] = gas_mass[a][b][c] * np.sqrt(2 * np.pi * k_boltzmann * temperature[a][b][c] / m_H2O) * 1 / ((3 * VFF[a][b][c] / r_mono * dx[a][b][c] * dy[a][b][c] * dz[a][b][c]) * dt)
+                    #pressure[a][b][c] = (gas_density[a][b][c] * dx[a][b][c] * dy[a][b][c] * dz[a][b][c]) * np.sqrt(2 * np.pi * k_boltzmann * temperature[a][b][c] / m_H2O) * 1 / ((3 * VFF[a][b][c] / r_mono * dx[a][b][c] * dy[a][b][c] * dz[a][b][c]) * dt)
+                    pressure[a][b][c] = (gas_density[a][b][c] * dx[a][b][c] * dy[a][b][c] * dz[a][b][c]) * np.sqrt(2 * np.pi * k_boltzmann * temperature[a][b][c] / m_H2O) * (1) / (4 * np.pi * r_mono**2 * water_particle_number[a][b][c]) * 1/dt
     return pressure

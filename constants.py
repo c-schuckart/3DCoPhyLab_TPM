@@ -18,7 +18,7 @@ n_x = 9                           # Number of Layers                       [-]
 n_y = 9
 n_z = 25
 n = np.array([n_x, n_y, n_z])
-k = 36288 * 1                      # Number of Timesteps                    [-]'''
+k = 36288 * 7                      # Number of Timesteps                    [-]'''
 #k = int(10000)                    # Number of Timesteps                    [-]
 #k = 100 * 50
 #Definition of Physical Parameters
