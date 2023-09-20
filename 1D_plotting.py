@@ -13,6 +13,7 @@ from scipy import interpolate
 from data_input import read_temperature_data, getPath
 from IPython.display import Video
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+from os import listdir, rename
 
 rcParams['animation.ffmpeg_path'] = r'C:\\ffmpeg\\bin\\ffmpeg.exe'
 '''file_name = 'Check_Knudsen_regime'
@@ -431,13 +432,13 @@ writer = Writer
 
 anim.save('D:/TPM_Data/mixing_sqrt10mm_per_50s.mp4', writer=writer, dpi=600)
 Video('D:/TPM_Data/mixing_sqrt10mm_per_50s.mp4')'''
-paths = ['D:/TPM_Data/Luwex/only_temps_mixing_sqrt50mm_per_100s/WATERmixing_sqrt50mm_per_100sec', 'D:/TPM_Data/Luwex/only_temps_mixing_sqrt50mm_per_50s/WATERmixing_sqrt100mm_per_50sec', 'D:/TPM_Data/Luwex/only_temps_mixing_sqrt200mm_per_50s/WATERmixing_sqrt10mm_per_50sec', 'D:/TPM_Data/Luwex/only_temps_mixing_sqrt450mm_per_50s/WATERmixing_sqrt450mm_per_50sec']
+'''paths = ['D:/TPM_Data/Luwex/only_temps_mixing_sqrt50mm_per_100s/WATERmixing_sqrt50mm_per_100sec', 'D:/TPM_Data/Luwex/only_temps_mixing_sqrt50mm_per_50s/WATERmixing_sqrt100mm_per_50sec', 'D:/TPM_Data/Luwex/only_temps_mixing_sqrt200mm_per_50s/WATERmixing_sqrt10mm_per_50sec', 'D:/TPM_Data/Luwex/only_temps_mixing_sqrt450mm_per_50s/WATERmixing_sqrt450mm_per_50sec']
 water_array = []
 time = np.array([i * 3600 for i in range(0, 241)], dtype=np.float64)
-'''water_mass_one = np.sum(np.load('D:/TPM_Data/Luwex/only_temps_mixing_sqrt200mm_per_50s/WATERmixing_sqrt10mm_per_50sec' + str(float(0)) + '.npy'))
+water_mass_one = np.sum(np.load('D:/TPM_Data/Luwex/only_temps_mixing_sqrt200mm_per_50s/WATERmixing_sqrt10mm_per_50sec' + str(float(0)) + '.npy'))
 water_content_over_time = np.zeros(len(time), dtype=np.float64)
 for t in time:
-    water_content_over_time[int(t//3600)] = np.sum(np.load('D:/TPM_Data/Luwex/only_temps_mixing_sqrt200mm_per_50s/WATERmixing_sqrt10mm_per_50sec' + str(float(t)) + '.npy')) / water_mass_one'''
+    water_content_over_time[int(t//3600)] = np.sum(np.load('D:/TPM_Data/Luwex/only_temps_mixing_sqrt200mm_per_50s/WATERmixing_sqrt10mm_per_50sec' + str(float(t)) + '.npy')) / water_mass_one
 for path in paths:
     #water_mass_one = np.sum(np.load('D:/TPM_Data/Luwex/only_temps_mixing/WATERmixing_sqrt10mm_per_50sec' + str(float(0)) + '.npy'))
     water_mass_one = np.sum(np.load(path + str(float(0)) + '.npy'))
@@ -464,7 +465,7 @@ ax.yaxis.set_minor_locator(AutoMinorLocator(2))
 ax.set_ylim(-0.05, 1.05)
 plt.legend()
 #plt.show()
-plt.savefig('D:/TPM_Data/Luwex/Instant_outgassing_mixing.png', dpi=600)
+plt.savefig('D:/TPM_Data/Luwex/Instant_outgassing_mixing.png', dpi=600)'''
 
 '''with open('test.json') as json_file:
     data = json.load(json_file)
@@ -496,3 +497,24 @@ writer = Writer
 
 anim.save('D:/TPM_Data/Testing data/radial_mixing_test_long.mp4', writer=writer, dpi=600)
 Video('D:/TPM_Data/Testing data/radial_mixing_test_long.mp4')'''
+
+time = [i * 0.5 for i in range(0, 880)]
+top_temps = []
+bottom_temps = []
+for t in time:
+    temps = np.load('D:/TPM_Data/Noah/only_temps_volabs_sh/temperatures_' + str(float(t)) + '.npy')
+    top_temps.append(temps[1, 25, 25])
+    bottom_temps.append(temps[199, 25, 25])
+
+fig, ax = plt.subplots(1, 1)
+plt.tick_params(axis='x', which='both', direction='in', top=True, labeltop=False)
+plt.tick_params(axis='y', which='both', direction='in', right=True, labelright=False)
+ax.plot(time, top_temps, label='Top centre temperature')
+ax.plot(time, bottom_temps, label='1mm centre temperature', ls='--')
+ax.set_xlabel('Time (s)')
+ax.set_ylabel('Temperature (K)')
+#ax.set_ylim(-5, 180)
+plt.title('Sample holder boundary condition')
+#plt.show()
+plt.legend()
+plt.savefig('D:/TPM_Data/Noah/sample_holder_boundary_condition.png', dpi=600)

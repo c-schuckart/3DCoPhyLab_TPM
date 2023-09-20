@@ -41,7 +41,7 @@ def create_equidistant_mesh(n_x, n_y, n_z, temperature_ini, dx, dy, dz, diffusio
     return mesh, dx_arr, dy_arr, dz_arr, Dr, a, (a_rad-1), b, (b_rad-1)
 
 
-def create_equidistant_mesh_2_layer(n_x, n_y, n_z, temperature_ini, dx, dy, dz, layer_boundary):
+def create_equidistant_mesh_2_layer(n_x, n_y, n_z, temperature_ini, dx, dy, dz, layer_boundary, factor):
     if sett.mesh_form == 1:
         a = n_x / 2 - 0.5
         a_rad = (n_x - 2) // 2
@@ -69,11 +69,11 @@ def create_equidistant_mesh_2_layer(n_x, n_y, n_z, temperature_ini, dx, dy, dz, 
     Dr = np.full((n_z, n_y, n_x, 6), np.array([dz, dz, dy, dy, dx, dx]), dtype=np.float64)
     for i in range(layer_boundary, n_z):
         if i == layer_boundary:
-            Dr[i] = np.full((n_y, n_x, 6), np.array([dz * 10, dz, dy, dy, dx, dx]), dtype=np.float64)
-            dz_arr[i] = np.full((n_y, n_x), (dz/2 + dz*10/2), dtype=np.float64)
+            Dr[i] = np.full((n_y, n_x, 6), np.array([dz * factor, dz, dy, dy, dx, dx]), dtype=np.float64)
+            dz_arr[i] = np.full((n_y, n_x), (dz/2 + dz*factor/2), dtype=np.float64)
         else:
-            Dr[i] = np.full((n_y, n_x, 6), np.array([dz * 10, dz * 10, dy, dy, dx, dx]), dtype=np.float64)
-            dz_arr[i] = np.full((n_y, n_x), dz * 10, dtype=np.float64)
+            Dr[i] = np.full((n_y, n_x, 6), np.array([dz * factor, dz * factor, dy, dy, dx, dx]), dtype=np.float64)
+            dz_arr[i] = np.full((n_y, n_x), dz * factor, dtype=np.float64)
     return mesh, dx_arr, dy_arr, dz_arr, Dr, a, (a_rad - 1), b, (b_rad - 1)
 
 
@@ -196,6 +196,45 @@ def find_surface_periodic(n_x, n_y, n_z, limiter_x_start, limiter_y_start, limit
                                          misplaced_voxels)
     return surface, surface_reduced, sample_holder
 
+
+@njit
+def find_holes_periodic(n_x, n_y, n_z, mesh):
+    inner_structure = np.zeros((n_z, n_y, n_x, 6), dtype=np.float64)
+    for i in range(1, n_z-1):
+        for j in range(1, n_y-1):
+            for k in range(1, n_x-1):
+                if mesh[i][j][k] != 0:
+                    #Check if it is a surface in positive z direction
+                    if mesh[i+1][j][k] == 0:
+                        inner_structure[i][j][k][0] = 1
+                    # Check if it is a surface in negative z direction
+                    if mesh[i-1][j][k] == 0:
+                        inner_structure[i][j][k][1] = 1
+                    # Check if it is a surface in positive y direction
+                    if mesh[i][j+1][k] == 0:
+                        if j == n_y-2 and mesh[i][1][k] == 0:
+                            inner_structure[i][j][k][2] = 1
+                        if j != n_y-2:
+                            inner_structure[i][j][k][2] = 1
+                    # Check if it is a surface in negative y direction
+                    if mesh[i][j-1][k] == 0:
+                        if j == 1 and mesh[i][n_y-2][k] == 0:
+                            inner_structure[i][j][k][3] = 1
+                        if j != 1:
+                            inner_structure[i][j][k][3] = 1
+                    # Check if it is a surface in positive x direction
+                    if mesh[i][j][k+1] == 0:
+                        if k == n_x-2 and mesh[i][j][1] == 0:
+                            inner_structure[i][j][k][4] = 1
+                        if k != n_x-2:
+                            inner_structure[i][j][k][4] = 1
+                    # Check if it is a surface in negative x direction
+                    if mesh[i][j][k-1] == 0:
+                        if k == 1 and mesh[i][j][n_x-2] == 0:
+                            inner_structure[i][j][k][5] = 1
+                        if k != 1:
+                            inner_structure[i][j][k][5] = 1
+    return inner_structure
 @njit
 def reduce_surface(n_x, n_y, n_z, limiter_x, limiter_y, limiter_z, limiter_x_end, limiter_y_end, limiter_z_end, surface, surface_reduced, a, a_rad, b, b_rad, misplaced_voxels):
     count = 0

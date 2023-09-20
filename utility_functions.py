@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import numpy as np
 from numba import njit, prange
 import csv
@@ -167,3 +168,100 @@ def auto_path(path_string):
             out_path = path.join(out_path, path_components[i])
     return out_path.replace("\\", "/")
 
+
+def randomize(n_x_start, n_y_start, n_z_start, n_x_end, n_y_end, n_z_end, temperture, probability, distribution):
+    if distribution == 'uniform':
+        generator = np.random.default_rng()
+    else:
+        print('Distribution type not implemented, defaulting to uniform')
+        generator = np.random.default_rng()
+    for i in range(n_z_start, n_z_end):
+        for j in range(n_y_start, n_y_end):
+            for k in range(n_x_start, n_x_end):
+                if generator.random() > probability: #Inverse probability here. So p=7/10 equals <7/10> gridpoints filled.
+                    temperture[i][j][k] = 0
+    return temperture
+
+
+def check_connections(n_x, n_y, n_z, temperature):
+    cluster_array = np.full(np.shape(temperature), 1E7, dtype=np.int32)
+    cluster_nr = 1
+    cluster_dict = {}
+    for i in range(1, n_z-1):
+        for j in range(1, n_y-1):
+            for k in range(1, n_x-1):
+                if temperature[i][j][k] > 0 and (temperature[i+1][j][k] > 0 or temperature[i-1][j][k] > 0 or temperature[i][j+1][k] > 0 or temperature[i][j-1][k] > 0 or temperature[i][j][k+1] > 0 or temperature[i][j][k-1] > 0):
+                    nr_arr = np.array([cluster_array[i+1][j][k], cluster_array[i-1][j][k], cluster_array[i][j+1][k], cluster_array[i][j-1][k], cluster_array[i][j][k+1], cluster_array[i][j][k-1]], dtype=np.int32)
+                    if np.min(nr_arr) == 1E7:
+                        cluster_array[i][j][k] = cluster_nr
+                        cluster_dict[str(cluster_nr)] = [np.array([k, j, i], dtype=np.int32)]
+                        cluster_nr += 1
+                    elif np.min(nr_arr) == cluster_nr:
+                        cluster_array[i][j][k] = cluster_nr
+                        cluster_dict[str(cluster_nr)].append(np.array([k, j, i], dtype=np.int32))
+                    else:
+                        cluster_array[i][j][k] = np.min(nr_arr)
+                        cluster_dict[str(cluster_array[i][j][k])].append(np.array([k, j, i], dtype=np.int32))
+                    if cluster_array[i+1][j][k] > cluster_array[i][j][k] and cluster_array[i+1][j][k] < 1E7:
+                        to_replace = cluster_array[i+1][j][k]
+                        for each in cluster_dict[str(cluster_array[i+1][j][k])]:
+                            cluster_dict[str(cluster_array[i][j][k])].append(each)
+                            cluster_array[each[2]][each[1]][each[0]] = cluster_array[i][j][k]
+                        cluster_dict.pop(str(to_replace))
+                    if cluster_array[i-1][j][k] > cluster_array[i][j][k] and cluster_array[i-1][j][k] < 1E7:
+                        to_replace = cluster_array[i-1][j][k]
+                        for each in cluster_dict[str(cluster_array[i-1][j][k])]:
+                            cluster_dict[str(cluster_array[i][j][k])].append(each)
+                            cluster_array[each[2]][each[1]][each[0]] = cluster_array[i][j][k]
+                        cluster_dict.pop(str(to_replace))
+                    if cluster_array[i][j+1][k] > cluster_array[i][j][k] and cluster_array[i][j+1][k] < 1E7:
+                        to_replace = cluster_array[i][j+1][k]
+                        for each in cluster_dict[str(cluster_array[i][j+1][k])]:
+                            cluster_dict[str(cluster_array[i][j][k])].append(each)
+                            cluster_array[each[2]][each[1]][each[0]] = cluster_array[i][j][k]
+                        cluster_dict.pop(str(to_replace))
+                    if cluster_array[i][j-1][k] > cluster_array[i][j][k] and cluster_array[i][j-1][k] < 1E7:
+                        to_replace = cluster_array[i][j-1][k]
+                        for each in cluster_dict[str(cluster_array[i][j-1][k])]:
+                            cluster_dict[str(cluster_array[i][j][k])].append(each)
+                            cluster_array[each[2]][each[1]][each[0]] = cluster_array[i][j][k]
+                        cluster_dict.pop(str(to_replace))
+                    if cluster_array[i][j][k+1] > cluster_array[i][j][k] and cluster_array[i][j][k+1] < 1E7:
+                        to_replace = cluster_array[i][j][k+1]
+                        for each in cluster_dict[str(cluster_array[i][j][k+1])]:
+                            cluster_dict[str(cluster_array[i][j][k])].append(each)
+                            cluster_array[each[2]][each[1]][each[0]] = cluster_array[i][j][k]
+                        cluster_dict.pop(str(to_replace))
+                    if cluster_array[i][j][k-1] > cluster_array[i][j][k] and cluster_array[i][j][k-1] < 1E7:
+                        to_replace = cluster_array[i][j][k-1]
+                        for each in cluster_dict[str(cluster_array[i][j][k-1])]:
+                            cluster_dict[str(cluster_array[i][j][k])].append(each)
+                            cluster_array[each[2]][each[1]][each[0]] = cluster_array[i][j][k]
+                        cluster_dict.pop(str(to_replace))
+    if len(cluster_dict) == 1:
+        print('Array consists of a singular cluster')
+    else:
+        print('Array has non connected clusters numbering: ' + str(len(cluster_dict)))
+    return cluster_array
+
+'''temp_slice = np.array([[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 1, 1, 0], [0, 0, 0, 1, 1, 1, 0], [0, 1, 0, 1, 0, 0, 0], [0, 1, 0, 1, 0, 0, 0], [0, 1, 1, 1, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]], dtype=np.float64)
+temperature = np.zeros((7, 7, 7), dtype=np.float64)
+for i in range(0, 7):
+    temperature[0:7, 0:7, i] = temp_slice
+plt.imshow(temperature[0:7, 0:7, 1])
+plt.show()
+ca = check_connections(7, 7, 7, temperature)
+plt.imshow(ca[0:7, 0:7, 1])
+plt.show()'''
+
+@njit
+def test(n_x, n_y, n_z, temperature, uniform_water_masses, uniform_dust_masses, dust_ice_ratio_global, dx, dy, dz):
+    for i in range(0, n_z):
+        for j in range(0, n_y):
+            for k in range(0, n_x):
+                if temperature[i][j][k] == 0:  # or sample_holder[i][j][k] == 1:
+                    uniform_water_masses[i][j][k] = 0
+                    uniform_dust_masses[i][j][k] = 0
+                if temperature[i][j][k] > 0 and i < 200:
+                    uniform_water_masses = (1 / 8 * 4 / 3 * np.pi) * dx * dy * dz * (1 / (dust_ice_ratio_global + 1))
+    return uniform_water_masses, uniform_dust_masses

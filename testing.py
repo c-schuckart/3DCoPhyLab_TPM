@@ -318,10 +318,10 @@ plt.legend(fontsize='x-small')
 plt.show()
 #plt.savefig('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/Temp_profile.png', dpi=600)'''
 
-with open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Light_absorption_curve.csv') as csvdatei:
+with open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Light_absorption_curve_real.csv') as csvdatei:
     dat = csv.reader(csvdatei, delimiter=';')
-    depth = [0.0]
-    energy = [0.0]
+    depth = []
+    energy = []
     for each in dat:
         depth.append(float(each[0]))
         energy.append(float(each[1]))
@@ -331,14 +331,24 @@ energy = np.sort(np.array(energy))
 
 curve = interp1d(depth, energy)
 z = np.zeros(const.n_z+1, dtype=np.float64)
+mi = True
 for i in range(0, const.n_z+1):
-    z[i] = i*const.min_dz * 1E6
-intensity = curve(z)
+    z[i] = i*const.min_dz
+    if z[i] > 1E-3 and mi:
+        max_interp = i
+        mi = False
+intensity = curve(z[0:max_interp])
 int_per_layer = np.zeros(const.n_z, dtype=np.float64)
 for i in range(0, const.n_z):
-    int_per_layer[i] = (intensity[i+1] - intensity[i])/energy[len(energy)-1]
+    if z[i+1] > 1E-3:
+        int_per_layer[i] = 0
+    else:
+        int_per_layer[i] = (intensity[i+1] - intensity[i])/energy[len(energy)-1]
 
 data_dict = {'factors': int_per_layer.tolist()}
 
-with open('lamp_layer_absorption_factors_periodic200.json', 'w') as outfile:
+print(np.sum(int_per_layer))
+print(max_interp)
+
+with open('lamp_layer_absorption_factors_periodic196.json', 'w') as outfile:
     json.dump(data_dict, outfile)

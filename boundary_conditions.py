@@ -250,6 +250,28 @@ def calculate_deeper_layer_source(n_x, n_y, n_z, input_energy, r_H, albedo, surf
 
 
 @njit
+def calculate_deeper_layer_source_from_values(n_x, n_y, n_z, input_energy, r_H, albedo, temperature, dx, dy, dz, factors):
+	S_c = np.zeros((n_z, n_y, n_x), dtype=np.float64)
+	for j in range(0, n_y):
+		for k in range(0, n_x):
+			for i in range(0, n_z):
+				if temperature[i][j][k] > 0:
+					Q = input_energy[i+1:n_z, j, k] / r_H ** 2 * (1 - albedo) * factors[1:n_z-i]
+					S_c[i+1:n_z, j, k] = Q / (dx[i+1:n_z, j, k] * dy[i+1:n_z, j, k] * dz[i+1:n_z, j, k])
+					break
+	return S_c
+
+
+@njit
+def lower_boundary_flow_approximation(n_x, n_y, n_z, temperature, Lambda, dx, dy, dz, Dr):
+	S_c_bottom = np.zeros((n_y, n_x), dtype=np.float64)
+	for j in range(0, n_y):
+		for k in range(0, n_x):
+			S_c_bottom[j][k] = - Lambda[n_z-2][j][k][1] * (temperature[n_z-2][j][k] - (temperature[n_z-2][j][k] - (temperature[n_z-3][j][k] - temperature[n_z-2][j][k]))) / (dz[n_z-2][j][k] * Dr[n_z-2][j][k][1])
+	return S_c_bottom
+
+
+@njit
 def day_night_cycle(lamp_power, S_c, period, current_time):
 	time_factor = np.sin(2 * current_time / period * np.pi)
 	if time_factor >= 0:
@@ -298,6 +320,32 @@ def twoD_gaussian(y, x, sigma, amplitude):
 
 def get_energy_input_lamp(n_x, n_y, n_z, dx, dy, amplitude, sigma, temperature, a, b):
 	lamp_power = np.zeros((n_z, n_y, n_x), dtype=np.float64)
+	for i in range(0, n_z):
+		for j in range(0, n_y):
+			for k in range(0, n_x):
+				if temperature[i][j][k] != 0:
+					'''y = np.linspace(j*dy[i][j][k] - (np.sum([dy[i][val][k] for val in range(0, b)]) + dy[i][b][k]/2), (j+1)*dy[i][j][k] - (np.sum([dy[i][val][k] for val in range(0, b)]) + dy[i][b][k]/2), 20)
+					x = np.linspace(k*dx[i][j][k] - (np.sum(dx[i][j][0:a]) + dx[i][j][a]/2), (k+1)*dx[i][j][k] - (np.sum(dx[i][j][0:a]) + dx[i][j][a]/2), 20)
+					if i == 1 and j == n_y//2 and k == n_x//2:
+						print(y, x)
+						print(twoD_gaussian(y, x, sigma, amplitude))'''
+					lamp_power[i][j][k] = integrate.dblquad(twoD_gaussian, k*dx[i][j][k] - (np.sum(dx[i][j][0:a]) + dx[i][j][a]/2), (k+1)*dx[i][j][k] - (np.sum(dx[i][j][0:a]) + dx[i][j][a]/2), j*dy[i][j][k] - (np.sum([dy[i][val][k] for val in range(0, b)]) + dy[i][b][k]/2), (j+1)*dy[i][j][k] - (np.sum([dy[i][val][k] for val in range(0, b)]) + dy[i][b][k]/2), args=(const.var_lamp_profile, amplitude))[0]
+					#lamp_power[i][j][k] = np.average(twoD_gaussian(y, x, sigma, amplitude))
+
+	return lamp_power
+
+
+def get_energy_input_lamp_from_values(n_x, n_y, n_z, min_dx, min_dy, dx, dy, amplitude, sigma, temperature, a, b):
+	lamp_power = np.zeros((n_z, n_y, n_x), dtype=np.float64)
+	x = np.linspace(-n_x/2*min_dx, n_x/2*min_dx, n_x)
+	y = np.linspace(-n_y/2*min_dy, n_y/2*min_dy, n_y)
+	X, Y = np.meshgrid(x, y)
+	power_dist = twoD_gaussian(Y, X, sigma, amplitude)
+	for i in range(0, n_z):
+		lamp_power[i] = power_dist * dx[0] * dy[0]
+	return lamp_power
+
+
 	for i in range(0, n_z):
 		for j in range(0, n_y):
 			for k in range(0, n_x):
