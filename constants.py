@@ -1,15 +1,15 @@
 import numpy as np
 
 #Definition of Simulation Parameters
-min_dx = 2.5E-6                      # Layer Thickness of smallest layer in x direction, Numerical Resolution  [m]
-min_dy = 2.5E-6                      # Layer Thickness of smallest layer in y direction, Numerical Resolution  [m]
-min_dz = 2.5E-6                      # Layer Thickness of smallest layer in z direction, Numerical Resolution  [m]
+min_dx = 5E-6                      # Layer Thickness of smallest layer in x direction, Numerical Resolution  [m]
+min_dy = 5E-6                      # Layer Thickness of smallest layer in y direction, Numerical Resolution  [m]
+min_dz = 5E-6                      # Layer Thickness of smallest layer in z direction, Numerical Resolution  [m]
 dt = 5E-2                           # Timestep                               [s]
 #dt = 1E1
-n_x = 100                            # Number of Layers                       [-]
-n_y = 100
-n_z = 2*200 + 2*190 + 1
-#n_z = 196
+n_x = 50                            # Number of Layers                       [-]
+n_y = 50
+#n_z = 2*200 + 2*190 + 1
+n_z = 391
 '''min_dx = 5E-3                      # Layer Thickness of the smallest layer in x direction, Numerical Resolution  [m]
 min_dy = 5E-3                      # Layer Thickness of the smallest layer in y direction, Numerical Resolution  [m]
 min_dz = 5E-3                      # Layer Thickness of the smallest layer in z direction, Numerical Resolution  [m]
@@ -20,8 +20,8 @@ n_y = 25
 n_z = 25'''
 n = np.array([n_x, n_y, n_z])
 #k = 36288 * 5                      # Number of Timesteps                    [-]'''
-k = int(1200)                    # Number of Timesteps                    [-]
-#k = 100 * 50
+k = int(1200 * 1)                    # Number of Timesteps                    [-]
+#k = 3000
 #Definition of Physical Parameters
 #Material Properties
 lambda_constant = 0.01            # Thermal Conductivity                   [W/(K m)]
@@ -82,7 +82,7 @@ sample_holder_starting_temp = 77  # Starting temperature of the sample holder [K
 Input_Intensity = 6500             # Intensity of the Light Source (Sun)    [W/m^2]
 #epsilon = 1                       # Emissivity                             [-]
 albedo = 0.0                  # Albedo                                 [-]
-lambda_water_ice = 651            # thermal conductivity of water ice      [W/(m * T)], depending on T!
+lambda_water_ice = 651/30            # thermal conductivity of water ice      [W/(m * T)], depending on T!
 #lambda_water_ice = 567
 lambda_co2_ice = 0.02             # thermal conductivity of water ice      [W/(m * K)]
 lambda_sample_holder = 236        # thermal conductivity of aluminium, the sample holder material   [W/(m*K)]

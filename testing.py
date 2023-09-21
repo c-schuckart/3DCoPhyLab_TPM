@@ -264,9 +264,9 @@ for i in range(len(timestamps)-1):
         counter += 1
 
 files = listdir('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/')
-target = open('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/results_csv.csv', 'w')
+target = open('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/CORRresults_csv.csv', 'w')
 for each in files:
-    if each[0:6] == 'sand_L':
+    if each[0:10] == 'CORRsand_L':
         with open('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/' + each) as json_file:
             jdata = json.load(json_file)
         sen_1_sim = []
@@ -291,7 +291,7 @@ for each in files:
 
 target.close()'''
 
-#sort_csv('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/results_csv.csv', True, 'C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/results_csv_sorted.csv')
+#sort_csv('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/CORRresults_csv.csv', True, 'C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/CORRresults_csv_sorted.csv')
 
 '''with open('D:/TPM_data/Big_sand/sand_L_chamber_A_0.95_Absdepth_0.001_Lambda_0.004.json') as json_file:
     jdata1 = json.load(json_file)
@@ -318,7 +318,7 @@ plt.legend(fontsize='x-small')
 plt.show()
 #plt.savefig('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/Temp_profile.png', dpi=600)'''
 
-with open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Light_absorption_curve_real.csv') as csvdatei:
+'''with open('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Light_absorption_curve_real.csv') as csvdatei:
     dat = csv.reader(csvdatei, delimiter=';')
     depth = []
     energy = []
@@ -350,5 +350,6 @@ data_dict = {'factors': int_per_layer.tolist()}
 print(np.sum(int_per_layer))
 print(max_interp)
 
-with open('lamp_layer_absorption_factors_periodic196.json', 'w') as outfile:
+with open('lamp_layer_absorption_factors_periodic300.json', 'w') as outfile:
     json.dump(data_dict, outfile)
+'''
