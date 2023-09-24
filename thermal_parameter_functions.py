@@ -38,7 +38,7 @@ def lambda_granular(n_x, n_y, n_z, temperature, Dr, dx, dy, dz, lambda_water_ice
 
 
 @njit(parallel=True)
-def lambda_granular_periodic(n_x, n_y, n_z, temperature, Dr, dx, dy, dz, lambda_water_ice, poisson_ratio_par, young_modulus_par, surface_energy_par, r_mono, f_1, f_2, VFF_pack, sigma, e_1, sample_holder, lambda_sample_holder, r_n, enable_full_sintering):
+def lambda_granular_periodic(n_x, n_y, n_z, temperature, Dr, dx, dy, dz, lambda_water_ice, poisson_ratio_par, young_modulus_par, surface_energy_par, r_mono, f_1, f_2, VFF_pack, sigma, e_1, sample_holder, lambda_sample_holder, r_n, enable_full_sintering, chi):
 	lambda_total = np.zeros((n_z, n_y, n_x, 6), dtype=np.float64)
 	lambda_centre = np.zeros((n_z, n_y, n_x), dtype=np.float64)
 	lambda_cond = np.zeros(6, dtype=np.float64)
@@ -58,7 +58,7 @@ def lambda_granular_periodic(n_x, n_y, n_z, temperature, Dr, dx, dy, dz, lambda_
 					elif r_n[i][j][k] > r_mono[i][j][k] and enable_full_sintering:
 						lambda_centre[i][j][k] = lambda_water_ice/temperature[i][j][k]
 					else:
-						lambda_centre[i][j][k] = (lambda_water_ice / temperature[i][j][k]) * (3 / 4 * (1 - poisson_ratio_par ** 2) / young_modulus_par * np.sqrt(3 / 2 * np.pi * surface_energy_par * 2 / 3 * young_modulus_par * 1 / (1 - poisson_ratio_par ** 2))) ** (1 / 3) * f_1 * np.exp(f_2 * VFF_pack[i][j][k]) * r_n[i][j][k] ** (1 / 2) / r_mono[i][j][k] ** (2 / 3)
+						lambda_centre[i][j][k] = (lambda_water_ice / temperature[i][j][k]) * (3 / 4 * (1 - poisson_ratio_par ** 2) / young_modulus_par * np.sqrt(3 / 2 * np.pi * surface_energy_par * 2 / 3 * young_modulus_par * 1 / (1 - poisson_ratio_par ** 2))) ** (1 / 3) * chi[i][j][k] * r_n[i][j][k] ** (1 / 2) / r_mono[i][j][k] ** (2 / 3)
 					'''if k == n_x-2:
 						T_x_pos = 2 * (temperature[i][j][1] * temperature[i][j][k]) / (temperature[i][j][1] + temperature[i][j][k])
 						r_n_interface[4] = 2 * (r_n[i][j][1] * r_n[i][j][k]) / (r_n[i][j][1] + r_n[i][j][k])

@@ -20,7 +20,7 @@ n_y = 25
 n_z = 25'''
 n = np.array([n_x, n_y, n_z])
 #k = 36288 * 5                      # Number of Timesteps                    [-]'''
-k = int(1200 * 1)                    # Number of Timesteps                    [-]
+k = int(1201 * 1)                    # Number of Timesteps                    [-]
 #k = 3000
 #Definition of Physical Parameters
 #Material Properties
@@ -82,7 +82,7 @@ sample_holder_starting_temp = 77  # Starting temperature of the sample holder [K
 Input_Intensity = 6500             # Intensity of the Light Source (Sun)    [W/m^2]
 #epsilon = 1                       # Emissivity                             [-]
 albedo = 0.0                  # Albedo                                 [-]
-lambda_water_ice = 651/30            # thermal conductivity of water ice      [W/(m * T)], depending on T!
+lambda_water_ice = 651            # thermal conductivity of water ice      [W/(m * T)], depending on T!
 #lambda_water_ice = 567
 lambda_co2_ice = 0.02             # thermal conductivity of water ice      [W/(m * K)]
 lambda_sample_holder = 236        # thermal conductivity of aluminium, the sample holder material   [W/(m*K)]

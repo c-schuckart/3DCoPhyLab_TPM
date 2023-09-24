@@ -353,3 +353,18 @@ print(max_interp)
 with open('lamp_layer_absorption_factors_periodic300.json', 'w') as outfile:
     json.dump(data_dict, outfile)
 '''
+
+chi = [0.326, 0.1, 0.05, 0.01, 0.005, 0.001]
+T_10 = [85.1647, 91.3946, 96.8681, 116.779, 128.6403, 158.08926]
+T_60 = [97.6746, 114.0831, 128.6047, 165.8284, 170.3352, 174.6266]
+
+fig, ax = plt.subplots(1, 1)
+plt.tick_params(axis='x', which='both', direction='in', top=True, labeltop=False)
+plt.tick_params(axis='y', which='both', direction='in', right=True, labelright=False)
+ax.plot(chi, T_10, label='Highest Temp. after 10s')
+ax.plot(chi, T_60, label='Highest Temp. after 60s', ls='--')
+ax.set_xlabel(r'$\chi$')
+ax.set_ylabel('Temperature (K)')
+ax.set_title(r'Highest temperature with changing $\chi$')
+ax.set_xscale('log')
+plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/chi_dependency.png', dpi=600)
