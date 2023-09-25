@@ -693,6 +693,7 @@ def boundary_condition_implicit_x_sweep_de_periodic(dt, gas_mass, z_sweep_gas_ma
     return sub_alpha, diag, sub_gamma, rhs
 
 
+@njit
 def de_implicit_DGADI_periodic(n_x, n_y, n_z, surface_reduced, dt, gas_mass, Diffusion_coefficient, Dr, dx, dy, dz, surface, S_c, S_p, sh_adjacent_voxels, top_layer_zero, temperature):
     next_step_gas_mass = np.zeros((n_z, n_y, n_x), dtype=np.float64)
     z_sweep_gas_mass = np.zeros((n_z, n_y, n_x), dtype=np.float64)
