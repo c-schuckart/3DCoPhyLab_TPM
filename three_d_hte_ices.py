@@ -203,15 +203,15 @@ for j in tqdm(range(0, const.k)):
         sublimated_mass = (gas_density - gas_density_previous) * dx * dy * dz
         #print(np.max(sublimated_mass))
         #print(sublimated_mass[1:3, 10:20, 10:20], 4)
-        sub_gas_begin[0:const.n_z, 0:const.n_y, 0:const.n_x] = sublimated_mass[0:const.n_z, 0:const.n_y, 0:const.n_x]
-        sub_gasdens_begin[0:const.n_z, 0:const.n_y, 0:const.n_x] = gas_density[0:const.n_z, 0:const.n_y, 0:const.n_x]
-        temp_begin[0:const.n_z, 0:const.n_y, 0:const.n_x] = temperature[0:const.n_z, 0:const.n_y, 0:const.n_x]
-        if np.abs(np.sum(sub_gas_begin) - np.sum(sublimated_mass)) > 1E-20:
+        '''if np.abs(np.sum(sub_gas_begin) - np.sum(sublimated_mass)) > 1E-20:
             print(np.abs(np.sum(sub_gas_begin) - np.sum(sublimated_mass)))
-            print('Mass conservation warning')
+            print('Mass conservation warning')'''
         pressure = pressure_calculation(const.n_x, const.n_y, const.n_z, temperature, gas_density, const.k_boltzmann, const.m_H2O, var.VFF_pack, const.r_mono, dx, dy, dz, const.dt, sample_holder, sublimated_mass, water_particle_number)
         if np.max(np.abs(temperature - temp_begin)) < 1E-7:
             break
+        sub_gas_begin[0:const.n_z, 0:const.n_y, 0:const.n_x] = sublimated_mass[0:const.n_z, 0:const.n_y, 0:const.n_x]
+        sub_gasdens_begin[0:const.n_z, 0:const.n_y, 0:const.n_x] = gas_density[0:const.n_z, 0:const.n_y, 0:const.n_x]
+        temp_begin[0:const.n_z, 0:const.n_y, 0:const.n_x] = temperature[0:const.n_z, 0:const.n_y, 0:const.n_x]
         if i < 29:
             gas_density[0:const.n_z, 0:const.n_y, 0:const.n_x] = gas_density_previous[0:const.n_z, 0:const.n_y, 0:const.n_x]
             temperature[0:const.n_z, 0:const.n_y, 0:const.n_x] = temperature_previous[0:const.n_z, 0:const.n_y, 0:const.n_x]

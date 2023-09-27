@@ -532,7 +532,7 @@ def set_matrices_rhs_z_sweep_de_periodic(n_z, j, k, rhs, gas_mass, surface, dx, 
     if j == n_y - 2:
         y_pos_periodic = 1
     for i in range(0, n_z):
-        if gas_mass[i][j][k] > 0 and np.sum(surface[i][j][k]) == 0 and rhs[i] == 0:
+        if temperature[i][j][k] > 0 and np.sum(surface[i][j][k]) == 0 and rhs[i] == 0:
             a_t = 1 / 2 * Diffusion_coefficient[i][j][k][0] * dx[i][j][k] * dy[i][j][k] / Dr[i][j][k][0] * (1 - sh_adjacent_voxels[i][j][k][0])
             a_b = 1 / 2 * Diffusion_coefficient[i][j][k][1] * dx[i][j][k] * dy[i][j][k] / Dr[i][j][k][1] * (1 - sh_adjacent_voxels[i][j][k][1])
             a_n = Diffusion_coefficient[i][j][k][2] * dx[i][j][k] * dz[i][j][k] / Dr[i][j][k][2] * (1 - sh_adjacent_voxels[i][j][k][2])
@@ -592,7 +592,7 @@ def set_matrices_rhs_y_sweep_de_periodic(n_y, i, k, rhs, gas_mass, z_sweep_gas_m
             y_neg_periodic = 1
         if j == n_y - 2:
             y_pos_periodic = 1
-        if gas_mass[i][j][k] > 0 and np.sum(surface[i][j][k]) == 0 and rhs[j] == 0:
+        if temperature[i][j][k] > 0 and np.sum(surface[i][j][k]) == 0 and rhs[j] == 0:
             a_t = Diffusion_coefficient[i][j][k][0] * dx[i][j][k] * dy[i][j][k] / Dr[i][j][k][0] * (1 - sh_adjacent_voxels[i][j][k][0])
             a_b = Diffusion_coefficient[i][j][k][1] * dx[i][j][k] * dy[i][j][k] / Dr[i][j][k][1] * (1 - sh_adjacent_voxels[i][j][k][1])
             a_n = 1 / 2 * Diffusion_coefficient[i][j][k][2] * dx[i][j][k] * dz[i][j][k] / Dr[i][j][k][2] * (1 - sh_adjacent_voxels[i][j][k][2])
@@ -649,7 +649,7 @@ def set_matrices_rhs_x_sweep_de_periodic(n_x, i, j, rhs, gas_mass, z_sweep_gas_m
             x_neg_periodic = 1
         if k == n_x - 2:
             x_pos_periodic = 1
-        if gas_mass[i][j][k] > 0 and np.sum(surface[i][j][k]) == 0 and rhs[k] == 0:
+        if temperature[i][j][k] > 0 and np.sum(surface[i][j][k]) == 0 and rhs[k] == 0:
             a_t = Diffusion_coefficient[i][j][k][0] * dx[i][j][k] * dy[i][j][k] / Dr[i][j][k][0] * (1 - sh_adjacent_voxels[i][j][k][0])
             a_b = Diffusion_coefficient[i][j][k][1] * dx[i][j][k] * dy[i][j][k] / Dr[i][j][k][1] * (1 - sh_adjacent_voxels[i][j][k][1])
             a_n = Diffusion_coefficient[i][j][k][2] * dy[i][j][k] * dz[i][j][k] / Dr[i][j][k][2] * (1 - sh_adjacent_voxels[i][j][k][2])
@@ -714,6 +714,12 @@ def de_implicit_DGADI_periodic(n_x, n_y, n_z, surface_reduced, dt, gas_mass, Dif
             sub_alpha, diag, sub_gamma = set_matrices_lhs_z_sweep_de_periodic(n_z, j, k, sub_alpha, diag, sub_gamma, Diffusion_coefficient, dx, dy, dz, Dr, dt, S_p, gas_mass, surface, sh_adjacent_voxels, temperature)
             rhs = set_matrices_rhs_z_sweep_de_periodic(n_z, j, k, rhs, gas_mass, surface, dx, dy, dz, Dr, Diffusion_coefficient, dt, S_c, sh_adjacent_voxels, n_x, n_y, temperature)
             z_sweep_gas_mass[1:n_z-1, j, k] = tridiagonal_matrix_solver(n_z-2, diag[1:n_z-1], sub_gamma[1:n_z-1], sub_alpha[1:n_z-1], rhs[1:n_z-1])
+            if j == 25 and k == 25:
+                print(sub_gamma)
+                print(diag)
+                print(sub_alpha)
+                print(rhs)
+                print('z:', z_sweep_gas_mass[1:n_z-1, j, k])
     for i in range(1, n_z-1):
         for k in range(1, n_x-1):
             sub_alpha = np.zeros(n_y, dtype=np.float64)
@@ -728,8 +734,9 @@ def de_implicit_DGADI_periodic(n_x, n_y, n_z, surface_reduced, dt, gas_mass, Dif
                     counter += 1
             sub_alpha, diag, sub_gamma, rhs = boundary_condition_implicit_y_sweep_de_periodic(dt, gas_mass, z_sweep_gas_mass, Diffusion_coefficient, Dr, dx, dy, dz, surface, surface_elements_in_line[0:counter], sub_alpha, diag, sub_gamma, rhs, S_c, S_p, sh_adjacent_voxels, top_layer_zero, n_x, n_y)
             sub_alpha, diag, sub_gamma = set_matrices_lhs_y_sweep_de(n_y, i, k, sub_alpha, diag, sub_gamma, Diffusion_coefficient, dx, dy, dz, Dr, dt, S_p, gas_mass, surface, sh_adjacent_voxels, temperature)
-            rhs = set_matrices_rhs_y_sweep_de_periodic(n_y, i, k, rhs, gas_mass, z_sweep_gas_mass, surface, dx, dy, dz, Dr, Diffusion_coefficient, dt, S_c,sh_adjacent_voxels, n_x, temperature)
+            rhs = set_matrices_rhs_y_sweep_de_periodic(n_y, i, k, rhs, gas_mass, z_sweep_gas_mass, surface, dx, dy, dz, Dr, Diffusion_coefficient, dt, S_c, sh_adjacent_voxels, n_x, temperature)
             y_sweep_gas_mass[i, 1:n_y-1, k] = tridiagonal_matrix_solver(n_y-2, diag[1:n_y-1], sub_gamma[1:n_y-1], sub_alpha[1:n_y-1], rhs[1:n_y-1])
+    print('y:', y_sweep_gas_mass[1:n_z-1, 25, 25])
     for i in range(1, n_z-1):
         for j in range(1, n_y-1):
             sub_alpha = np.zeros(n_x, dtype=np.float64)
@@ -746,4 +753,5 @@ def de_implicit_DGADI_periodic(n_x, n_y, n_z, surface_reduced, dt, gas_mass, Dif
             sub_alpha, diag, sub_gamma = set_matrices_lhs_x_sweep_de(n_x, i, j, sub_alpha, diag, sub_gamma, Diffusion_coefficient, dx, dy, dz, Dr, dt, S_p, gas_mass, surface, sh_adjacent_voxels, temperature)
             rhs = set_matrices_rhs_x_sweep_de_periodic(n_x, i, j, rhs, gas_mass, z_sweep_gas_mass, y_sweep_gas_mass, surface,dx, dy, dz, Dr, Diffusion_coefficient, dt, S_c, sh_adjacent_voxels, n_y, temperature)
             next_step_gas_mass[i, j, 1:n_x-1] = tridiagonal_matrix_solver(n_x-2, diag[1:n_x-1], sub_gamma[1:n_x-1], sub_alpha[1:n_x-1], rhs[1:n_x-1])
+    print('nxt:', next_step_gas_mass[1:n_z - 1, 25, 25])
     return next_step_gas_mass

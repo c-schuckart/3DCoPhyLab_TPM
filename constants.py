@@ -4,7 +4,7 @@ import numpy as np
 min_dx = 5E-6                      # Layer Thickness of smallest layer in x direction, Numerical Resolution  [m]
 min_dy = 5E-6                      # Layer Thickness of smallest layer in y direction, Numerical Resolution  [m]
 min_dz = 5E-6                      # Layer Thickness of smallest layer in z direction, Numerical Resolution  [m]
-dt = 1E-3                           # Timestep                               [s]
+dt = 1E-2                           # Timestep                               [s]
 #dt = 1E1
 n_x = 50                            # Number of Layers                       [-]
 n_y = 50
@@ -20,8 +20,8 @@ n_y = 25
 n_z = 25'''
 n = np.array([n_x, n_y, n_z])
 #k = 36288 * 5                      # Number of Timesteps                    [-]'''
-#k = int(1201 * 1)                    # Number of Timesteps                    [-]
-k = 10001
+k = int(6001 * 1)                    # Number of Timesteps                    [-]
+#k = 10001
 #Definition of Physical Parameters
 #Material Properties
 lambda_constant = 0.01            # Thermal Conductivity                   [W/(K m)]
@@ -76,7 +76,7 @@ x_0 = 5E-2                        # Length scaling factor used to calculate the 
 gravitational_pressure = 0        #Placeholder! [Pa]
 surface_reduction_factor = 1
 #Thermal Properties
-#temperature_ini = 311.5             # Start Temperature                      [K]
+#temperature_ini = 150             # Start Temperature                      [K]
 temperature_ini = 77
 sample_holder_starting_temp = 77  # Starting temperature of the sample holder [K]
 Input_Intensity = 6500             # Intensity of the Light Source (Sun)    [W/m^2]

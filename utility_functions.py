@@ -265,3 +265,12 @@ def test(n_x, n_y, n_z, temperature, uniform_water_masses, uniform_dust_masses, 
                 if temperature[i][j][k] > 0 and i < 200:
                     uniform_water_masses = (1 / 8 * 4 / 3 * np.pi) * dx * dy * dz * (1 / (dust_ice_ratio_global + 1))
     return uniform_water_masses, uniform_dust_masses
+
+
+@njit
+def check_array(n_x, n_y, n_z, target_array, mode, number):
+    for i in range(0, n_z):
+        for j in range(0, n_y):
+            for k in range(0, n_x):
+                if target_array[i][j][k] > number:
+                    print(i, j, k)
