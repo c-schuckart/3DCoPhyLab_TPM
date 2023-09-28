@@ -524,6 +524,51 @@ def diffusion_parameters_sintering(n_x, n_y, n_z, a_1, b_1, c_1, d_1, temperatur
 
 
 @njit(parallel=True)
+def diffusion_parameters_sintering_periodic(n_x, n_y, n_z, a_1, b_1, c_1, d_1, temperature, m_mol, R_gas, VFF, r_mono, Phi, pressure, m_H2O, k_B, dx, dy, dz, Dr, dt, sample_holder, blocked_voxels, n_x_arr, n_y_arr, n_z_arr):
+    diffusion_coefficient = np.zeros((n_z, n_y, n_x, 6), dtype=np.float64)
+    diff_coeff_center = np.zeros((n_z, n_y, n_x), dtype=np.float64)
+    p_sub = np.zeros((n_z, n_y, n_x), dtype=np.float64)
+    sublimated_mass = np.zeros((n_z, n_y, n_x), dtype=np.float64)
+    #Using Güttler et al. 2023 calculation for q together with Phi = 13/6
+    q = 1.60 - 0.73 * (1 - VFF)
+    for i in prange(1, n_z-1):
+        for j in range(1, n_y-1):
+            for k in range(1, n_x-1):
+                if temperature[i][j][k] > 0:
+                    diff_coeff_center[i][j][k] = (R_gas * temperature[i][j][k]) * 1/np.sqrt(2 * np.pi * m_mol * R_gas * temperature[i][j][k]) * (1 - VFF[i][j][k])**2 * 2 * r_mono[i][j][k]/(3 * (1 - (1 - VFF[i][j][k]))) * 4 / (Phi * q[i][j][k])
+    for i in prange(1, n_z-1):
+        for j in range(1, n_y-1):
+            for k in range(1, n_x-1):
+                if k == n_x-2:
+                    diffusion_coefficient[i][j][k][4] = 2 * (diff_coeff_center[i][j][1] * diff_coeff_center[i][j][k]) / (diff_coeff_center[i][j][1] + diff_coeff_center[i][j][k])
+                else:
+                    diffusion_coefficient[i][j][k][4] = 2 * (diff_coeff_center[i][j][k + 1] * diff_coeff_center[i][j][k]) / (diff_coeff_center[i][j][k+1] + diff_coeff_center[i][j][k])
+                if k == 1:
+                    diffusion_coefficient[i][j][k][5] = 2 * (diff_coeff_center[i][j][k] * diff_coeff_center[i][j][n_x - 2]) / (diff_coeff_center[i][j][k] + diff_coeff_center[i][j][n_x-2])
+                else:
+                    diffusion_coefficient[i][j][k][5] = 2 * (diff_coeff_center[i][j][k] * diff_coeff_center[i][j][k - 1]) / (diff_coeff_center[i][j][k] + diff_coeff_center[i][j][k-1])
+                if j == n_y-2:
+                    diffusion_coefficient[i][j][k][2] = 2 * (diff_coeff_center[i][1][k] * diff_coeff_center[i][j][k]) / (diff_coeff_center[i][1][k] + diff_coeff_center[i][j][k])
+                else:
+                    diffusion_coefficient[i][j][k][2] = 2 * (diff_coeff_center[i][j + 1][k] * diff_coeff_center[i][j][k]) / (diff_coeff_center[i][j+1][k] + diff_coeff_center[i][j][k])
+                if j == 1:
+                    diffusion_coefficient[i][j][k][3] = 2 * (diff_coeff_center[i][j][k] * diff_coeff_center[i][n_y - 2][k]) / (diff_coeff_center[i][j][k] + diff_coeff_center[i][n_y-2][k])
+                else:
+                    diffusion_coefficient[i][j][k][3] = 2 * (diff_coeff_center[i][j][k] * diff_coeff_center[i][j - 1][k]) / (diff_coeff_center[i][j][k] + diff_coeff_center[i][j-1][k])
+                diffusion_coefficient[i][j][k][0] = 2 * (diff_coeff_center[i + 1][j][k] * diff_coeff_center[i][j][k]) / (diff_coeff_center[i+1][j][k] + diff_coeff_center[i][j][k])
+                diffusion_coefficient[i][j][k][1] = 2 * (diff_coeff_center[i][j][k] * diff_coeff_center[i - 1][j][k]) / (diff_coeff_center[i][j][k] + diff_coeff_center[i-1][j][k])
+                if sample_holder[i][j][k] == 1:
+                    diffusion_coefficient[i][j][k] = np.zeros(6, dtype=np.float64)
+                for a in range(0, 6):
+                    if blocked_voxels[i + n_z_arr[a]][j + n_y_arr[a]][k + n_x_arr[a]] == -1:
+                        diffusion_coefficient[i][j][k][a] = 0
+                    if sample_holder[i + n_z_arr[a]][j + n_y_arr[a]][k + n_x_arr[a]] == 1:
+                        diffusion_coefficient[i][j][k][a] = 0
+
+    return diffusion_coefficient, p_sub
+
+
+@njit(parallel=True)
 def diffusion_parameters_moon(n_x, n_y, n_z, a_1, b_1, c_1, d_1, temperature, temps, m_mol, R_gas, VFF, r_mono, Phi, q, pressure, m_H2O, k_B, dx, dy, dz, Dr, dt, sample_holder, sample_holder_diffusion, water_particle_number, r_mono_water):
     diffusion_coefficient = np.zeros((n_z, n_y, n_x, 6), dtype=np.float64)
     p_sub = np.zeros((n_z, n_y, n_x), dtype=np.float64)

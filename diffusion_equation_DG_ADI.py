@@ -1,6 +1,6 @@
 import numpy as np
 from numba import jit, njit, prange
-from tri_diag_solve import tridiagonal_matrix_solver
+from tri_diag_solve import tridiagonal_matrix_solver, periodic_tridiagonal_matrix_solver
 
 
 @njit
@@ -714,12 +714,13 @@ def de_implicit_DGADI_periodic(n_x, n_y, n_z, surface_reduced, dt, gas_mass, Dif
             sub_alpha, diag, sub_gamma = set_matrices_lhs_z_sweep_de_periodic(n_z, j, k, sub_alpha, diag, sub_gamma, Diffusion_coefficient, dx, dy, dz, Dr, dt, S_p, gas_mass, surface, sh_adjacent_voxels, temperature)
             rhs = set_matrices_rhs_z_sweep_de_periodic(n_z, j, k, rhs, gas_mass, surface, dx, dy, dz, Dr, Diffusion_coefficient, dt, S_c, sh_adjacent_voxels, n_x, n_y, temperature)
             z_sweep_gas_mass[1:n_z-1, j, k] = tridiagonal_matrix_solver(n_z-2, diag[1:n_z-1], sub_gamma[1:n_z-1], sub_alpha[1:n_z-1], rhs[1:n_z-1])
-            if j == 25 and k == 25:
+            '''if j == 25 and k == 25:
                 print(sub_gamma)
                 print(diag)
                 print(sub_alpha)
                 print(rhs)
-                print('z:', z_sweep_gas_mass[1:n_z-1, j, k])
+                print('z:', z_sweep_gas_mass[1:n_z-1, j, k])'''
+    #print('z:', np.sum(z_sweep_gas_mass * dx * dy * dz))
     for i in range(1, n_z-1):
         for k in range(1, n_x-1):
             sub_alpha = np.zeros(n_y, dtype=np.float64)
@@ -735,8 +736,9 @@ def de_implicit_DGADI_periodic(n_x, n_y, n_z, surface_reduced, dt, gas_mass, Dif
             sub_alpha, diag, sub_gamma, rhs = boundary_condition_implicit_y_sweep_de_periodic(dt, gas_mass, z_sweep_gas_mass, Diffusion_coefficient, Dr, dx, dy, dz, surface, surface_elements_in_line[0:counter], sub_alpha, diag, sub_gamma, rhs, S_c, S_p, sh_adjacent_voxels, top_layer_zero, n_x, n_y)
             sub_alpha, diag, sub_gamma = set_matrices_lhs_y_sweep_de(n_y, i, k, sub_alpha, diag, sub_gamma, Diffusion_coefficient, dx, dy, dz, Dr, dt, S_p, gas_mass, surface, sh_adjacent_voxels, temperature)
             rhs = set_matrices_rhs_y_sweep_de_periodic(n_y, i, k, rhs, gas_mass, z_sweep_gas_mass, surface, dx, dy, dz, Dr, Diffusion_coefficient, dt, S_c, sh_adjacent_voxels, n_x, temperature)
-            y_sweep_gas_mass[i, 1:n_y-1, k] = tridiagonal_matrix_solver(n_y-2, diag[1:n_y-1], sub_gamma[1:n_y-1], sub_alpha[1:n_y-1], rhs[1:n_y-1])
-    print('y:', y_sweep_gas_mass[1:n_z-1, 25, 25])
+            y_sweep_gas_mass[i, 1:n_y-1, k] = periodic_tridiagonal_matrix_solver(n_y-2, diag[1:n_y-1], sub_gamma[1:n_y-1], sub_alpha[1:n_y-1], rhs[1:n_y-1])
+    #print('y:', y_sweep_gas_mass[1:n_z-1, 25, 25])
+    #print('y:', np.sum(y_sweep_gas_mass * dx * dy * dz))
     for i in range(1, n_z-1):
         for j in range(1, n_y-1):
             sub_alpha = np.zeros(n_x, dtype=np.float64)
@@ -752,6 +754,7 @@ def de_implicit_DGADI_periodic(n_x, n_y, n_z, surface_reduced, dt, gas_mass, Dif
             sub_alpha, diag, sub_gamma, rhs = boundary_condition_implicit_x_sweep_de_periodic(dt, gas_mass, z_sweep_gas_mass, y_sweep_gas_mass, Diffusion_coefficient, Dr, dx, dy, dz, surface, surface_elements_in_line[0:counter], sub_alpha, diag, sub_gamma, rhs, S_c, S_p, sh_adjacent_voxels, top_layer_zero, n_x, n_y)
             sub_alpha, diag, sub_gamma = set_matrices_lhs_x_sweep_de(n_x, i, j, sub_alpha, diag, sub_gamma, Diffusion_coefficient, dx, dy, dz, Dr, dt, S_p, gas_mass, surface, sh_adjacent_voxels, temperature)
             rhs = set_matrices_rhs_x_sweep_de_periodic(n_x, i, j, rhs, gas_mass, z_sweep_gas_mass, y_sweep_gas_mass, surface,dx, dy, dz, Dr, Diffusion_coefficient, dt, S_c, sh_adjacent_voxels, n_y, temperature)
-            next_step_gas_mass[i, j, 1:n_x-1] = tridiagonal_matrix_solver(n_x-2, diag[1:n_x-1], sub_gamma[1:n_x-1], sub_alpha[1:n_x-1], rhs[1:n_x-1])
-    print('nxt:', next_step_gas_mass[1:n_z - 1, 25, 25])
+            next_step_gas_mass[i, j, 1:n_x-1] = periodic_tridiagonal_matrix_solver(n_x-2, diag[1:n_x-1], sub_gamma[1:n_x-1], sub_alpha[1:n_x-1], rhs[1:n_x-1])
+    #print('nxt:', np.sum(next_step_gas_mass * dx * dy * dz))
+    #print('nxt:', next_step_gas_mass[1:n_z - 1, 25, 25])
     return next_step_gas_mass
