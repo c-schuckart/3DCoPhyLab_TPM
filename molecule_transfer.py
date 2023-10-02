@@ -536,6 +536,7 @@ def diffusion_parameters_sintering_periodic(n_x, n_y, n_z, a_1, b_1, c_1, d_1, t
             for k in range(1, n_x-1):
                 if temperature[i][j][k] > 0:
                     diff_coeff_center[i][j][k] = (R_gas * temperature[i][j][k]) * 1/np.sqrt(2 * np.pi * m_mol * R_gas * temperature[i][j][k]) * (1 - VFF[i][j][k])**2 * 2 * r_mono[i][j][k]/(3 * (1 - (1 - VFF[i][j][k]))) * 4 / (Phi * q[i][j][k])
+    diff_coeff_center[1, 1:const.n_y-1, 1:const.n_x-1] = np.full((const.n_y-2, const.n_x-2), 1, dtype=np.float64)
     for i in prange(1, n_z-1):
         for j in range(1, n_y-1):
             for k in range(1, n_x-1):
@@ -852,3 +853,17 @@ def pressure_calculation(n_x, n_y, n_z, temperature, gas_density, k_boltzmann, m
                     #pressure[a][b][c] = (gas_density[a][b][c] * dx[a][b][c] * dy[a][b][c] * dz[a][b][c]) * np.sqrt(2 * np.pi * k_boltzmann * temperature[a][b][c] / m_H2O) * 1 / ((3 * VFF[a][b][c] / r_mono * dx[a][b][c] * dy[a][b][c] * dz[a][b][c]) * dt)
                     pressure[a][b][c] = (gas_density[a][b][c] * dx[a][b][c] * dy[a][b][c] * dz[a][b][c]) * np.sqrt(2 * np.pi * k_boltzmann * temperature[a][b][c] / m_H2O) * (1) / (areas[a][b][c]) * 1/dt
     return pressure
+
+
+@njit
+def Tsinter_neck_calculation_time_dependent_diffusion(r_n, r_p, dt, temperature, a_1, b_1, c_1, d_1, omega, surface_energy, R_gas, r_grain, alpha, m_mol, density, pressure, m_H2O, k_B, k_factor, water_particle_number, blocked_voxels, n_x, n_y, n_z, sample_holder, dx, dy, dz):
+    p_sub = np.zeros((n_z, n_y, n_x), dtype=np.float64)
+    sublimated_mass = np.zeros((n_z, n_y, n_x), dtype=np.float64)
+    areas = np.zeros((n_z, n_y, n_x), dtype=np.float64)
+    for i in range(1, n_z-1):
+        for j in range(1, n_y-1):
+            for k in range(1, n_x-1):
+                if temperature[i][j][k] > 0 and sample_holder[i][j][k] == 0:
+                    sublimated_mass[i][j][k] = 10 ** (a_1[0] + b_1[0] / temperature[i][j][k] + c_1[0] * np.log10(temperature[i][j][k]) + d_1[0] * temperature[i][j][k]) * np.sqrt(m_H2O/(2 * np.pi * k_B * temperature[i][j][k])) * dx[i][j][k] * dy[i][j][k] * dt
+                    areas[i][j][k] = dx[i][j][k] * dy[i][j][k]
+    return r_n, r_p, sublimated_mass, areas

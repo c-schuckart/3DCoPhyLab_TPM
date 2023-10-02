@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import constants as const
 import matplotlib.pyplot as plt
+import matplotlib.lines as line
 from matplotlib import rcParams
 import matplotlib.animation as animation
 from IPython.display import Video
@@ -354,7 +355,7 @@ with open('lamp_layer_absorption_factors_periodic300.json', 'w') as outfile:
     json.dump(data_dict, outfile)
 '''
 
-chi = [0.326, 0.1, 0.05, 0.01, 0.005, 0.001]
+'''chi = [0.326, 0.1, 0.05, 0.01, 0.005, 0.001]
 T_10 = [85.1647, 91.3946, 96.8681, 116.779, 128.6403, 158.08926]
 T_60 = [97.6746, 114.0831, 128.6047, 165.8284, 170.3352, 174.6266]
 
@@ -368,4 +369,71 @@ ax.set_ylabel('Temperature (K)')
 ax.set_title(r'Highest temperature with changing $\chi$')
 ax.set_xscale('log')
 plt.legend()
-plt.savefig('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/Ice/chi_dependency.png', dpi=600)
+plt.savefig('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/Ice/chi_dependency.png', dpi=600)'''
+
+'''with open('D:/TPM_Data/Noah/Outgassing_tests/middle_injection_dt_5e-8.json') as json_file:
+    jdata1 = json.load(json_file)
+with open('D:/TPM_Data/Noah/Outgassing_tests/middle_injection_dt_1e-7.json') as json_file:
+    jdata2 = json.load(json_file)
+with open('D:/TPM_Data/Noah/Outgassing_tests/middle_injection_dt_5e-7.json') as json_file:
+    jdata3 = json.load(json_file)
+with open('D:/TPM_Data/Noah/Outgassing_tests/middle_injection_dt_1e-6.json') as json_file:
+    jdata4 = json.load(json_file)
+
+time_5e8 = [i * 5E-8 for i in range(0, 2000)]
+time_1e7 = [i * 1E-7 for i in range(0, 1000)]
+time_5e7 = [i * 5E-7 for i in range(0, 200)]
+time_1e6 = [i * 1E-6 for i in range(0, 100)]
+fig, ax = plt.subplots(1, 1)
+plt.tick_params(axis='x', which='both', direction='in', top=True, labeltop=False)
+plt.tick_params(axis='y', which='both', direction='in', right=True, labelright=False)
+#ax.fill_between(time_5e8, jdata1['min'], jdata1['max'], label='dt = 5*10^-8', alpha=0.4)
+#ax.fill_between(time_1e7, jdata2['min'], jdata2['max'], ls='--', label='dt = 1*10^-7', alpha=0.4)
+#ax.fill_between(time_5e7, jdata3['min'], jdata3['max'], ls=':', label='dt = 5*10^-7', alpha=0.4)
+#ax.fill_between(time_1e6, jdata4['min'], jdata4['max'], ls='-.', label='dt = 1*10^-6', alpha=0.4)
+ax.plot(time_5e8, jdata1['max'], label='dt = 5*10^-8')
+ax.plot(time_1e7, jdata2['max'], ls='--', label='dt = 1*10^-7')
+ax.plot(time_5e7, jdata3['max'], ls=':', label='dt = 5*10^-7')
+ax.plot(time_1e6, jdata4['max'],  ls='-.', label='dt = 1*10^-6')
+#ax.plot()
+ax.set_xlabel('Time (s)')
+ax.set_ylabel('Gas density (kg/m^3)')
+ax.set_title('Max gas densities')
+ax.set_ylim(1E-21, 1E-14)
+ax.set_yscale('log')
+plt.legend()
+plt.savefig('D:/TPM_Data/Noah/Outgassing_tests/Max_gas_densities_zoom.png', dpi=600)
+plt.show()'''
+
+with open('D:/TPM_Data/Noah/Outgassing_tests/dynamic_production.json') as json_file:
+    data = json.load(json_file)
+
+fig, ax = plt.subplots(1, 1)
+time = [i for i in range(0, 300)]
+def update(t):
+    ax.clear()
+    #fig.clear()
+    a = ax.imshow(np.array(data['field'][t], dtype=np.float64)[0:const.n_z, 1:const.n_y-1])
+    l1 = line.Line2D([-0.5, 24], [1.5, 1.5], color='black', lw=4)
+    l2 = line.Line2D([-0.5, 24], [22.5, 22.5], color='black', lw=4)
+    l3 = line.Line2D([1.5, 1.5], [1.5, 22.5], color='black', lw=4)
+    l4 = line.Line2D([20.5, 20.5], [1.5, 22.5], color='black', lw=4)
+    l5 = line.Line2D([15.5, 15.5], [1.5, 22.5], color='black', lw=4)
+    '''static_lines = [l1, l2, l3, l4]
+    for each in static_lines:
+        ax.add_artist(each)
+    if t < 20:
+        ax.add_artist(l5)'''
+
+    #plt.colorbar(a)
+
+
+anim = animation.FuncAnimation(fig, update, frames=time, interval=200)
+
+#Writer = animation.writers['ffmpeg']
+Writer = animation.FFMpegWriter(fps=10, codec='mpeg4', bitrate=6000)
+#writer = Writer(fps=5, bitrate=1800)
+writer = Writer
+
+anim.save('D:/TPM_Data/Noah/Outgassing_tests/Vdynamic_production.mp4', writer=writer, dpi=600)
+Video('D:/TPM_Data/Noah/Outgassing_tests/Vdynamic_production.mp4')

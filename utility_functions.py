@@ -268,6 +268,22 @@ def test(n_x, n_y, n_z, temperature, uniform_water_masses, uniform_dust_masses, 
 
 
 @njit
+def check_array(n_x, n_y, n_z, target_array, instruction, target_nr):
+    for i in range(0, n_z):
+        for j in range(0, n_y):
+            for k in range(0, n_x):
+                if instruction == 'NaN' and np.isnan(target_array[i][j][k]):
+                    print(k, j, i)
+                elif instruction == 'number' and target_array[i][j][k] == target_nr:
+                    print(k, j, i)
+                elif instruction == 'greater' and target_array[i][j][k] > target_nr:
+                    print(k, j, i)
+                elif instruction == 'lesser' and target_array[i][j][k] < target_nr:
+                    print(k, j, i)
+
+
+
+@njit
 def check_array(n_x, n_y, n_z, target_array, mode, number):
     for i in range(0, n_z):
         for j in range(0, n_y):
