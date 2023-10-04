@@ -721,7 +721,7 @@ def de_implicit_DGADI_periodic(n_x, n_y, n_z, surface_reduced, dt, gas_mass, Dif
                 print(rhs)
                 print('z:', z_sweep_gas_mass[1:n_z-1, j, k])'''
     #print('z:', np.sum(z_sweep_gas_mass * dx * dy * dz))
-    #print(z_sweep_gas_mass[1, 7:17, 7:17])
+    #print(z_sweep_gas_mass[1:24, 12, 12])
     for i in range(1, n_z-1):
         for k in range(1, n_x-1):
             sub_alpha = np.zeros(n_y, dtype=np.float64)
@@ -740,7 +740,7 @@ def de_implicit_DGADI_periodic(n_x, n_y, n_z, surface_reduced, dt, gas_mass, Dif
             y_sweep_gas_mass[i, 1:n_y-1, k] = periodic_tridiagonal_matrix_solver(n_y-2, diag[1:n_y-1], sub_gamma[1:n_y-1], sub_alpha[1:n_y-1], rhs[1:n_y-1])
     #print('y:', y_sweep_gas_mass[1:n_z-1, 25, 25])
     #print('y:', np.sum(y_sweep_gas_mass * dx * dy * dz))
-    #print(y_sweep_gas_mass[1, 7:17, 7:17])
+    #print(y_sweep_gas_mass[1:24, 12, 12])
     for i in range(1, n_z-1):
         for j in range(1, n_y-1):
             sub_alpha = np.zeros(n_x, dtype=np.float64)
@@ -759,5 +759,5 @@ def de_implicit_DGADI_periodic(n_x, n_y, n_z, surface_reduced, dt, gas_mass, Dif
             next_step_gas_mass[i, j, 1:n_x-1] = periodic_tridiagonal_matrix_solver(n_x-2, diag[1:n_x-1], sub_gamma[1:n_x-1], sub_alpha[1:n_x-1], rhs[1:n_x-1])
     #print('nxt:', np.sum(next_step_gas_mass * dx * dy * dz))
     #print('nxt:', next_step_gas_mass[1:n_z - 1, 25, 25])
-    #print(next_step_gas_mass[1, 7:17, 7:17])
+    #print(next_step_gas_mass[1:24, 12, 12])
     return next_step_gas_mass
