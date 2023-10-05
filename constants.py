@@ -4,7 +4,7 @@ import numpy as np
 min_dx = 5E-6                      # Layer Thickness of smallest layer in x direction, Numerical Resolution  [m]
 min_dy = 5E-6                      # Layer Thickness of smallest layer in y direction, Numerical Resolution  [m]
 min_dz = 5E-6                      # Layer Thickness of smallest layer in z direction, Numerical Resolution  [m]
-dt = 5E-6                           # Timestep                               [s]
+dt = 5E-5                           # Timestep                               [s]
 #dt = 1E1
 n_x = 25                            # Number of Layers                       [-]
 n_y = 25

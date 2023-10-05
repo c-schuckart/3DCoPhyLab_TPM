@@ -860,6 +860,18 @@ def pressure_calculation(n_x, n_y, n_z, temperature, gas_density, k_boltzmann, m
 
 
 @njit
+def pressure_calculation_impulse(n_x, n_y, n_z, temperature, gas_density, k_boltzmann, m_H2O, VFF, r_mono, dx, dy, dz, dt, sample_holder, sublimated_mass, water_particle_number, areas):
+    pressure = np.zeros((n_z, n_y, n_x), dtype=np.float64)
+    for a in range(0, n_z):
+        for b in range(0, n_y):
+            for c in range(0, n_x):
+                if temperature[a][b][c] > 0 and sample_holder[a][b][c] != 1 and areas[a][b][c] > 0:
+                    v = np.sqrt(8 * k_boltzmann * temperature[a][b][c] / (np.pi * m_H2O))
+                    pressure[a][b][c] = 1/6 * dx[a][b][c] * dy[a][b][c] * (gas_density[a][b][c] * dx[a][b][c] * dy[a][b][c] * dz[a][b][c]) * v**2 / (2 * r_mono)    # 2 * r_mono ~~ mean free path
+    return pressure
+
+
+@njit
 def Tsinter_neck_calculation_time_dependent_diffusion(r_n, r_p, dt, temperature, a_1, b_1, c_1, d_1, omega, surface_energy, R_gas, r_grain, alpha, m_mol, density, pressure, m_H2O, k_B, k_factor, water_particle_number, blocked_voxels, n_x, n_y, n_z, sample_holder, dx, dy, dz):
     p_sub = np.zeros((n_z, n_y, n_x), dtype=np.float64)
     sublimated_mass = np.zeros((n_z, n_y, n_x), dtype=np.float64)
