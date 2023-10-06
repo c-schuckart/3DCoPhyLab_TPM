@@ -405,11 +405,11 @@ plt.legend()
 plt.savefig('D:/TPM_Data/Noah/Outgassing_tests/Max_gas_densities_zoom.png', dpi=600)
 plt.show()'''
 
-with open('D:/TPM_Data/Noah/Outgassing_tests/dynamic_production.json') as json_file:
+'''with open('D:/TPM_Data/Noah/Outgassing_tests/dynamic_production.json') as json_file:
     data = json.load(json_file)
 
 fig, ax = plt.subplots(1, 1)
-time = [i for i in range(0, 300)]
+time = [i for i in range(0, 300)]'''
 def update(t):
     ax.clear()
     #fig.clear()
@@ -428,7 +428,7 @@ def update(t):
     #plt.colorbar(a)
 
 
-anim = animation.FuncAnimation(fig, update, frames=time, interval=200)
+'''anim = animation.FuncAnimation(fig, update, frames=time, interval=200)
 
 #Writer = animation.writers['ffmpeg']
 Writer = animation.FFMpegWriter(fps=10, codec='mpeg4', bitrate=6000)
@@ -436,4 +436,14 @@ Writer = animation.FFMpegWriter(fps=10, codec='mpeg4', bitrate=6000)
 writer = Writer
 
 anim.save('D:/TPM_Data/Noah/Outgassing_tests/Vdynamic_production.mp4', writer=writer, dpi=600)
-Video('D:/TPM_Data/Noah/Outgassing_tests/Vdynamic_production.mp4')
+Video('D:/TPM_Data/Noah/Outgassing_tests/Vdynamic_production.mp4')'''
+
+dt5e8 = np.load('D:/TPM_Data/Noah/Outgassing_tests/dt5e-8.npy')
+dt5e7 = np.load('D:/TPM_Data/Noah/Outgassing_tests/dt5e-7.npy')
+delta = dt5e8 - dt5e7
+for i in range(0, const.n_z):
+    for j in range(0, const.n_y):
+        for k in range(0, const.n_x):
+            if delta[i][j][k] > 0:
+                print(i, j, k)
+print(np.max(delta), np.min(delta))
