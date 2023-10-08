@@ -4,7 +4,7 @@ import numpy as np
 min_dx = 5E-6                      # Layer Thickness of smallest layer in x direction, Numerical Resolution  [m]
 min_dy = 5E-6                      # Layer Thickness of smallest layer in y direction, Numerical Resolution  [m]
 min_dz = 5E-6                      # Layer Thickness of smallest layer in z direction, Numerical Resolution  [m]
-dt = 5E-10                           # Timestep                               [s]
+dt = 5E-4                           # Timestep                               [s]
 #dt = 1E1
 n_x = 25                            # Number of Layers                       [-]
 n_y = 25
@@ -29,7 +29,7 @@ lambda_constant = 0.01            # Thermal Conductivity                   [W/(K
 lambda_scaling_factor = 1
 #r_mono = 90E-6                     # Radius of Monomeres                    [m]
 r_mono = 2.5E-6
-r_mono_water = 2.5E-8
+r_mono_water = 2.5E-6
 absorption_scale_length =1E-3      #                                           [m]
 e_1 = 1.34                        # Parameter for mean free path           [-]
 #VFF_pack_const = 0.42              # Volume Filling Factor of Packing       [-]
@@ -77,7 +77,7 @@ gravitational_pressure = 0        #Placeholder! [Pa]
 surface_reduction_factor = 1
 #Thermal Properties
 #temperature_ini = 150             # Start Temperature                      [K]
-temperature_ini = 200
+temperature_ini = 190
 sample_holder_starting_temp = 77  # Starting temperature of the sample holder [K]
 Input_Intensity = 6500             # Intensity of the Light Source (Sun)    [W/m^2]
 #epsilon = 1                       # Emissivity                             [-]

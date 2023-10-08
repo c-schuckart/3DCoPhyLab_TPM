@@ -438,12 +438,24 @@ writer = Writer
 anim.save('D:/TPM_Data/Noah/Outgassing_tests/Vdynamic_production.mp4', writer=writer, dpi=600)
 Video('D:/TPM_Data/Noah/Outgassing_tests/Vdynamic_production.mp4')'''
 
-dt5e8 = np.load('D:/TPM_Data/Noah/Outgassing_tests/dt5e-8.npy')
-dt5e7 = np.load('D:/TPM_Data/Noah/Outgassing_tests/dt5e-7.npy')
-delta = dt5e8 - dt5e7
-for i in range(0, const.n_z):
-    for j in range(0, const.n_y):
-        for k in range(0, const.n_x):
-            if delta[i][j][k] > 0:
-                print(i, j, k)
-print(np.max(delta), np.min(delta))
+temps = []
+times = []
+for i in range(0, 22):
+    if i == 0:
+        time = 0
+    else:
+        time = i * 1.0
+    arr = np.load('D:/TPM_Data/Noah/only_temps_volabs_sh_test/temperatures_' + str(time) + '.npy')
+    print(arr[0:const.n_z, 25, 25])
+    temps.append(arr[1, 25, 25])
+    times.append(time)
+
+fig, ax = plt.subplots(1, 1)
+plt.tick_params(axis='x', which='both', direction='in', top=True, labeltop=False)
+plt.tick_params(axis='y', which='both', direction='in', right=True, labelright=False)
+ax.plot(times, temps, label=r'$\chi$ = 0.05')
+plt.legend()
+ax.set_xlabel('Time (s)')
+ax.set_ylabel('Temperature (K)')
+ax.set_title('First layer temperature I=3150 W/m^2 and chi=0.05')
+plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Top_temp_chi_0.05.png', dpi=600)
