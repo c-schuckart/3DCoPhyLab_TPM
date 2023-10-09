@@ -77,6 +77,43 @@ def create_equidistant_mesh_2_layer(n_x, n_y, n_z, temperature_ini, dx, dy, dz, 
     return mesh, dx_arr, dy_arr, dz_arr, Dr, a, (a_rad - 1), b, (b_rad - 1)
 
 
+def create_equidistant_mesh_empty(n_x, n_y, n_z, temperature_ini, dx, dy, dz, diffusion_mesh):
+    if sett.mesh_form == 1:
+        a = n_x/2 - 0.5
+        a_rad = (n_x - 2)//2
+        b = n_y/2 - 0.5
+        b_rad = (n_y - 2) // 2
+        x, y = np.ogrid[:n_x, :n_y]
+        mesh = np.zeros((n_z, n_y, n_x), dtype=np.float64)
+        slice = np.zeros((n_y, n_x), dtype=np.float64)
+        mask = np.logical_and(((x-a)/a_rad)**2 + ((y-b)/b_rad)**2 <= 1, ((x-a)/a_rad)**2 + ((y-b)/b_rad)**2 >= 0.75)
+        slice[mask] = temperature_ini
+        mask_2 = ((x-a)/a_rad)**2 + ((y-b)/b_rad)**2 <= 1
+        slice_2 = np.zeros((n_y, n_x), dtype=np.float64)
+        slice_2[mask_2] = temperature_ini
+        for i in range(0, n_z-1):
+            if i != 0 and (i != 1 or not diffusion_mesh):
+                mesh[i] = slice
+            if i >= n_z-3:
+                mesh[i] = slice_2
+    elif sett.mesh_form == 0:
+        mesh = np.zeros((n_z, n_y, n_x), dtype=np.float64)
+        mesh[1:n_z-1, 1:n_y-1, 1:n_x-1] = np.full((n_z-2, n_y-2, n_x-2), temperature_ini, dtype=np.float64)
+        a, a_rad, b, b_rad = n_x//2, np.infty, n_y//2, np.infty
+    else:
+        raise NotImplementedError
+    dx_arr = np.full((n_z, n_y, n_x), dx, dtype=np.float64)
+    dy_arr = np.full((n_z, n_y, n_x), dy, dtype=np.float64)
+    dz_arr = np.full((n_z, n_y, n_x), dz, dtype=np.float64)
+    if not diffusion_mesh:
+        dz_arr[1] = np.full((n_y, n_x,), dz / 2, dtype=np.float64)
+    else:
+        #pass
+        dz_arr[2] = np.full((n_y, n_x,), dz / 2, dtype=np.float64)
+    Dr = np.full((n_z, n_y, n_x, 6), np.array([dz, dz, dy, dy, dx, dx]), dtype=np.float64)
+    return mesh, dx_arr, dy_arr, dz_arr, Dr, a, (a_rad-1), b, (b_rad-1), mask_2
+
+
 @njit
 def find_surface(n_x, n_y, n_z, limiter_x_start, limiter_y_start, limiter_z_start, limiter_x_end, limiter_y_end, limiter_z_end, mesh, surface, a, a_rad, b, b_rad, initiation, diffusion_mesh):
     surface_elements = 0
