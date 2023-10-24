@@ -875,7 +875,7 @@ def pressure_calculation_impulse(n_x, n_y, n_z, temperature, gas_density, k_bolt
             for c in range(0, n_x):
                 if temperature[a][b][c] > 0 and sample_holder[a][b][c] != 1 and areas[a][b][c] > 0:
                     v = np.sqrt(8 * k_boltzmann * temperature[a][b][c] / (np.pi * m_H2O))
-                    pressure[a][b][c] = 1/6 * 1 / (dx[a][b][c] * dy[a][b][c]) * (gas_density[a][b][c] * dx[a][b][c] * dy[a][b][c] * dz[a][b][c]) * v**2 / (2 * r_mono[a][b][c])    # 2 * r_mono ~~ mean free path
+                    pressure[a][b][c] = 1/6 * 1 / (dx[a][b][c] * dy[a][b][c]) * (2 * r_mono[a][b][c]/dz[a][b][c]) * (gas_density[a][b][c] * dx[a][b][c] * dy[a][b][c] * dz[a][b][c]) * v**2 / (2 * r_mono[a][b][c])    # 2 * r_mono ~~ mean free path
     return pressure
 
 @njit
