@@ -12,6 +12,7 @@ from data_input import read_temperature_data, getPath
 from utility_functions import sort_csv
 from os import listdir
 from scipy.interpolate import interp1d
+from scipy.optimize import brentq
 
 rcParams['animation.ffmpeg_path'] = r'C:\\ffmpeg\\bin\\ffmpeg.exe'
 '''with open('test.json') as json_file:
@@ -438,16 +439,16 @@ writer = Writer
 anim.save('D:/TPM_Data/Noah/Outgassing_tests/Vdynamic_production.mp4', writer=writer, dpi=600)
 Video('D:/TPM_Data/Noah/Outgassing_tests/Vdynamic_production.mp4')'''
 
-temps = []
+'''temps = []
 times = []
-for i in range(0, 22):
+for i in range(0, 100):
     if i == 0:
         time = 0
     else:
-        time = i * 1.0
-    arr = np.load('D:/TPM_Data/Noah/only_temps_volabs_sh_test/temperatures_' + str(time) + '.npy')
-    print(arr[0:const.n_z, 25, 25])
-    temps.append(arr[1, 25, 25])
+        time = i * 0.1
+    arr = np.load('D:/TPM_Data/Noah/diffusion_sh/temperatures_' + str(round(time, 2)) + '.npy')
+    #print(arr[0:const.n_z, 12, 12], time)
+    temps.append(arr[2, 12, 12])
     times.append(time)
 
 fig, ax = plt.subplots(1, 1)
@@ -458,4 +459,107 @@ plt.legend()
 ax.set_xlabel('Time (s)')
 ax.set_ylabel('Temperature (K)')
 ax.set_title('First layer temperature I=3150 W/m^2 and chi=0.05')
-plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Top_temp_chi_0.05.png', dpi=600)
+#plt.savefig('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Top_temp_chi_0.05_diffusion_uniform.png', dpi=600)
+#plt.show()
+
+print(np.load('D:/TPM_Data/Noah/diffusion_sh/r_n_' + str(round(5.0, 2)) + '.npy')[0:const.n_z, 12, 12])
+print(np.load('D:/TPM_Data/Noah/diffusion_sh/r_mono_' + str(round(5.0, 2)) + '.npy')[0:const.n_z, 12, 12])
+print('--------')
+print(np.load('D:/TPM_Data/Noah/diffusion_sh - Kopie/r_n_' + str(round(5.0, 2)) + '.npy')[0:const.n_z, 12, 12])
+print(np.load('D:/TPM_Data/Noah/diffusion_sh - Kopie/r_mono_' + str(round(5.0, 2)) + '.npy')[0:const.n_z, 12, 12])'''
+'''temps = []
+pressures = []
+times = []
+for i in range(0, 56):
+    if i == 0:
+        time = 0
+    else:
+        time = i * 0.1
+    arr = np.load('D:/TPM_Data/Noah/diffusion_sh/temperatures_' + str(round(time, 2)) + '.npy')
+    arr_p = np.load('D:/TPM_Data/Noah/diffusion_sh/pressure_' + str(round(time, 2)) + '.npy')
+    #print(arr[0:const.n_z, 12, 12])
+    temps.append(arr[2, 12, 12])
+    pressures.append(arr_p[2, 12, 12])
+    times.append(time)
+
+temps = np.array(temps, dtype=np.float64)
+sub_pressures = 10 ** (const.lh_a_1[0] + const.lh_b_1[0] / temps + const.lh_c_1[0] * np.log10(temps) + const.lh_d_1[0] * temps)
+
+fig, ax = plt.subplots(1, 1)
+plt.tick_params(axis='x', which='both', direction='in', top=True, labeltop=False)
+plt.tick_params(axis='y', which='both', direction='in', right=True, labelright=False)
+ax.plot(times, pressures, label=r'Top layer pressure')
+ax.plot(times, sub_pressures, label=r'Tl sublimation pressures', ls='--', c='black')
+plt.legend()
+ax.set_xlabel('Time (s)')
+ax.set_ylabel('Pressure (Pa)')
+ax.set_yscale('log')
+ax.set_title('First layer pressure and subl. pressure')
+plt.savefig('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Top_pressure_v_sublpress.png', dpi=600)
+#plt.show()'''
+
+'''path = 'C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/Ice/extrapolation_test_L.csv'
+dt = []
+ORdx = [1.5224120029217286e-11, 9.371385099535165e-12, 5.0069003492523505e-12]
+ORdx_2 = [1.6274905964107774e-11, 1.6466408223601428e-11, 1.6563859370241558e-11, 1.661301765484791e-11]
+dx = [5E-6, 1E-5, 2E-5]
+dx_2 = [2.5E-6, 5E-6, 1E-5, 2E-5]
+OR = []
+with open(path) as csvdatei:
+    dat = csv.reader(csvdatei)
+    b = -1
+    for each in dat:
+        if b < 0 and each[0] == 'correction_of_floating_point_errors:':
+            b = 0
+        elif b >= 0:
+            dt.append(float(each[0]))
+            OR.append(float(each[2]))
+            b += 1
+        if b == 5:
+            break
+
+fig, ax = plt.subplots(1, 1)
+plt.tick_params(axis='both', which='both', direction='in', top=True, right=True, bottom=True, left=True, labeltop=False, labelright=False, labelbottom=True, labelleft=True)
+ax.scatter(dt, OR, marker='x', label=r'dt = $10^{-9}$')
+plt.legend()
+ax.set_xlabel('Time step (s)')
+ax.set_ylabel('Outgassing rate (kg/s)')
+ax.set_xscale('log')
+ax.set_yscale('log')
+plt.ylim(1.5223E-11, 1.5225E-11)
+plt.tight_layout()
+ax.set_title('Correction of floating point rounding errors')
+plt.savefig('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/Ice/ORdt_float.png', dpi=600)
+plt.show()
+'''
+
+
+lh_a_1 = np.array([4.07023,49.21,53.2167])
+lh_b_1 = np.array([-2484.986,-2008.01,-795.104])
+lh_c_1 = np.array([3.56654,-16.4542,-22.3452])
+lh_d_1 = np.array([-0.00320981,0.0194151,0.0529476])
+
+
+def p_sub(T, target):
+    return 10 ** (lh_a_1[0] + lh_b_1[0] / T + lh_c_1[0] * np.log10(T) + lh_d_1[0] * T) - target
+
+target = 3
+val = brentq(p_sub, 150, 220, args=(target))[0]
+print(val)
+
+T = np.linspace(150, 220, 100)
+P = p_sub(T, 0)
+
+fig, ax = plt.subplots(1, 1)
+ax.plot(T, P)
+plt.scatter(val, 3, marker='x', color='black', label='p(' + str(round(val, 2)) + ' K) = 3 Pa')
+ax.set_xlim(150, 220)
+ax.set_ylim(1E-3, 20)
+plt.tick_params(axis='both', which='both', direction='in', top=True, right=True, bottom=True, left=True, labeltop=False, labelright=False, labelbottom=True, labelleft=True)
+l1 = line.Line2D([val, val], [1E-3, 3], color='black', lw=4)
+l2 = line.Line2D([145, val], [3, 3], color='black', lw=4)
+for each in [l1, l2]:
+    ax.add_artist(each)
+    plt.show()
+
+
