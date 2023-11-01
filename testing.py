@@ -541,13 +541,14 @@ lh_d_1 = np.array([-0.00320981,0.0194151,0.0529476])
 
 
 def p_sub(T, target):
+    print(10 ** (lh_a_1[0] + lh_b_1[0] / T + lh_c_1[0] * np.log10(T) + lh_d_1[0] * T))
     return 10 ** (lh_a_1[0] + lh_b_1[0] / T + lh_c_1[0] * np.log10(T) + lh_d_1[0] * T) - target
 
 target = 3
-val = brentq(p_sub, 150, 220, args=(target))[0]
+val = brentq(p_sub, 200, 250, args=(target))
 print(val)
 
-T = np.linspace(150, 220, 100)
+T = np.linspace(200, 250, 100)
 P = p_sub(T, 0)
 
 fig, ax = plt.subplots(1, 1)
