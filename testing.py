@@ -564,3 +564,32 @@ for each in [l1, l2]:
     plt.show()
 
 
+'''lh_a_1 = np.array([4.07023,49.21,53.2167])
+lh_b_1 = np.array([-2484.986,-2008.01,-795.104])
+lh_c_1 = np.array([3.56654,-16.4542,-22.3452])
+lh_d_1 = np.array([-0.00320981,0.0194151,0.0529476])
+
+
+def p_sub(T, target):
+    return 10 ** (lh_a_1[0] + lh_b_1[0] / T + lh_c_1[0] * np.log10(T) + lh_d_1[0] * T) - target
+
+target = 3
+val = brentq(p_sub, 150, 230, args=(target))
+print(val)
+
+T = np.linspace(150, 230, 100)
+P = p_sub(T, 0)
+
+fig, ax = plt.subplots(1, 1)
+ax.plot(T, P)
+plt.scatter(val, 3, marker='x', color='black', label='p(' + str(round(val, 2)) + ' K) = 3 Pa')
+ax.set_xlim(150, 230)
+ax.set_ylim(1E-3, 20)
+ax.set_yscale('log')
+plt.tick_params(axis='both', which='both', direction='in', top=True, right=True, bottom=True, left=True, labeltop=False, labelright=False, labelbottom=True, labelleft=True)
+l1 = line.Line2D([val, val], [1E-3, 3], color='black', lw=0.5)
+l2 = line.Line2D([145, val], [3, 3], color='black', lw=0.5)
+for each in [l1, l2]:
+    ax.add_artist(each)
+plt.show()'''
+

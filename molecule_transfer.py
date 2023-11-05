@@ -814,7 +814,7 @@ def sinter_neck_calculation_time_dependent_diffusion(r_n, r_p, dt, temperature, 
                     #cond_rate = (omega**2 * surface_energy * p_sub[i][j][k])/(R_gas * temperature[i][j][k]) * 1/np.sqrt(2*np.pi * m_mol * R_gas * temperature[i][j][k]) * d_s / (d_s + delta * np.arctan(r_p[i][j][k]/(r_n[i][j][k] + delta))) * (2/r_p[i][j][k] + 1/delta - 1/r_n[i][j][k]) * neck_area
                     #sublimated_mass = sublimated_mass + (Z * (water_particle_number * np.exp(r_c/r_p) * 4 * np.pi * r_p**2 + 3 * np.exp(-r_c/(r_n * k_factor)) * neck_area) - 3 * cond_rate) * dt
                     if blocked_voxels[i][j][k] == 1 and delta > 0:
-                        areas[i][j][k] = (water_particle_number[i][j][k] * np.exp(r_c / r_p[i][j][k]) * 4 * np.pi * r_p[i][j][k] ** 2 + 3 * np.exp(-r_c / (r_n[i][j][k] * k_factor)) * neck_area)
+                        areas[i][j][k] = (water_particle_number[i][j][k] * 4 * np.pi * r_p[i][j][k] ** 2 + 3 * neck_area)
                         sublimated_mass[i][j][k] = Z * (water_particle_number[i][j][k] * np.exp(r_c / r_p[i][j][k]) * 4 * np.pi * r_p[i][j][k] ** 2 + 3 * np.exp(-r_c / (r_n[i][j][k] * k_factor)) * neck_area) * dt
                         v = np.sqrt(8 * k_B * temperature[i][j][k] / (np.pi * m_H2O))
                         pressure_impulse = 1 / areas[i][j][k] * sublimated_mass[i][j][k] * v ** 2 / (2 * r_p[i][j][k])  # 2 * r_mono ~~ mean free path
