@@ -5,6 +5,7 @@ import constants as const
 import matplotlib.pyplot as plt
 import matplotlib.lines as line
 from matplotlib import rcParams
+from matplotlib.ticker import LogLocator, AutoMinorLocator
 import matplotlib.animation as animation
 from IPython.display import Video
 import csv
@@ -498,18 +499,20 @@ ax.set_title('First layer pressure and subl. pressure')
 plt.savefig('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Top_pressure_v_sublpress.png', dpi=600)
 #plt.show()'''
 
-'''path = 'C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/Ice/extrapolation_test_L.csv'
+'''path = 'C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/Ice/dt_dx_test_L.csv'
 dt = []
+dt_compare = []
 ORdx = [1.5224120029217286e-11, 9.371385099535165e-12, 5.0069003492523505e-12]
 ORdx_2 = [1.6274905964107774e-11, 1.6466408223601428e-11, 1.6563859370241558e-11, 1.661301765484791e-11]
 dx = [5E-6, 1E-5, 2E-5]
 dx_2 = [2.5E-6, 5E-6, 1E-5, 2E-5]
 OR = []
+OR_compare = []
 with open(path) as csvdatei:
     dat = csv.reader(csvdatei)
     b = -1
     for each in dat:
-        if b < 0 and each[0] == 'correction_of_floating_point_errors:':
+        if b < 0 and each[0] == 'dx dy = 10E-6 dz = 1E-7:':
             b = 0
         elif b >= 0:
             dt.append(float(each[0]))
@@ -518,20 +521,36 @@ with open(path) as csvdatei:
         if b == 5:
             break
 
+with open(path) as csvdatei:
+    dat = csv.reader(csvdatei)
+    b = -1
+    for each in dat:
+        if b < 0 and each[0] == 'dx dy = 10E-6 dz = 1E-7 only top layer:':
+            b = 0
+        elif b >= 0:
+            dt_compare.append(float(each[0]))
+            OR_compare.append(float(each[2]))
+            b += 1
+        if b == 6:
+            break
+
+print(dt, OR)
+
 fig, ax = plt.subplots(1, 1)
 plt.tick_params(axis='both', which='both', direction='in', top=True, right=True, bottom=True, left=True, labeltop=False, labelright=False, labelbottom=True, labelleft=True)
-ax.scatter(dt, OR, marker='x', label=r'dt = $10^{-9}$')
+ax.scatter(dt, OR, marker='x', label=r'dx, dy = $1 * 10^{-5}$, dz = $1 * 10^{-7}$')
+ax.scatter(dt_compare, OR_compare, marker='o', label=r'dz = $1 * 10^{-7}$ only top layer')
 plt.legend()
 ax.set_xlabel('Time step (s)')
 ax.set_ylabel('Outgassing rate (kg/s)')
 ax.set_xscale('log')
 ax.set_yscale('log')
-plt.ylim(1.5223E-11, 1.5225E-11)
+#plt.ylim(1.5223E-11, 1.5225E-11)
 plt.tight_layout()
-ax.set_title('Correction of floating point rounding errors')
-plt.savefig('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/Ice/ORdt_float.png', dpi=600)
-plt.show()
-'''
+ax.set_title('OR seems to be only strongly dependent on boundary size')
+plt.savefig('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/Ice/boundary.png', dpi=600)
+plt.show()'''
+
 
 
 lh_a_1 = np.array([4.07023,49.21,53.2167])
@@ -540,28 +559,38 @@ lh_c_1 = np.array([3.56654,-16.4542,-22.3452])
 lh_d_1 = np.array([-0.00320981,0.0194151,0.0529476])
 
 
-def p_sub(T, target):
-    print(10 ** (lh_a_1[0] + lh_b_1[0] / T + lh_c_1[0] * np.log10(T) + lh_d_1[0] * T))
-    return 10 ** (lh_a_1[0] + lh_b_1[0] / T + lh_c_1[0] * np.log10(T) + lh_d_1[0] * T) - target
+def p_sub(T, target, idx):
+    print(10 ** (lh_a_1[idx] + lh_b_1[idx] / T + lh_c_1[idx] * np.log10(T) + lh_d_1[idx] * T))
+    return 10 ** (lh_a_1[idx] + lh_b_1[idx] / T + lh_c_1[idx] * np.log10(T) + lh_d_1[idx] * T) - target
 
 target = 3
-val = brentq(p_sub, 200, 250, args=(target))
-print(val)
+index = 0       # 0 = H2O, 1 = CO2, 2 = CO
+#val = brentq(p_sub, 200, 250, args=(target))
+#print(val)
 
-T = np.linspace(200, 250, 100)
-P = p_sub(T, 0)
+T = np.linspace(77, 250, 500)
+P = p_sub(T, 0, index)
 
 fig, ax = plt.subplots(1, 1)
 ax.plot(T, P)
-plt.scatter(val, 3, marker='x', color='black', label='p(' + str(round(val, 2)) + ' K) = 3 Pa')
-ax.set_xlim(150, 220)
+#plt.scatter(val, 3, marker='x', color='black', label='p(' + str(round(val, 2)) + ' K) = 3 Pa')
+ax.set_xlim(170, 220)
 ax.set_ylim(1E-3, 20)
+ax.set_yscale('log')
+ax.grid(which='both')
+locmaj = LogLocator(base=10,numticks=40)
+ax.yaxis.set_major_locator(locmaj)
+ax.set_xlabel('Temperature (K)')
+ax.set_ylabel('Pressure (Pa)')
+ax.set_title('Saturation vapour pressure of H2O')
 plt.tick_params(axis='both', which='both', direction='in', top=True, right=True, bottom=True, left=True, labeltop=False, labelright=False, labelbottom=True, labelleft=True)
-l1 = line.Line2D([val, val], [1E-3, 3], color='black', lw=4)
+plt.savefig('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/p_sat_H2O_zoom.png', dpi=600)
+plt.show()
+'''l1 = line.Line2D([val, val], [1E-3, 3], color='black', lw=4)
 l2 = line.Line2D([145, val], [3, 3], color='black', lw=4)
 for each in [l1, l2]:
     ax.add_artist(each)
-    plt.show()
+    plt.show()'''
 
 
 '''lh_a_1 = np.array([4.07023,49.21,53.2167])
