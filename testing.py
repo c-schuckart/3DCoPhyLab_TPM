@@ -499,61 +499,53 @@ ax.set_title('First layer pressure and subl. pressure')
 plt.savefig('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Top_pressure_v_sublpress.png', dpi=600)
 #plt.show()'''
 
-'''path = 'C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/Ice/dt_dx_test_L.csv'
-dt = []
-dt_compare = []
+path = 'C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/dt_dx_test_L2.csv'
+segments = ['dx dy = 10E-5 dz = 5E-6 and 1000000* vacuum outgassing:', 'dx dy = 10E-5 dz = 1E-6 and 1000000* vacuum outgassing:', 'dx dy = 10E-5 dz = 5E-7 and 1000000* vacuum outgassing:', 'dx dy = 10E-5 dz = 5E-6 bigger empty top layer (5E-4) and 1000000* vacuum outgassing:', 'dx dy = 10E-5 dz = 5E-6 bigger empty top layer (5E-4):']
+dt = [[], [], [], [], []]
 ORdx = [1.5224120029217286e-11, 9.371385099535165e-12, 5.0069003492523505e-12]
 ORdx_2 = [1.6274905964107774e-11, 1.6466408223601428e-11, 1.6563859370241558e-11, 1.661301765484791e-11]
 dx = [5E-6, 1E-5, 2E-5]
 dx_2 = [2.5E-6, 5E-6, 1E-5, 2E-5]
-OR = []
-OR_compare = []
-with open(path) as csvdatei:
-    dat = csv.reader(csvdatei)
-    b = -1
-    for each in dat:
-        if b < 0 and each[0] == 'dx dy = 10E-6 dz = 1E-7:':
-            b = 0
-        elif b >= 0:
-            dt.append(float(each[0]))
-            OR.append(float(each[2]))
-            b += 1
-        if b == 5:
-            break
+OR = [[], [], [], [], []]
 
-with open(path) as csvdatei:
-    dat = csv.reader(csvdatei)
-    b = -1
-    for each in dat:
-        if b < 0 and each[0] == 'dx dy = 10E-6 dz = 1E-7 only top layer:':
-            b = 0
-        elif b >= 0:
-            dt_compare.append(float(each[0]))
-            OR_compare.append(float(each[2]))
-            b += 1
-        if b == 6:
-            break
+for i in range(len(segments)):
+    with open(path) as csvdatei:
+        dat = csv.reader(csvdatei)
+        b = -1
+        for each in dat:
+            if b < 0 and each[0] == segments[i]:
+                b = 0
+            elif b >= 0:
+                dt[i].append(float(each[0]))
+                OR[i].append(float(each[2]))
+                b += 1
+            if b == 5:
+                break
+
 
 print(dt, OR)
 
 fig, ax = plt.subplots(1, 1)
 plt.tick_params(axis='both', which='both', direction='in', top=True, right=True, bottom=True, left=True, labeltop=False, labelright=False, labelbottom=True, labelleft=True)
-ax.scatter(dt, OR, marker='x', label=r'dx, dy = $1 * 10^{-5}$, dz = $1 * 10^{-7}$')
-ax.scatter(dt_compare, OR_compare, marker='o', label=r'dz = $1 * 10^{-7}$ only top layer')
-plt.legend()
+ax.plot(dt[0], OR[0], marker='x', label=r'dz = $5 * 10^{-6}$')
+ax.plot(dt[1], OR[1], marker='o', label=r'dz = $1 * 10^{-6}$')
+ax.plot(dt[2], OR[2], marker='d', label=r'dz = $5 * 10^{-7}$')
+#ax.plot(dt[3], OR[3], marker='p', label=r'vacuum diff rate = $* 1000000$')
+#ax.plot(dt[4], OR[4], marker='s', label=r'empty layer = $5 * 10^{-4}$')
+plt.legend(loc=5, fontsize='x-small')
 ax.set_xlabel('Time step (s)')
 ax.set_ylabel('Outgassing rate (kg/s)')
 ax.set_xscale('log')
 ax.set_yscale('log')
 #plt.ylim(1.5223E-11, 1.5225E-11)
-plt.tight_layout()
-ax.set_title('OR seems to be only strongly dependent on boundary size')
-plt.savefig('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/Ice/boundary.png', dpi=600)
-plt.show()'''
+fig.set_tight_layout(True)
+ax.set_title(r'High diffrate with changing dz')
+plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/changing_dz_same_empty_as_dz.png', dpi=600)
+plt.show()
 
 
 
-lh_a_1 = np.array([4.07023,49.21,53.2167])
+'''lh_a_1 = np.array([4.07023,49.21,53.2167])
 lh_b_1 = np.array([-2484.986,-2008.01,-795.104])
 lh_c_1 = np.array([3.56654,-16.4542,-22.3452])
 lh_d_1 = np.array([-0.00320981,0.0194151,0.0529476])
@@ -569,23 +561,24 @@ index = 0       # 0 = H2O, 1 = CO2, 2 = CO
 #print(val)
 
 T = np.linspace(77, 250, 500)
+factors = np.sqrt(const.m_H2O/(2 * np.pi * const.k_boltzmann * T))
 P = p_sub(T, 0, index)
 
 fig, ax = plt.subplots(1, 1)
-ax.plot(T, P)
+ax.plot(T, P * factors)
 #plt.scatter(val, 3, marker='x', color='black', label='p(' + str(round(val, 2)) + ' K) = 3 Pa')
-ax.set_xlim(170, 220)
-ax.set_ylim(1E-3, 20)
+#ax.set_xlim(170, 220)
+#ax.set_ylim(1E-7, 1E-1)
 ax.set_yscale('log')
 ax.grid(which='both')
 locmaj = LogLocator(base=10,numticks=40)
 ax.yaxis.set_major_locator(locmaj)
 ax.set_xlabel('Temperature (K)')
-ax.set_ylabel('Pressure (Pa)')
-ax.set_title('Saturation vapour pressure of H2O')
+ax.set_ylabel('mass loss rate (kg/(s*m^2))')
+ax.set_title('Mass loss rate of H2O')
 plt.tick_params(axis='both', which='both', direction='in', top=True, right=True, bottom=True, left=True, labeltop=False, labelright=False, labelbottom=True, labelleft=True)
-plt.savefig('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/p_sat_H2O_zoom.png', dpi=600)
-plt.show()
+plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/mass_loss_H2O.png', dpi=600)
+plt.show()'''
 '''l1 = line.Line2D([val, val], [1E-3, 3], color='black', lw=4)
 l2 = line.Line2D([145, val], [3, 3], color='black', lw=4)
 for each in [l1, l2]:

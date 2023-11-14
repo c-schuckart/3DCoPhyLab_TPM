@@ -3,13 +3,13 @@ import numpy as np
 #Definition of Simulation Parameters
 min_dx = 10E-6                      # Layer Thickness of smallest layer in x direction, Numerical Resolution  [m]
 min_dy = 10E-6                      # Layer Thickness of smallest layer in y direction, Numerical Resolution  [m]
-min_dz = 1E-7                      # Layer Thickness of smallest layer in z direction, Numerical Resolution  [m]
+min_dz = 500E-6                      # Layer Thickness of smallest layer in z direction, Numerical Resolution  [m]
 dt = 1E-9                           # Timestep                               [s]
 #dt = 1E1
 n_x = 11                            # Number of Layers                       [-]
 n_y = 11
-#n_z = 22
-n_z = 853
+#n_z = 164
+n_z = 20
 '''min_dx = 5E-3                      # Layer Thickness of the smallest layer in x direction, Numerical Resolution  [m]
 min_dy = 5E-3                      # Layer Thickness of the smallest layer in y direction, Numerical Resolution  [m]
 min_dz = 5E-3                      # Layer Thickness of the smallest layer in z direction, Numerical Resolution  [m]
