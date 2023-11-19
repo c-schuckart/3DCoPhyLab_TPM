@@ -499,7 +499,7 @@ ax.set_title('First layer pressure and subl. pressure')
 plt.savefig('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Top_pressure_v_sublpress.png', dpi=600)
 #plt.show()'''
 
-path = 'C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/dt_dx_test_L2.csv'
+'''path = 'C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/dt_dx_test_L2.csv'
 segments = ['dx dy = 10E-5 dz = 5E-6 and 1000000* vacuum outgassing:', 'dx dy = 10E-5 dz = 1E-6 and 1000000* vacuum outgassing:', 'dx dy = 10E-5 dz = 5E-7 and 1000000* vacuum outgassing:', 'dx dy = 10E-5 dz = 5E-6 bigger empty top layer (5E-4) and 1000000* vacuum outgassing:', 'dx dy = 10E-5 dz = 5E-6 bigger empty top layer (5E-4):']
 dt = [[], [], [], [], []]
 ORdx = [1.5224120029217286e-11, 9.371385099535165e-12, 5.0069003492523505e-12]
@@ -541,8 +541,65 @@ ax.set_yscale('log')
 fig.set_tight_layout(True)
 ax.set_title(r'High diffrate with changing dz')
 plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/changing_dz_same_empty_as_dz.png', dpi=600)
-plt.show()
+plt.show()'''
 
+path = 'C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/'
+files = ['5e-6_first_layer_particle_radius.npy', '1e-6_first_layer_particle_radius.npy', '5e-7_first_layer_particle_radius.npy', '1e-5_first_layer_particle_radius.npy']
+
+arr_normal = np.load(path+files[0])
+arr_smaller = np.load(path+files[1])
+arr_smallest = np.load(path+files[2])
+arr_bigger = np.load(path+files[3])
+
+dx_normal = []
+dx_smaller = []
+dx_smallest = []
+dx_bigger = []
+
+
+for i in range(0, 43):
+    if i > 2:
+        dx_normal.append(i * 5E-6 + 5E-6)
+    elif i == 0:
+        dx_normal.append(0)
+        dx_smaller.append(0)
+        dx_smallest.append(0)
+        dx_bigger.append(0)
+    elif i == 1:
+        dx_normal.append(2.5E-6)
+        dx_smaller.append(2.5E-6)
+        dx_smallest.append(2.5E-6)
+        dx_bigger.append(2.5E-6)
+    elif i == 2:
+        dx_normal.append(5E-6)
+        dx_smaller.append(5E-6)
+        dx_smallest.append(5E-6)
+        dx_bigger.append(5E-6)
+
+for i in range(3, 203):
+    dx_smaller.append(i * 1E-6 + 5E-6)
+for i in range(3, 403):
+    dx_smallest.append(i * 5E-7 + 5E-6)
+for i in range(3, 23):
+    dx_bigger.append(i * 1E-5 + 5E-6)
+
+fig, ax = plt.subplots(1, 1)
+plt.tick_params(axis='both', which='both', direction='in', top=True, right=True, bottom=True, left=True, labeltop=False, labelright=False, labelbottom=True, labelleft=True)
+ax.plot(dx_bigger, arr_bigger, marker='p', label=r'dz = $1 * 10^{-5}$, OR = $2.001 * 10^{-12}')
+ax.plot(dx_normal, arr_normal, marker='x', label=r'dz = $5 * 10^{-6}$, OR = $2.013 * 10^{-12}')
+ax.plot(dx_smaller, arr_smaller, marker='o', label=r'dz = $1 * 10^{-6}$, OR = $2.059 * 10^{-12}')
+ax.plot(dx_smallest, arr_smallest, marker='d', label=r'dz = $5 * 10^{-7}$, OR = $2.083 * 10^{-12}')
+#ax.plot(dt[4], OR[4], marker='s', label=r'empty layer = $5 * 10^{-4}$')
+plt.legend(loc=5, fontsize='x-small')
+ax.set_xlabel('Depth (m)')
+ax.set_ylabel('Gas density (kg/m^3)')
+#ax.set_xscale('log')
+#ax.set_yscale('log')
+#plt.ylim(1.5223E-11, 1.5225E-11)
+fig.set_tight_layout(True)
+ax.set_title(r'Bigger empty layer')
+plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Intervoxel_outgassing_first_layer_particle_radius.png', dpi=600)
+plt.show()
 
 
 '''lh_a_1 = np.array([4.07023,49.21,53.2167])
