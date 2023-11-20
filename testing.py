@@ -82,7 +82,7 @@ for i in range(0, 16):
     L = L_arr[i]
 '''
 fig, ax = plt.subplots(1, 1)
-A, D, L = '0.95', '0.002', '0.02'
+A, D, L = '0.95', '0.001', '0.003'
 
 timestamps = []
 sen_1 = []
@@ -92,7 +92,7 @@ sen_4 = []
 sen_5 = []
 sen_6 = []
 
-with open('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/temps_sandy_randy.txt') as csvdatei:
+with open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/temps_sandy_randy.txt') as csvdatei:
     dat = csv.reader(csvdatei)
     b = True
     start = False
@@ -115,7 +115,7 @@ with open('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG
             #sen_4.append(float(each[10]))
             #sen_5.append(float(each[11]))
             #sen_6.append(float(each[6]))
-            if timestamps[len(timestamps) - 1] > 150000:
+            if timestamps[len(timestamps) - 1] > 120000:
             #if timestamps[len(timestamps) - 1] > 330000:
                 break
 
@@ -134,8 +134,8 @@ sen_4_sim = []
 sen_5_sim = []
 #sen_6 = []
 
-#with open('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/sand_L_chamber_A_0.95_Absdepth_0.001_Lambda_0.003.json') as json_file:
-with open('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/CORRsand_L_chamber_A_' + A + '_Absdepth_' + D + '_Lambda_' + L +'.json') as json_file:
+with open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/TSand_sim_thesis_heat_cap_840.json') as json_file:
+#with open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/Sand_sim_thesis_' + A + '_Absdepth_' + D + '_Lambda_' + L +'.json') as json_file:
     jdata = json.load(json_file)
 
 for i in range(0, const.k):
@@ -151,7 +151,8 @@ ax.plot(time, sen_3_sim, label='3. mid sensor SIM', color='#474747', ls=':')
 ax.plot(time, sen_4_sim, label='4. mid sensor SIM', color='#636363', ls='-.')
 ax.plot(time, sen_5_sim, label='5. mid sensor SIM', color='#858585')
 
-with open('D:/TPM_data/Big_sand/CORRsand_L_chamber_A_' + A + '_Absdepth_' + D + '_Lambda_' + L + '.json') as json_file:
+#with open('D:/TPM_data/Big_sand/Sand_sim_thesis_' + A + '_Absdepth_' + D + '_Lambda_' + L + '.json') as json_file:
+with open('D:/TPM_data/Big_sand/TSand_sim_thesis_heat_cap_840.json') as json_file:
     jdata_2 = json.load(json_file)
 
 surface_temp = []
@@ -162,14 +163,16 @@ for each in  jdata_2['Temperature']:
 ax.plot(time, surface_temp, color='#000000', ls='-.')
 
 ax.set_ylim(290, 420)
+ax.set_xlim(-5000, 120000)
 plt.tick_params(axis='x', which='both', direction='in', top=True, labeltop=False)
 plt.tick_params(axis='y', which='both', direction='in', right=True, labelright=False)
 ax.grid(True, lw=0.5)
 plt.legend(fontsize='x-small')
-plt.title('Albedo: ' + A + '; Abs. depth: ' + D + 'm; Lambda: ' + L + 'W/(mK)')
-#plt.title('Best fit (inner sensors): Outer sensors')
+#plt.title('Albedo: ' + A + '; Abs. depth: ' + D + 'm; Lambda: ' + L + 'W/(mK)')
+#plt.title('Albedo: ' + A + '; abs. Tiefe: ' + D + 'm; Lambda: ' + L + 'W/(mK)')
+plt.title('Spezifische Wärmekapazität 840 J/(kg*K)')
+plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/Plots/P_thesis_heat_cap_840_A_' + A + '_Absdepth_' + D + '_Lambda_' + L + '.png', dpi=600)
 plt.show()
-#plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/Plots/CORRPresentation_sand_L_chamber_A_' + A + '_Absdepth_' + D + '_Lambda_' + L + '.png', dpi=600)
 #plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/Plots/CORROuter_sensors_sand_L_chamber_A_0.95_Absdepth_0.001_Lambda_0.003.png', dpi=600)
 ax.clear()
 fig.clear()
@@ -219,7 +222,7 @@ writer = Writer
 anim.save('D:/TPM_Data/Big_sand/test.mp4', writer=writer, dpi=600)
 Video('D:/TPM_Data/Big_sand/test.mp4')'''
 
-'''timestamps = []
+timestamps = []
 sen_1 = []
 sen_2 = []
 sen_3 = []
@@ -227,7 +230,7 @@ sen_4 = []
 sen_5 = []
 sen_6 = []
 
-with open('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/temps_sandy_randy.txt') as csvdatei:
+'''with open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/temps_sandy_randy.txt') as csvdatei:
     dat = csv.reader(csvdatei)
     b = True
     start = False
@@ -262,11 +265,11 @@ for i in range(len(timestamps)-1):
         sen_5s.append(sen_5[i])
         counter += 1
 
-files = listdir('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/')
-target = open('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/AbsDepthVar_results_csv.csv', 'w')
+files = listdir('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/')
+target = open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/Sim_thesis_results_heat_cap_csv.csv', 'w')
 for each in files:
-    if each[0:10] == 'CORRsand_L':
-        with open('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/' + each) as json_file:
+    if each[0:21] == 'TSand_sim_thesis_heat':
+        with open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/' + each) as json_file:
             jdata = json.load(json_file)
         sen_1_sim = []
         sen_2_sim = []
@@ -290,7 +293,7 @@ for each in files:
 
 target.close()'''
 
-#sort_csv('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/AbsDepthVar_results_csv.csv', True, 'C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/AbsDepthVar_results_csv_sorted.csv')
+#sort_csv('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/Sim_thesis_results_heat_cap_csv.csv', True, 'C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/Sim_thesis_results_heat_cap_csv_sorted.csv')
 
 '''with open('D:/TPM_data/Big_sand/sand_L_chamber_A_0.95_Absdepth_0.001_Lambda_0.004.json') as json_file:
     jdata1 = json.load(json_file)

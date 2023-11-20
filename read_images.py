@@ -238,3 +238,25 @@ ax.set_title('2023_08_31_09h_38m_21s')
 plt.colorbar(im_one, ax=ax, shrink=1.0)
 #plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/Plots/Comparison_surface_309Kco.png', dpi=600)
 plt.show()'''
+
+
+path = 'D:/TPM_Data/Big_sand/sand_daten1/screenshots/'
+filenames = listdir(path)
+
+for each in filenames:
+    im = np.array(PIL.Image.open(path + each).convert('L'))
+    width = (929 - 655) * 2 + 100
+    height = (929 - 655) * 2 + 100
+    x = 578
+    y = 655
+    ggT = GCD(const.n_x, width)
+    length = width // ggT
+    #Surface_temperatures_cam = np.zeros((const.k, const.n_x, const.n_y), dtype=np.float64)
+    im_cur = im[int(y - height / 2):int(y + height / 2), int(x - width / 2):int(x + width / 2)]
+    OS_cur = (im_cur / 255) * 255 + 145
+    #OS_cur = (im_cur / 255) * 50
+    # Surface_temperatures_cur = np.rot90(calibration_high(OS_cur), 3)
+    Surface_temperatures_cur = calibration_high(OS_cur)
+    target = open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/sand_surface_temperatures.csv', 'a')
+    target.write(each + ',' + str(np.max(Surface_temperatures_cur)) + ',' + str(np.mean(Surface_temperatures_cur)) + ',' + str(np.median(Surface_temperatures_cur)) + '\n')
+    target.close()
