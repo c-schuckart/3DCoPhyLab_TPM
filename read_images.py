@@ -240,7 +240,7 @@ plt.colorbar(im_one, ax=ax, shrink=1.0)
 plt.show()'''
 
 
-path = 'D:/TPM_Data/Big_sand/sand_daten1/screenshots/'
+'''path = 'D:/Laboratory_data/Big_sand/sand_daten2/screenshots/'
 filenames = listdir(path)
 
 for each in filenames:
@@ -257,6 +257,91 @@ for each in filenames:
     #OS_cur = (im_cur / 255) * 50
     # Surface_temperatures_cur = np.rot90(calibration_high(OS_cur), 3)
     Surface_temperatures_cur = calibration_high(OS_cur)
-    target = open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/sand_surface_temperatures.csv', 'a')
+    target = open('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/sand_surface_temperatures.csv', 'a')
     target.write(each + ',' + str(np.max(Surface_temperatures_cur)) + ',' + str(np.mean(Surface_temperatures_cur)) + ',' + str(np.median(Surface_temperatures_cur)) + '\n')
-    target.close()
+    target.close()'''
+
+'''with open('D:/TPM_data/Big_sand/TSand_sim_thesis_heat_cap_840_ambient_308K.json') as json_file:
+    jdata = json.load(json_file)
+im = np.array(PIL.Image.open('D:/Laboratory_data/Big_sand/sand_daten1/screenshots/2023_07_18_20h_12m_55s.png').convert('L'))
+temps = np.array(jdata['Temperature Surface'])
+for j in range(0, const.n_y-2):
+    for k in range(0, const.n_x-2):
+        if temps[j][k] == 0:
+            temps[j][k] = np.nan
+#temps[(const.n_y-1)//2][(const.n_x-3)] = 400
+#im = np.array(PIL.Image.open('D:/Masterarbeit_data/IR/ice_block/2023_02_22_11h_35m_12s.png').convert('L'))
+#images = ImageSequence('D:/Masterarbeit_data/IR/ice_block/2023_02_*.png')
+#filenames = listdir('D:/Masterarbeit_data/IR/ice_block')
+#x=626
+#y=653
+#width=183
+#height=183
+width=(929-655)*2+100
+height=(929-655)*2+100
+x=578
+y=655
+ggT = GCD(const.n_x, width)
+length = width//ggT
+Surface_temperatures_cam = np.zeros((const.k, const.n_x, const.n_y), dtype=np.float64)
+im_cur = im[int(y-height/2):int(y+height/2), int(x-width/2):int(x+width/2)]
+im_cur =np.rot90(im_cur, 3)
+print(np.max(im_cur))
+OS_cur = (im_cur / 255) * 255 + 145
+#OS_cur = (im_cur / 255) * 50
+#for i in range(np.shape(OS_cur)[0]):
+    #for j in range(np.shape(OS_cur)[1]):
+        #if OS_cur[i][j] >= 50:
+            #OS_cur[i][j] = np.nan
+print(np.max(OS_cur), np.min(OS_cur))
+#Surface_temperatures_cur = np.rot90(calibration_high(OS_cur), 3)
+Surface_temperatures_cur = calibration_high(OS_cur)
+#for i in range(np.shape(Surface_temperatures_cur)[0]):
+    #for j in range(np.shape(Surface_temperatures_cur)[1]):
+        #if Surface_temperatures_cur[i][j] <= 309:
+            #Surface_temperatures_cur[i][j] = np.nan
+convolved_cur = convolve(Surface_temperatures_cur, length, const.n_x, len(Surface_temperatures_cur[0]), const.n_x, const.n_y)[0]
+Sur_shifted = np.full(np.shape(Surface_temperatures_cur), np.nan)
+Sur_shifted[0:height-48, 0:width] = Surface_temperatures_cur[48:height, 0:width]
+Con_shifted = np.full(np.shape(Surface_temperatures_cur), np.nan)
+Con_shifted[0:const.n_y-5-1, 0:const.n_x-1-1] = convolved_cur[5:const.n_y-1, 1:const.n_x-1]
+dx = np.linspace(-13, 13, 52)
+
+fig, ax = plt.subplots(1, 1)
+plt.tick_params(axis='both', which='both', direction='in', top=True, labeltop=False, right=True, labelright=False, bottom=True, labelbottom=True, left=True, labelleft=True)
+ax.plot(dx, np.array(jdata['Temperature Surface'], dtype=np.float64)[0:52, const.n_x//2], label='Oberflächentemperatur Simulation')
+ax.plot(dx, Con_shifted[1:const.n_y-1, const.n_x//2], ls='--', label='Oberflächentemperatur Experiment')
+#ax.plot(dx, np.array(jdata['Temperature Surface'], dtype=np.float64)[const.n_y//2, 0:52], label='Oberflächentemperatur Simulation')
+#ax.plot(dx, Con_shifted[const.n_y//2, 1:const.n_x-1], ls='--', label='Oberflächentemperatur Experiment')
+ax.set_ylim(290, 390)
+ax.set_xlabel('Position (cm)')
+ax.set_ylabel('Temperatur (K)')
+ax.set_title('Oberflächentemperaturen y-Achse')
+plt.legend(fontsize='x-small')
+plt.savefig('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/Plots/Slice_surface_temp_y_308K.png', dpi=600)
+plt.show()'''
+
+'''Con_shifted[const.n_y//2, 0:const.n_x] = np.nan
+T = np.array(jdata['Temperature Surface'], dtype=np.float64)
+T[const.n_y//2, 0:52] = np.nan
+fig, (ax1, ax2, ax3) = plt.subplots(1, 3)
+fig.set_figheight(10)
+fig.set_figwidth(15)
+im_one = ax1.imshow(Sur_shifted, cmap='viridis')
+im_two = ax2.imshow(Con_shifted[1:const.n_y-1, 1:const.n_x-1], cmap='viridis')
+im_three = ax3.imshow(T, cmap='viridis')
+plt.colorbar(im_one, ax=ax1, shrink=0.3)
+plt.colorbar(im_two, ax=ax2, shrink=0.3)
+plt.colorbar(im_three, ax=ax3, shrink=0.3)
+ax1.set_title('IR cam')
+ax2.set_title('IR cam scaled')
+ax3.set_title('Simulation')
+for each in [ax1, ax2, ax3]:
+    each.set_xticks([])
+    each.set_yticks([])
+#fig, ax = plt.subplots(1, 1)
+#im_one = ax.imshow(Surface_temperatures_cur, cmap='viridis')
+#ax.set_title('2023_08_31_09h_38m_21s')
+#plt.colorbar(im_one, ax=ax, shrink=1.0)
+#plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/Plots/Comparison_surface_309Kco.png', dpi=600)
+plt.show()'''
