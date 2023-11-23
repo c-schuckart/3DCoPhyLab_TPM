@@ -671,4 +671,3 @@ l2 = line.Line2D([145, val], [3, 3], color='black', lw=0.5)
 for each in [l1, l2]:
     ax.add_artist(each)
 plt.show()'''
-
