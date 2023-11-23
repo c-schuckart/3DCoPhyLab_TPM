@@ -257,11 +257,15 @@ for each in filenames:
     #OS_cur = (im_cur / 255) * 50
     # Surface_temperatures_cur = np.rot90(calibration_high(OS_cur), 3)
     Surface_temperatures_cur = calibration_high(OS_cur)
-    target = open('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/sand_surface_temperatures.csv', 'a')
-    target.write(each + ',' + str(np.max(Surface_temperatures_cur)) + ',' + str(np.mean(Surface_temperatures_cur)) + ',' + str(np.median(Surface_temperatures_cur)) + '\n')
+    convolved_cur = convolve(Surface_temperatures_cur, length, const.n_x, len(Surface_temperatures_cur[0]), const.n_x, const.n_y)[0]
+    Con_shifted = np.full(np.shape(Surface_temperatures_cur), np.nan)
+    Con_shifted[0:const.n_y - 5 - 1, 0:const.n_x - 1 - 1] = convolved_cur[5:const.n_y - 1, 1:const.n_x - 1]
+    target = open('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/sand_surface_temperatures_mid.csv', 'a')
+    target.write(each + ',' + str(Con_shifted[const.n_y//2][const.n_x//2]) + ',' + str(Con_shifted[const.n_y//2-8][const.n_x//2-8] * 3/4 + Con_shifted[const.n_y//2-7][const.n_x//2-7] * 1/4) + ',' + str(np.mean(Surface_temperatures_cur)) + ',' + str(np.median(Surface_temperatures_cur)) + '\n')
+    #target.write(each + ',' + str(np.max(Surface_temperatures_cur)) + ',' + str(np.mean(Surface_temperatures_cur)) + ',' + str(np.median(Surface_temperatures_cur)) + '\n')
     target.close()'''
 
-'''with open('D:/TPM_data/Big_sand/TSand_sim_thesis_heat_cap_840_ambient_308K.json') as json_file:
+'''with open('D:/TPM_data/Big_sand/TSand_sim_thesis_heat_cap_840_ambient_300K.json') as json_file:
     jdata = json.load(json_file)
 im = np.array(PIL.Image.open('D:/Laboratory_data/Big_sand/sand_daten1/screenshots/2023_07_18_20h_12m_55s.png').convert('L'))
 temps = np.array(jdata['Temperature Surface'])
@@ -309,16 +313,17 @@ dx = np.linspace(-13, 13, 52)
 
 fig, ax = plt.subplots(1, 1)
 plt.tick_params(axis='both', which='both', direction='in', top=True, labeltop=False, right=True, labelright=False, bottom=True, labelbottom=True, left=True, labelleft=True)
-ax.plot(dx, np.array(jdata['Temperature Surface'], dtype=np.float64)[0:52, const.n_x//2], label='Oberflächentemperatur Simulation')
-ax.plot(dx, Con_shifted[1:const.n_y-1, const.n_x//2], ls='--', label='Oberflächentemperatur Experiment')
-#ax.plot(dx, np.array(jdata['Temperature Surface'], dtype=np.float64)[const.n_y//2, 0:52], label='Oberflächentemperatur Simulation')
-#ax.plot(dx, Con_shifted[const.n_y//2, 1:const.n_x-1], ls='--', label='Oberflächentemperatur Experiment')
+#ax.plot(dx, np.array(jdata['Temperature Surface'], dtype=np.float64)[0:52, const.n_x//2], label='Surface temperature SIM')
+#ax.plot(dx, Con_shifted[1:const.n_y-1, const.n_x//2], ls='--', label='Oberflächentemperatur gemessen')
+ax.plot(dx, np.array(jdata['Temperature Surface'], dtype=np.float64)[const.n_y//2, 0:52], label='Surface temperature measured')
+ax.plot(dx, Con_shifted[const.n_y//2, 1:const.n_x-1], ls='--', label='Surface temperature measured')
 ax.set_ylim(290, 390)
 ax.set_xlabel('Position (cm)')
-ax.set_ylabel('Temperatur (K)')
-ax.set_title('Oberflächentemperaturen y-Achse')
+ax.set_ylabel('Temperature (K)')
+ax.set_title('Surface temperature slice x-axis - ambient temp. 300K')
 plt.legend(fontsize='x-small')
-plt.savefig('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/Plots/Slice_surface_temp_y_308K.png', dpi=600)
+ax.grid(True, lw=0.5)
+plt.savefig('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/Plots/Slice_surface_temp_x_300K_eng.png', dpi=600)
 plt.show()'''
 
 '''Con_shifted[const.n_y//2, 0:const.n_x] = np.nan
