@@ -17,15 +17,21 @@ from utility_functions import thermal_reservoir
 lambda_arr = [0.002, 0.003, 0.005, 0.0074, 0.01, 0.015, 0.2, 0.27]
 absorption_depth_arr = [0.5E-3, 1E-3, 2E-3, 3E-3]'''
 print('here')
-albedo_arr = [0.85]
+albedo_arr = [0.95]
 lambda_arr = [0.003]
-absorption_depth_arr = [1E-3]
+absorption_depth_arr = [1.2E-3]
 ambient_temperature_arr = [840]
-ambient_temperature = 300
+ambient_temperature = 308
+epsilon_arr = [0.95]
+epsilon_ambient_arr = [0.8]
+abs_depth = absorption_depth_arr[0]
+heat_capacity_sand = ambient_temperature_arr[0]
 for albedo in albedo_arr:
     for lambda_sand_c in lambda_arr:
-        for abs_depth in absorption_depth_arr:
-            for heat_capacity_sand in ambient_temperature_arr:
+        #for abs_depth in absorption_depth_arr:
+            #for heat_capacity_sand in ambient_temperature_arr:
+        for epsilon in epsilon_arr:
+            for epsilon_ambient in epsilon_ambient_arr:
                 #work arrays and mesh creation + surface detection
                 #temperature, dx, dy, dz, Dr, a, a_rad, b, b_rad = create_equidistant_mesh(const.n_x, const.n_y, const.n_z, const.temperature_ini, const.min_dx, const.min_dy, const.min_dz, False)
                 temperature, dx, dy, dz, Dr, a, a_rad, b, b_rad = create_equidistant_mesh_2_layer(const.n_x, const.n_y, const.n_z, const.temperature_ini, const.min_dx, const.min_dy, const.min_dz, 21, 10)
@@ -74,15 +80,16 @@ for albedo in albedo_arr:
                 #np.savetxt("D:/Masterarbeit_data/surface_temp.csv", surface_temp, delimiter=",")
                 #np.savetxt("D:/Masterarbeit_data/sample_holder_temp.csv", sample_holder_temp, delimiter=",")
                 lamp_power = calculate_L_chamber_lamp_bd(24, 'L', const.n_x, const.n_y, const.n_z, const.min_dx, const.min_dy, const.min_dz, True, abs_depth)
-                temperature = sample_holder_data(const.n_x, const.n_y, const.n_z, sample_holder, temperature, 294)
+                temperature = sample_holder_data(const.n_x, const.n_y, const.n_z, sample_holder, temperature, 301)
                 S_p = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
                 S_c = calculate_deeper_layer_source(const.n_x, const.n_y, const.n_z, lamp_power, const.r_H, albedo, surface, dx, dy, dz)
                 #data_save_file = 'C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/Sand_sim_thesis_' + str(albedo) + '_Absdepth_' + str(abs_depth) + '_Lambda_' + str(lambda_sand_c) +'.json'
                 #data_save_file = 'D:/TPM_Data/Big_sand/Thesis_run/Periodic_sand_sim_thesis_' + str(albedo) + '_Absdepth_' + str(abs_depth) + '_Lambda_' + str(lambda_sand_c) +'.json'
-                data_save_file = 'D:/TPM_Data/Big_sand/Thesis_run/Periodic_sand_sim_thesis_day_night_third_best_fit_300K.json'
+                #data_save_file = 'D:/TPM_Data/Big_sand/Thesis_run/varying_epsilon' + str(epsilon) + '_ambient_epsilon' + str(epsilon_ambient) + '_test_308K.json'
+                data_save_file = 'C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/varying_epsilon_testing.json'
                 #data_save_file_2 = 'D:/TPM_data/Big_sand/Sand_sim_thesis_' + str(albedo) + '_Absdepth_' + str(abs_depth) + '_Lambda_' + str(lambda_sand_c) + '.json'
                 #data_save_file_2 = 'D:/TPM_Data/Big_sand/Thesis_run/Periodic_surface_sand_sim_thesis_' + str(albedo) + '_Absdepth_' + str(abs_depth) + '_Lambda_' + str(lambda_sand_c) +'.json'
-                data_save_file_2 = 'D:/TPM_Data/Big_sand/Thesis_run/Periodic_surface_sand_sim_thesis_day_night_third_best_fit_300K.json'
+                data_save_file_2 = 'D:/TPM_Data/Big_sand/Thesis_run/surface_varying_epsilon' + str(epsilon) + '_ambient_epsilon' + str(epsilon_ambient) + '_test_308K.json'
                 middle_slices = np.zeros((const.k, const.n_z), dtype=np.float64)
                 sensors = np.zeros((const.k, 5), dtype=np.float64)
                 outer_sensors = np.zeros((const.k, 5), dtype=np.float64)
@@ -121,8 +128,8 @@ for albedo in albedo_arr:
                     #Lambda = lambda_granular(const.n_x, const.n_y, const.n_z, temperature, Dr, dx, dy, dz, const.lambda_water_ice, const.poisson_ratio_par, const.young_modulus_par, const.surface_energy_par, const.r_mono, const.f_1, const.f_2, var.VFF_pack, const.sigma, const.e_1, sample_holder, const.lambda_sample_holder)
                     #Lambda = lambda_sand(const.n_x, const.n_y, const.n_z, temperature, Dr, const.lambda_sand, sample_holder, const.lambda_sample_holder)
                     #heat_capacity = calculate_heat_capacity(temperature)
-                    lamp_power_dn, S_c_dn = day_night_cycle(lamp_power, S_c, 3800, j*const.dt)
-                    temperature = hte_implicit_DGADI(const.n_x, const.n_y, const.n_z, surface_reduced, const.r_H, albedo, const.dt, lamp_power_dn, const.sigma, const.epsilon, temperature, Lambda, Dr, heat_capacity, density, dx, dy, dz, surface, S_c_dn, S_p, sample_holder, ambient_temperature)
+                    #lamp_power_dn, S_c_dn = day_night_cycle(lamp_power, S_c, 3800, j*const.dt)
+                    temperature = hte_implicit_DGADI(const.n_x, const.n_y, const.n_z, surface_reduced, const.r_H, albedo, const.dt, lamp_power, const.sigma, epsilon, epsilon_ambient, temperature, Lambda, Dr, heat_capacity, density, dx, dy, dz, surface, S_c, S_p, sample_holder, ambient_temperature)
                     #temperature = hte_implicit_DGADI(const.n_x, const.n_y, const.n_z, surface_reduced, const.r_H, albedo, const.dt, lamp_power, const.sigma, const.epsilon, temperature, Lambda, Dr, heat_capacity, density, dx, dy, dz, surface, S_c, S_p, sample_holder, ambient_temperature)
                     #print(temperature[0:const.n_z, const.n_y//2-20, const.n_x//2])
                     #print(temperature[0:const.n_z, 3, 23])
