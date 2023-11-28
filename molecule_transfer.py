@@ -536,7 +536,7 @@ def diffusion_parameters_sintering_periodic(n_x, n_y, n_z, a_1, b_1, c_1, d_1, t
             for k in range(1, n_x-1):
                 if temperature[i][j][k] > 0:
                     diff_coeff_center[i][j][k] = (R_gas * temperature[i][j][k]) * 1/np.sqrt(2 * np.pi * m_mol * R_gas * temperature[i][j][k]) * (1 - VFF[i][j][k])**2 * 2 * r_mono[i][j][k]/(3 * (1 - (1 - VFF[i][j][k]))) * 4 / (Phi * q[i][j][k])
-    diff_coeff_center[1, 1:const.n_y-1, 1:const.n_x-1] = np.full((const.n_y-2, const.n_x-2), 1, dtype=np.float64)
+    diff_coeff_center[0, 1:const.n_y-1, 1:const.n_x-1] = np.full((const.n_y-2, const.n_x-2), 1E5, dtype=np.float64)
     for i in prange(1, n_z-1):
         for j in range(1, n_y-1):
             for k in range(1, n_x-1):
