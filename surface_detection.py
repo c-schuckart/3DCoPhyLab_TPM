@@ -64,13 +64,13 @@ def create_equidistant_mesh_2_layer(n_x, n_y, n_z, temperature_ini, dx, dy, dz, 
     dx_arr = np.full((n_z, n_y, n_x), dx, dtype=np.float64)
     dy_arr = np.full((n_z, n_y, n_x), dy, dtype=np.float64)
     dz_arr = np.full((n_z, n_y, n_x), dz, dtype=np.float64)
-    dz_arr[1] = np.full((n_y, n_x,), dz * 20, dtype=np.float64)
+    dz_arr[1] = np.full((n_y, n_x,), dz / 2, dtype=np.float64)
     #dz_arr[layer_boundary:n_z] = np.full((n_z-layer_boundary, n_y, n_x), dz * 10, dtype=np.float64)
     Dr = np.full((n_z, n_y, n_x, 6), np.array([dz, dz, dy, dy, dx, dx]), dtype=np.float64)
     for i in range(layer_boundary, n_z):
         if i == layer_boundary:
             Dr[i] = np.full((n_y, n_x, 6), np.array([dz * factor, dz, dy, dy, dx, dx]), dtype=np.float64)
-            dz_arr[i] = np.full((n_y, n_x), (dz/2 + dz*factor/2), dtype=np.float64)
+            dz_arr[i] = np.full((n_y, n_x),(dz + dz * factor / 2), dtype=np.float64)
         else:
             Dr[i] = np.full((n_y, n_x, 6), np.array([dz * factor, dz * factor, dy, dy, dx, dx]), dtype=np.float64)
             dz_arr[i] = np.full((n_y, n_x), dz * factor, dtype=np.float64)
