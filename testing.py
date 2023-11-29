@@ -83,6 +83,7 @@ for i in range(0, 16):
 '''
 fig, ax = plt.subplots(1, 1)
 A, D, L = '0.95', '0.001', '0.003'
+epsilon, epsilon_ambient = 0.95, 0.8
 
 timestamps = []
 sen_1 = []
@@ -92,7 +93,7 @@ sen_4 = []
 sen_5 = []
 sen_6 = []
 
-with open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/temps_sandy_randy.txt') as csvdatei:
+with open('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/temps_sandy_randy.txt') as csvdatei:
     dat = csv.reader(csvdatei)
     b = True
     start = False
@@ -104,16 +105,16 @@ with open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/temp
                 b = False
                 start = True
             timestamps.append(np.datetime64(each[0]) - start_time)
-            sen_1.append(float(each[1]))
-            sen_2.append(float(each[2]))
-            sen_3.append(float(each[3]))
-            sen_4.append(float(each[4]))
-            sen_5.append(float(each[5]))
-            #sen_1.append(float(each[7]))
-            #sen_2.append(float(each[8]))
-            #sen_3.append(float(each[9]))
-            #sen_4.append(float(each[10]))
-            #sen_5.append(float(each[11]))
+            #sen_1.append(float(each[1]))
+            #sen_2.append(float(each[2]))
+            #sen_3.append(float(each[3]))
+            #sen_4.append(float(each[4]))
+            #sen_5.append(float(each[5]))
+            sen_1.append(float(each[7]))
+            sen_2.append(float(each[8]))
+            sen_3.append(float(each[9]))
+            sen_4.append(float(each[10]))
+            sen_5.append(float(each[11]))
             #sen_6.append(float(each[6]))
             if timestamps[len(timestamps) - 1] > 120000:
             #if timestamps[len(timestamps) - 1] > 330000:
@@ -121,13 +122,13 @@ with open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/temp
 
 surface_measured = []
 timestamps_surface = []
-with open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/sand_surface_temperatures.csv') as csvdatei2:
+with open('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/sand_surface_temperatures.csv') as csvdatei2:
     dat = csv.reader(csvdatei2)
     b = True
     start = False
     for each in dat:
-        #if each[0] == '2023_07_17_10h_52m_52s.png' or start:
-        if each[0] == '2023_07_20_13h_53m_00s.png' or start:
+        if each[0] == '2023_07_17_10h_52m_52s.png' or start:
+        #if each[0] == '2023_07_20_13h_53m_00s.png' or start:
             if b:
                 start_time = np.datetime64(each[0][0:4] + '-' + each[0][5:7] + '-' + each[0][8:10] + ' ' + each[0][11:13] + ':' + each[0][15:17] + ':' + each[0][19:21])
                 b = False
@@ -138,14 +139,27 @@ with open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/sand
             #if timestamps[len(timestamps) - 1] > 330000:
                 break
 
-ax.plot(timestamps, sen_1, label='1. mid sensor', color='tab:blue')
-ax.plot(timestamps, sen_2, label='2. mid sensor', color='tab:orange')
-ax.plot(timestamps, sen_3, label='3. mid sensor', color='tab:green')
-ax.plot(timestamps, sen_4, label='4. mid sensor', color='tab:red')
-ax.plot(timestamps, sen_5, label='5. mid sensor', color='tab:purple')
+time_sim_surface = []
+surface_sim = []
+with open('D:/TPM_Data/Big_sand/Thesis_run/surface_varying_epsilon' + str(epsilon) + '_ambient_epsilon' + str(epsilon_ambient) + '_test_308K.json') as json_file_2:
+#with open('D:/TPM_Data/Big_sand/Thesis_run/Periodic_sand_sim_thesis_' + A + '_Absdepth_' + D + '_Lambda_' + L +'.json') as json_file:
+    jdata_surface = json.load(json_file_2)
+    for i in range(0, 3000):
+        time_sim_surface.append((i+1) * const.dt)
+        surface_sim.append(jdata_surface['Temperature'][i][1])
+
+ax.plot(time_sim_surface, surface_sim, label='surface hottest temperature SIM', color='tab:blue')
+ax.plot(timestamps_surface, surface_measured, label='surface hottest temperature', color='tab:orange', ls='--')
+
+
+'''ax.plot(timestamps, sen_1, label='1. outer sensor', color='tab:blue')
+ax.plot(timestamps, sen_2, label='2. outer sensor', color='tab:orange')
+ax.plot(timestamps, sen_3, label='3. outer sensor', color='tab:green')
+ax.plot(timestamps, sen_4, label='4. outer sensor', color='tab:red')
+ax.plot(timestamps, sen_5, label='5. outer sensor', color='tab:purple')
 #plt.plot(timestamps, sen_6, label='6. mid sensor')
 
-#ax.plot(timestamps_surface, surface_measured, label='surface hottest temperature', color='tab:blue')
+
 
 time = [i * const.dt for i in range(0, const.k)]
 sen_1_sim = []
@@ -156,23 +170,23 @@ sen_5_sim = []
 #sen_6 = []
 
 #with open('D:/TPM_Data/Big_sand/Thesis_run/varying_epsilon0.95_ambient_epsilon0.8_test_308K.json') as json_file:
-with open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/varying_epsilon_testing.json') as json_file:
+with open('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/varying_epsilon_testing_2.json') as json_file:
 #with open('D:/TPM_Data/Big_sand/Thesis_run/Periodic_sand_sim_thesis_' + A + '_Absdepth_' + D + '_Lambda_' + L +'.json') as json_file:
     jdata = json.load(json_file)
 
 for i in range(0, const.k):
-    sen_1_sim.append(jdata['Temperature'][i][0])
-    sen_2_sim.append(jdata['Temperature'][i][1])
-    sen_3_sim.append(jdata['Temperature'][i][2])
-    sen_4_sim.append(jdata['Temperature'][i][3])
-    sen_5_sim.append(jdata['Temperature'][i][4])
+    sen_1_sim.append(jdata['Temperature Outer'][i][0])
+    sen_2_sim.append(jdata['Temperature Outer'][i][1])
+    sen_3_sim.append(jdata['Temperature Outer'][i][2])
+    sen_4_sim.append(jdata['Temperature Outer'][i][3])
+    sen_5_sim.append(jdata['Temperature Outer'][i][4])
 
-ax.plot(time, sen_1_sim, label='1. mid sensor SIM', color='#000000')
-ax.plot(time, sen_2_sim, label='2. mid sensor SIM', color='#272727', ls='--')
-ax.plot(time, sen_3_sim, label='3. mid sensor SIM', color='#474747', ls=':')
-ax.plot(time, sen_4_sim, label='4. mid sensor SIM', color='#636363', ls='-.')
-ax.plot(time, sen_5_sim, label='5. mid sensor SIM', color='#858585')
-
+ax.plot(time, sen_1_sim, label='1. outer sensor SIM', color='#000000')
+ax.plot(time, sen_2_sim, label='2. outer sensor SIM', color='#272727', ls='--')
+ax.plot(time, sen_3_sim, label='3. outer sensor SIM', color='#474747', ls=':')
+ax.plot(time, sen_4_sim, label='4. outer sensor SIM', color='#636363', ls='-.')
+ax.plot(time, sen_5_sim, label='5. outer sensor SIM', color='#858585')
+'''
 #with open('D:/TPM_data/Big_sand/Sand_sim_thesis_' + A + '_Absdepth_' + D + '_Lambda_' + L + '.json') as json_file:
 #with open('D:/TPM_data/Big_sand/TSand_sim_thesis_heat_cap_840.json') as json_file:
     #jdata_2 = json.load(json_file)
@@ -192,11 +206,12 @@ ax.grid(True, lw=0.5)
 plt.legend(fontsize='xx-small')
 #plt.title('Albedo: ' + A + '; Abs. depth: ' + D + 'm; Lambda: ' + L + 'W/(mK)')
 #plt.title('Albedo: ' + A + '; abs. Tiefe: ' + D + 'm; Lambda: ' + L + 'W/(mK)')
-plt.title('Inner sensors - ambient temp. 300K')
+#plt.title('Inner sensors - ambient temp. 308K')
+plt.title('Epsilon 0.95, Epsilon ambient 0.8 surface temps - ambient temp. 308K')
 ax.set_xlabel('Time (s)')
 ax.set_ylabel('Temperature (K)')
 #plt.savefig('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/Plots/P_thesis_DAY_NIGHT_heat_cap_840_ambient_300K_A_' + A + '_Absdepth_' + D + '_Lambda_' + L + '.png', dpi=600)
-#plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/Plots/P_thesis_day_night_illum_best_fit_outer_ambient_300K_eng.png', dpi=600)
+plt.savefig('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/Plots/epsilon_0.95_epsilon_ambient_0.8_abs_depth_1.25mm_ambient_308K_surface_eng.png', dpi=600)
 plt.show()
 #plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/Plots/CORROuter_sensors_sand_L_chamber_A_0.95_Absdepth_0.001_Lambda_0.003.png', dpi=600)
 ax.clear()
