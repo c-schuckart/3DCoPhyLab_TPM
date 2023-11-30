@@ -17,7 +17,7 @@ from utility_functions import thermal_reservoir
 lambda_arr = [0.002, 0.003, 0.005, 0.0074, 0.01, 0.015, 0.2, 0.27]
 absorption_depth_arr = [0.5E-3, 1E-3, 2E-3, 3E-3]'''
 print('here')
-albedo_arr = [0.95, 0.8, 0.5, 0.3]
+albedo_arr = [0.8, 0.5, 0.3]
 lambda_arr = [0.002, 0.003, 0.0074, 0.015, 0.2, 0.27]
 absorption_depth_arr = [0.5E-3, 1E-3, 2E-3, 3E-3]
 ambient_temperature_arr = [840]
