@@ -499,107 +499,82 @@ ax.set_title('First layer pressure and subl. pressure')
 plt.savefig('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Top_pressure_v_sublpress.png', dpi=600)
 #plt.show()'''
 
-'''path = 'C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/dt_dx_test_L2.csv'
-segments = ['dx dy = 10E-5 dz = 5E-6 and 1000000* vacuum outgassing:', 'dx dy = 10E-5 dz = 1E-6 and 1000000* vacuum outgassing:', 'dx dy = 10E-5 dz = 5E-7 and 1000000* vacuum outgassing:', 'dx dy = 10E-5 dz = 5E-6 bigger empty top layer (5E-4) and 1000000* vacuum outgassing:', 'dx dy = 10E-5 dz = 5E-6 bigger empty top layer (5E-4):']
-dt = [[], [], [], [], []]
-ORdx = [1.5224120029217286e-11, 9.371385099535165e-12, 5.0069003492523505e-12]
-ORdx_2 = [1.6274905964107774e-11, 1.6466408223601428e-11, 1.6563859370241558e-11, 1.661301765484791e-11]
-dx = [5E-6, 1E-5, 2E-5]
-dx_2 = [2.5E-6, 5E-6, 1E-5, 2E-5]
-OR = [[], [], [], [], []]
-
-for i in range(len(segments)):
-    with open(path) as csvdatei:
-        dat = csv.reader(csvdatei)
-        b = -1
-        for each in dat:
-            if b < 0 and each[0] == segments[i]:
-                b = 0
-            elif b >= 0:
-                dt[i].append(float(each[0]))
-                OR[i].append(float(each[2]))
-                b += 1
-            if b == 5:
-                break
-
-
-print(dt, OR)
+'''OR = [2.5851651252493537e-12, 2.5599845332821927e-12, 2.5588937352294457e-12, 2.5585387116951732e-12]
+dx = [5e-6, 1e-6, 5e-7, 1e-7]
 
 fig, ax = plt.subplots(1, 1)
 plt.tick_params(axis='both', which='both', direction='in', top=True, right=True, bottom=True, left=True, labeltop=False, labelright=False, labelbottom=True, labelleft=True)
-ax.plot(dt[0], OR[0], marker='x', label=r'dz = $5 * 10^{-6}$')
-ax.plot(dt[1], OR[1], marker='o', label=r'dz = $1 * 10^{-6}$')
-ax.plot(dt[2], OR[2], marker='d', label=r'dz = $5 * 10^{-7}$')
+ax.plot(dx, OR, marker='x', label=r'dz = $5 * 10^{-6}$')
 #ax.plot(dt[3], OR[3], marker='p', label=r'vacuum diff rate = $* 1000000$')
 #ax.plot(dt[4], OR[4], marker='s', label=r'empty layer = $5 * 10^{-4}$')
-plt.legend(loc=5, fontsize='x-small')
-ax.set_xlabel('Time step (s)')
+#plt.legend(loc=4, fontsize='x-small')
+ax.set_xlabel('Spatial step (m)')
 ax.set_ylabel('Outgassing rate (kg/s)')
 ax.set_xscale('log')
 ax.set_yscale('log')
 #plt.ylim(1.5223E-11, 1.5225E-11)
 fig.set_tight_layout(True)
-ax.set_title(r'High diffrate with changing dz')
-plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/changing_dz_same_empty_as_dz.png', dpi=600)
+#ax.set_title(r'High diffrate with changing dz')
+plt.savefig('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/Ice/changing_dz_corr_eng.png', dpi=600)
 plt.show()'''
 
-path = 'C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/'
-files = ['5e-6_first_layer_particle_radius.npy', '1e-6_first_layer_particle_radius.npy', '5e-7_first_layer_particle_radius.npy', '1e-5_first_layer_particle_radius.npy']
+'''path = 'C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/Ice/'
+files = ['5e-6_first_layer_particle_radius_corr.npy', '1e-6_first_layer_particle_radius_corr.npy', '5e-7_first_layer_particle_radius_corr.npy', '1e-7_first_layer_particle_radius_corr.npy']
 
-arr_normal = np.load(path+files[0])
-arr_smaller = np.load(path+files[1])
-arr_smallest = np.load(path+files[2])
-arr_bigger = np.load(path+files[3])
+arr_5e6 = np.load(path+files[0])
+arr_1e6 = np.load(path+files[1])
+arr_5e7 = np.load(path+files[2])
+arr_1e7 = np.load(path+files[3])
 
-dx_normal = []
-dx_smaller = []
-dx_smallest = []
-dx_bigger = []
+dx_5e6 = []
+dx_1e6 = []
+dx_5e7 = []
+dx_1e7 = []
 
 
 for i in range(0, 43):
-    if i > 2:
-        dx_normal.append(i * 5E-6 + 5E-6)
+    if i > 1:
+        dx_5e6.append(i * 5E-6 + 5E-6)
     elif i == 0:
-        dx_normal.append(0)
-        dx_smaller.append(0)
-        dx_smallest.append(0)
-        dx_bigger.append(0)
+        dx_5e6.append(0)
+        dx_1e6.append(0)
+        dx_5e7.append(0)
+        dx_1e7.append(0)
     elif i == 1:
-        dx_normal.append(2.5E-6)
-        dx_smaller.append(2.5E-6)
-        dx_smallest.append(2.5E-6)
-        dx_bigger.append(2.5E-6)
-    elif i == 2:
-        dx_normal.append(5E-6)
-        dx_smaller.append(5E-6)
-        dx_smallest.append(5E-6)
-        dx_bigger.append(5E-6)
+        dx_5e6.append(5E-6)
+        dx_1e6.append(5E-6)
+        dx_5e7.append(5E-6)
+        dx_1e7.append(5E-6)
 
-for i in range(3, 203):
-    dx_smaller.append(i * 1E-6 + 5E-6)
-for i in range(3, 403):
-    dx_smallest.append(i * 5E-7 + 5E-6)
-for i in range(3, 23):
-    dx_bigger.append(i * 1E-5 + 5E-6)
+for i in range(2, 212):
+    dx_1e6.append((i-1) * 1E-6 + dx_1e6[1])
+for i in range(2, 422):
+    dx_5e7.append((i-1) * 5E-7 + dx_5e7[1])
+for i in range(2, 2102):
+    dx_1e7.append((i-1) * 1E-7 + dx_1e7[1])
+
+print(dx_1e6)
+print(dx_1e7[0:20])
 
 fig, ax = plt.subplots(1, 1)
 plt.tick_params(axis='both', which='both', direction='in', top=True, right=True, bottom=True, left=True, labeltop=False, labelright=False, labelbottom=True, labelleft=True)
-ax.plot(dx_bigger, arr_bigger, marker='p', label=r'dz = $1 * 10^{-5}$, OR = $2.001 * 10^{-12}')
-ax.plot(dx_normal, arr_normal, marker='x', label=r'dz = $5 * 10^{-6}$, OR = $2.013 * 10^{-12}')
-ax.plot(dx_smaller, arr_smaller, marker='o', label=r'dz = $1 * 10^{-6}$, OR = $2.059 * 10^{-12}')
-ax.plot(dx_smallest, arr_smallest, marker='d', label=r'dz = $5 * 10^{-7}$, OR = $2.083 * 10^{-12}')
+ax.plot(dx_5e6, arr_5e6, marker='p', label=r'dz = $5 * 10^{-6}$ m, AR = $2.5852 * 10^{-12}$ kg/s')
+ax.plot(dx_1e6, arr_1e6, marker='x', label=r'dz = $1 * 10^{-6}$ m, AR = $2.5600 * 10^{-12}$ kg/s')
+ax.plot(dx_5e7, arr_5e7, marker='o', label=r'dz = $5 * 10^{-7}$ m, AR = $2.5589 * 10^{-12}$ kg/s')
+ax.plot(dx_1e7, arr_1e7, marker='d', label=r'dz = $1 * 10^{-7}$ m, AR = $2.5585 * 10^{-12}$ kg/s')
 #ax.plot(dt[4], OR[4], marker='s', label=r'empty layer = $5 * 10^{-4}$')
-plt.legend(loc=5, fontsize='x-small')
-ax.set_xlabel('Depth (m)')
-ax.set_ylabel('Gas density (kg/m^3)')
+plt.legend(loc=4, fontsize='x-small')
+ax.set_xlabel('Tiefe (m)')
+ax.set_ylabel('Gasdichte (kg/m^3)')
+#ax.set_xlim(-1E-6, 2.5E-5)
+#ax.set_ylim(1.15E-6, 1.47E-6)
 #ax.set_xscale('log')
 #ax.set_yscale('log')
 #plt.ylim(1.5223E-11, 1.5225E-11)
 fig.set_tight_layout(True)
-ax.set_title(r'Bigger empty layer')
-plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Intervoxel_outgassing_first_layer_particle_radius.png', dpi=600)
-plt.show()
+#ax.set_title(r'Bigger empty layer')
+plt.savefig('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Intervoxel_outgassing_first_layer_particle_radius_corr_de.png', dpi=600)
+plt.show()'''
 
 
 '''lh_a_1 = np.array([4.07023,49.21,53.2167])
@@ -671,3 +646,35 @@ l2 = line.Line2D([145, val], [3, 3], color='black', lw=0.5)
 for each in [l1, l2]:
     ax.add_artist(each)
 plt.show()'''
+
+path = 'C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/Ice/5e-6_uniform_water_masses_test.npy'
+
+arr_5e6 = np.load(path)
+dx_5e6 = []
+
+for i in range(0, 43):
+    if i > 1:
+        dx_5e6.append(i * 5E-6 + 5E-6)
+    elif i == 0:
+        dx_5e6.append(0)
+    elif i == 1:
+        dx_5e6.append(5E-6)
+
+fig, ax = plt.subplots(1, 1)
+plt.tick_params(axis='both', which='both', direction='in', top=True, right=True, bottom=True, left=True, labeltop=False, labelright=False, labelbottom=True, labelleft=True)
+ax.plot(dx_5e6, arr_5e6, marker='p', label=r'dz = $5 * 10^{-6}$ m')
+#ax.plot(dt[4], OR[4], marker='s', label=r'empty layer = $5 * 10^{-4}$')
+plt.legend(loc=1, fontsize='x-small')
+ax.set_xlabel('Tiefe (m)')
+ax.set_ylabel('Wassermasse (kg)')
+ax.add_artist(line.Line2D([25E-6, 25E-6], [1E-15, 1E-12], ls='--'))
+#ax.set_xlim(-1E-6, 2.5E-5)
+#ax.set_ylim(1.15E-6, 1.47E-6)
+#ax.set_xscale('log')
+#ax.set_yscale('log')
+#plt.ylim(1.5223E-11, 1.5225E-11)
+#plt.yscale('log')
+fig.set_tight_layout(True)
+ax.set_title(r'Heiße Schicht in 25 $\mu$m Tiefe')
+#plt.savefig('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Intervoxel_outgassing_first_layer_particle_radius_corr_de.png', dpi=600)
+plt.show()

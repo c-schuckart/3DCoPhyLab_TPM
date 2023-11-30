@@ -573,8 +573,7 @@ def boundary_condition_implicit_z_sweep_de_periodic(dt, gas_mass, Diffusion_coef
             sub_gamma[each[2]] = - a_b
             rhs[each[2]] = a_t * gas_mass[each[2] + 1][each[1]][each[0]] + a_b * gas_mass[each[2] - 1][each[1]][each[0]] + a_n * (gas_mass[each[2]][each[1] + 1][each[0]] * (1 - y_pos_periodic) + gas_mass[each[2]][1][each[0]] * y_pos_periodic) + a_s * (gas_mass[each[2]][each[1] - 1][each[0]] * (1 - y_neg_periodic) + gas_mass[each[2]][n_y-2][each[0]] * y_neg_periodic) + a_e * (gas_mass[each[2]][each[1]][each[0] + 1] * (1- x_pos_periodic) + gas_mass[each[2]][each[1]][1] * x_pos_periodic) + a_w * (gas_mass[each[2]][each[1]][each[0] - 1] * (1- x_neg_periodic) + gas_mass[each[2]][each[1]][n_x-2] * x_neg_periodic) + S_c[each[2]][each[1]][each[0]] * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] + (dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] / dt - a_t - a_b - a_n - a_s - a_w - a_e) * gas_mass[each[2]][each[1]][each[0]]
         else:
-            print('Remove this later')
-            diag[each[2]] = 1
+            diag[each[2]] = dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] / dt
             rhs[each[2]] = 0
     return sub_alpha, diag, sub_gamma, rhs
 
@@ -631,7 +630,7 @@ def boundary_condition_implicit_y_sweep_de_periodic(dt, gas_mass, z_sweep_gas_ma
             sub_gamma[each[1]] = - a_s
             rhs[each[1]] = a_t * (z_sweep_gas_mass[each[2] + 1][each[1]][each[0]] + gas_mass[each[2] + 1][each[1]][each[0]])/2 + a_b * (z_sweep_gas_mass[each[2] - 1][each[1]][each[0]] + gas_mass[each[2] - 1][each[1]][each[0]])/2 + a_n * (gas_mass[each[2]][each[1] + 1][each[0]] * (1 - y_pos_periodic) + gas_mass[each[2]][1][each[0]] * y_pos_periodic) + a_s * (gas_mass[each[2]][each[1] - 1][each[0]] * (1 - y_neg_periodic) + gas_mass[each[2]][n_y-2][each[0]] * y_neg_periodic) + a_e * (gas_mass[each[2]][each[1]][each[0] + 1] * (1 - x_pos_periodic) + gas_mass[each[2]][each[1]][1] * x_pos_periodic) + a_w * (gas_mass[each[2]][each[1]][each[0] - 1] * (1 - x_neg_periodic) + gas_mass[each[2]][each[1]][n_x-2] * x_neg_periodic) + S_c[each[2]][each[1]][each[0]] * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] + (dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] / dt - a_n - a_s - a_w - a_e) * gas_mass[each[2]][each[1]][each[0]] - (a_t + a_b) * (z_sweep_gas_mass[each[2]][each[1]][each[0]] + gas_mass[each[2]][each[1]][each[0]])/2
         else:
-            diag[each[1]] = 1
+            diag[each[1]] = dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] / dt
             rhs[each[1]] = 0
     return sub_alpha, diag, sub_gamma, rhs
 
@@ -688,7 +687,7 @@ def boundary_condition_implicit_x_sweep_de_periodic(dt, gas_mass, z_sweep_gas_ma
             sub_gamma[each[0]] = - a_w
             rhs[each[0]] = a_t * (z_sweep_gas_mass[each[2] + 1][each[1]][each[0]] + gas_mass[each[2] + 1][each[1]][each[0]])/2 + a_b * (z_sweep_gas_mass[each[2] - 1][each[1]][each[0]] + gas_mass[each[2] - 1][each[1]][each[0]])/2 + a_n * ((y_sweep_gas_mass[each[2]][each[1] + 1][each[0]] + gas_mass[each[2]][each[1] + 1][each[0]])/2 * (1 - y_pos_periodic) + (y_sweep_gas_mass[each[2]][1][each[0]] + gas_mass[each[2]][1][each[0]])/2 * y_pos_periodic) + a_s * ((y_sweep_gas_mass[each[2]][each[1] - 1][each[0]] + gas_mass[each[2]][each[1] - 1][each[0]])/2 * (1 - y_neg_periodic) + (y_sweep_gas_mass[each[2]][n_y-2][each[0]] + gas_mass[each[2]][n_y-2][each[0]])/2 * y_neg_periodic) + a_e * (gas_mass[each[2]][each[1]][each[0] + 1] * (1 - x_pos_periodic) + gas_mass[each[2]][each[1]][1] * x_pos_periodic) + a_w * (gas_mass[each[2]][each[1]][each[0] - 1] * (1 - x_neg_periodic) + gas_mass[each[2]][each[1]][n_x-2] * x_neg_periodic) + S_c[each[2]][each[1]][each[0]] * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] + (dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] / dt - a_e - a_w) * gas_mass[each[2]][each[1]][each[0]] - (a_t + a_b) * (z_sweep_gas_mass[each[2]][each[1]][each[0]] + gas_mass[each[2]][each[1]][each[0]])/2 - (a_n + a_s) * (y_sweep_gas_mass[each[2]][each[1]][each[0]] + gas_mass[each[2]][each[1]][each[0]])/2
         else:
-            diag[each[0]] = 1
+            diag[each[0]] = dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] / dt
             rhs[each[0]] = 0
     return sub_alpha, diag, sub_gamma, rhs
 
