@@ -876,24 +876,24 @@ def pressure_calculation_impulse(n_x, n_y, n_z, temperature, gas_density, k_bolt
             for c in range(0, n_x):
                 if temperature[a][b][c] > 0 and sample_holder[a][b][c] != 1 and areas[a][b][c] > 0:
                     v = np.sqrt(8 * k_boltzmann * temperature[a][b][c] / (np.pi * m_H2O))
-                    pressure[a][b][c] = 1/areas[a][b][c] * (2 * r_mono[a][b][c]/dz[a][b][c]) * (gas_density[a][b][c] * dx[a][b][c] * dy[a][b][c] * dz[a][b][c]) * v**2 / (2 * r_mono[a][b][c])    # 2 * r_mono ~~ mean free path
+                    pressure[a][b][c] = 1/areas[a][b][c] * (gas_density[a][b][c] * dx[a][b][c] * dy[a][b][c] * dz[a][b][c]) * v**2 / (2 * r_mono[a][b][c])    # 2 * r_mono ~~ mean free path
                     #pressure[a][b][c] = 1/6 * 1 / (dx[a][b][c] * dy[a][b][c]) * (2 * r_mono[a][b][c]/dz[a][b][c]) * (gas_density[a][b][c] * dx[a][b][c] * dy[a][b][c] * dz[a][b][c]) * v**2 / (2 * r_mono[a][b][c])    # 2 * r_mono ~~ mean free path
     return pressure
 
 @njit
-def Tsinter_neck_calculation_time_dependent_diffusion(r_n, r_p, dt, temperature, a_1, b_1, c_1, d_1, r_mono, pressure, m_H2O, k_B, k_factor, water_particle_number, blocked_voxels, n_x, n_y, n_z, sample_holder, dx, dy, dz, gas_density):
+def Tsinter_neck_calculation_time_dependent_diffusion(r_n, r_p, dt, temperature, a_1, b_1, c_1, d_1, r_mono, pressure, m_H2O, k_B, k_factor, water_particle_number, blocked_voxels, n_x, n_y, n_z, sample_holder, dx, dy, dz, gas_density, areas):
     p_sub = np.zeros((n_z, n_y, n_x), dtype=np.float64)
     sublimated_mass = np.zeros((n_z, n_y, n_x), dtype=np.float64)
-    areas = np.zeros((n_z, n_y, n_x), dtype=np.float64)
+    #areas = np.zeros((n_z, n_y, n_x), dtype=np.float64)
     for i in range(1, n_z-1):
         for j in range(1, n_y-1):
             for k in range(1, n_x-1):
                 if temperature[i][j][k] > 0 and sample_holder[i][j][k] == 0:
                     p_sub[i][j][k] = 10 ** (a_1[0] + b_1[0] / temperature[i][j][k] + c_1[0] * np.log10(temperature[i][j][k]) + d_1[0] * temperature[i][j][k])
-                    sublimated_mass[i][j][k] = (10 ** (a_1[0] + b_1[0] / temperature[i][j][k] + c_1[0] * np.log10(temperature[i][j][k]) + d_1[0] * temperature[i][j][k]) - pressure[i][j][k])* np.sqrt(m_H2O/(2 * np.pi * k_B * temperature[i][j][k])) * dx[i][j][k] * dy[i][j][k] * dt
+                    sublimated_mass[i][j][k] = (10 ** (a_1[0] + b_1[0] / temperature[i][j][k] + c_1[0] * np.log10(temperature[i][j][k]) + d_1[0] * temperature[i][j][k]) - pressure[i][j][k]) * np.sqrt(m_H2O/(2 * np.pi * k_B * temperature[i][j][k])) * areas[i][j][k] * dt
                     v = np.sqrt(8 * k_B * temperature[i][j][k] / (np.pi * m_H2O))
-                    pressure_impulse = 1/6 * 1 / (dx[i][j][k] * dy[i][j][k]) * sublimated_mass[i][j][k] * v**2 / (2 * r_mono[i][j][k])    # 2 * r_mono ~~ mean free path
+                    pressure_impulse = 1/areas[i][j][k] * sublimated_mass[i][j][k] * v**2 / (2 * r_mono[i][j][k])    # 2 * r_mono ~~ mean free path
                     if pressure_impulse > p_sub[i][j][k]:
-                        sublimated_mass[i][j][k] = p_sub[i][j][k] * 6 * dx[i][j][k] * dy[i][j][k] * 2 * r_mono[i][j][k] / (v**2) - (gas_density[i][j][k] * dx[i][j][k] * dy[i][j][k] * dz[i][j][k])
-                    areas[i][j][k] = dx[i][j][k] * dy[i][j][k]
+                        sublimated_mass[i][j][k] = p_sub[i][j][k] * areas[i][j][k] * 2 * r_mono[i][j][k] / (v**2) - (gas_density[i][j][k] * dx[i][j][k] * dy[i][j][k] * dz[i][j][k])
+                    #areas[i][j][k] = dx[i][j][k] * dy[i][j][k]
     return r_n, r_p, sublimated_mass, areas, p_sub
