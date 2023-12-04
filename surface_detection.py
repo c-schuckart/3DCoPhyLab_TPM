@@ -41,7 +41,7 @@ def create_equidistant_mesh(n_x, n_y, n_z, temperature_ini, dx, dy, dz, diffusio
     return mesh, dx_arr, dy_arr, dz_arr, Dr, a, (a_rad-1), b, (b_rad-1)
 
 
-def create_equidistant_mesh_2_layer(n_x, n_y, n_z, temperature_ini, dx, dy, dz, layer_boundary, factor):
+def create_equidistant_mesh_2_layer(n_x, n_y, n_z, temperature_ini, dx, dy, dz, particle_diameter, layer_boundary, factor):
     if sett.mesh_form == 1:
         a = n_x / 2 - 0.5
         a_rad = (n_x - 2) // 2
@@ -64,9 +64,14 @@ def create_equidistant_mesh_2_layer(n_x, n_y, n_z, temperature_ini, dx, dy, dz, 
     dx_arr = np.full((n_z, n_y, n_x), dx, dtype=np.float64)
     dy_arr = np.full((n_z, n_y, n_x), dy, dtype=np.float64)
     dz_arr = np.full((n_z, n_y, n_x), dz, dtype=np.float64)
-    #dz_arr[1] = np.full((n_y, n_x,), dz * 20, dtype=np.float64)
-    #dz_arr[layer_boundary:n_z] = np.full((n_z-layer_boundary, n_y, n_x), dz * 10, dtype=np.float64)
+    # dz_arr[1] = np.full((n_y, n_x,), dz * 20, dtype=np.float64)
+    # dz_arr[layer_boundary:n_z] = np.full((n_z-layer_boundary, n_y, n_x), dz * 10, dtype=np.float64)
     Dr = np.full((n_z, n_y, n_x, 6), np.array([dz, dz, dy, dy, dx, dx]), dtype=np.float64)
+    Dr[0] = np.full((n_y, n_x, 6), np.array([particle_diameter, 0, dy, dy, dx, dx]), dtype=np.float64)
+    Dr[1] = np.full((n_y, n_x, 6), np.array([particle_diameter, particle_diameter, dy, dy, dx, dx]), dtype=np.float64)
+    Dr[2] = np.full((n_y, n_x, 6), np.array([dz, particle_diameter, dy, dy, dx, dx]), dtype=np.float64)
+    dz_arr[1] = np.full((n_y, n_x), particle_diameter / 2, dtype=np.float64)
+    dz_arr[2] = np.full((n_y, n_x), particle_diameter / 2 + dz / 2, dtype=np.float64)
     for i in range(layer_boundary, n_z):
         if i == layer_boundary:
             Dr[i] = np.full((n_y, n_x, 6), np.array([dz * factor, dz, dy, dy, dx, dx]), dtype=np.float64)

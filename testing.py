@@ -499,24 +499,29 @@ ax.set_title('First layer pressure and subl. pressure')
 plt.savefig('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Top_pressure_v_sublpress.png', dpi=600)
 #plt.show()'''
 
-'''OR = [2.5851651252493537e-12, 2.5599845332821927e-12, 2.5588937352294457e-12, 2.5585387116951732e-12]
-dx = [5e-6, 1e-6, 5e-7, 1e-7]
+#OR = [2.5851651252493537e-12, 2.5599845332821927e-12, 2.5588937352294457e-12, 2.5585387116951732e-12]
+OR_active = [2.5851651252528232e-12, 2.5851651252493537e-12, 2.585165125249339e-12, 2.585165125249339e-12, 2.5851651252493885e-12, 2.585165125250289e-12]
+#OR_with_gap = [3.084450563685384e-16, 3.0778476912483063e-16, 3.07784746522077e-16, 3.077845178143886e-16, 3.0778193719693644e-16, 3.0766353184259217e-16]
+#OR_without_gap = [3.0844509890573357e-16, 3.07784813073193e-16, 3.0778479053331925e-16, 3.077845624591281e-16, 3.0778198887898456e-16, 3.0766382933400704e-16]
+dx = [1e-10, 1e-9, 1e-8, 1e-7, 1e-6, 1e-5]
 
 fig, ax = plt.subplots(1, 1)
 plt.tick_params(axis='both', which='both', direction='in', top=True, right=True, bottom=True, left=True, labeltop=False, labelright=False, labelbottom=True, labelleft=True)
-ax.plot(dx, OR, marker='x', label=r'dz = $5 * 10^{-6}$')
+ax.plot(dx, OR_active, marker='x', label=r'2.5$\mu$m Grenzschicht, dz = $5*10^{-6}$ m')
+#ax.plot(dx, OR_without_gap, marker='p', label=r'Grenzschicht nicht fixiert, dz = $5*10^{-6}$ m')
 #ax.plot(dt[3], OR[3], marker='p', label=r'vacuum diff rate = $* 1000000$')
 #ax.plot(dt[4], OR[4], marker='s', label=r'empty layer = $5 * 10^{-4}$')
-#plt.legend(loc=4, fontsize='x-small')
-ax.set_xlabel('Spatial step (m)')
-ax.set_ylabel('Outgassing rate (kg/s)')
+
+plt.legend(loc=1, fontsize='x-small')
+ax.set_xlabel('Zeitschritt (m)')
+ax.set_ylabel('Ausgasrate (kg/s)')
 ax.set_xscale('log')
-ax.set_yscale('log')
+#ax.set_yscale('log')
 #plt.ylim(1.5223E-11, 1.5225E-11)
 fig.set_tight_layout(True)
 #ax.set_title(r'High diffrate with changing dz')
-plt.savefig('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/Ice/changing_dz_corr_eng.png', dpi=600)
-plt.show()'''
+plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Thesis/changing_dt_dz5e6_active_medium_corr_de.png', dpi=600)
+plt.show()
 
 '''path = 'C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/Ice/'
 files = ['5e-6_first_layer_particle_radius_corr.npy', '1e-6_first_layer_particle_radius_corr.npy', '5e-7_first_layer_particle_radius_corr.npy', '1e-7_first_layer_particle_radius_corr.npy']
@@ -647,7 +652,7 @@ for each in [l1, l2]:
     ax.add_artist(each)
 plt.show()'''
 
-path = 'C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/Ice/5e-6_uniform_water_masses_test.npy'
+'''path = 'C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/Ice/5e-6_uniform_water_masses_test.npy'
 
 arr_5e6 = np.load(path)
 dx_5e6 = []
@@ -677,4 +682,4 @@ ax.add_artist(line.Line2D([25E-6, 25E-6], [1E-15, 1E-12], ls='--'))
 fig.set_tight_layout(True)
 ax.set_title(r'Heiße Schicht in 25 $\mu$m Tiefe')
 #plt.savefig('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Intervoxel_outgassing_first_layer_particle_radius_corr_de.png', dpi=600)
-plt.show()
+plt.show()'''

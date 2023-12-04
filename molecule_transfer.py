@@ -782,10 +782,10 @@ def sinter_neck_calculation_time_dependent(r_n, r_p, dt, temperature, a_1, b_1, 
 
 
 @njit
-def sinter_neck_calculation_time_dependent_diffusion(r_n, r_p, dt, temperature, a_1, b_1, c_1, d_1, omega, surface_energy, R_gas, r_grain, alpha, m_mol, density, pressure, m_H2O, k_B, k_factor, water_particle_number, blocked_voxels, n_x, n_y, n_z, sample_holder, dx, dy, dz, gas_density):
+def sinter_neck_calculation_time_dependent_diffusion(r_n, r_p, dt, temperature, a_1, b_1, c_1, d_1, omega, surface_energy, R_gas, r_grain, alpha, m_mol, density, pressure, m_H2O, k_B, k_factor, water_particle_number, blocked_voxels, n_x, n_y, n_z, sample_holder, dx, dy, dz, gas_density, areas):
     p_sub = np.zeros((n_z, n_y, n_x), dtype=np.float64)
     sublimated_mass = np.zeros((n_z, n_y, n_x), dtype=np.float64)
-    areas = np.zeros((n_z, n_y, n_x), dtype=np.float64)
+    #areas = np.zeros((n_z, n_y, n_x), dtype=np.float64)
     for i in range(1, n_z-1):
         for j in range(1, n_y-1):
             for k in range(1, n_x-1):
@@ -820,7 +820,7 @@ def sinter_neck_calculation_time_dependent_diffusion(r_n, r_p, dt, temperature, 
                         pressure_impulse = 1 / areas[i][j][k] * sublimated_mass[i][j][k] * v ** 2 / (2 * r_p[i][j][k])  # 2 * r_mono ~~ mean free path
                         #pressure_impulse = 1/6 * 1 / (dx[i][j][k] * dy[i][j][k]) * sublimated_mass[i][j][k] * v**2 / (2 * r_p[i][j][k])    # 2 * r_mono ~~ mean free path
                         if pressure_impulse > p_sub[i][j][k]:
-                            sublimated_mass[i][j][k] = p_sub[i][j][k] * 6 * dx[i][j][k] * dy[i][j][k] * 2 * r_p[i][j][k] / (v**2) - (gas_density[i][j][k] * dx[i][j][k] * dy[i][j][k] * dz[i][j][k])
+                            sublimated_mass[i][j][k] = p_sub[i][j][k] * areas[i][j][k] * 2 * r_p[i][j][k] / (v**2) - (gas_density[i][j][k] * dx[i][j][k] * dy[i][j][k] * dz[i][j][k])
                         #areas[i][j][k] = (water_particle_number[i][j][k] * 4 * np.pi * r_p[i][j][k] ** 2)
                         #sublimated_mass[i][j][k] = Z * (water_particle_number[i][j][k] * 4 * np.pi * r_p[i][j][k] ** 2) * dt
                         #sublimated_mass[i][j][k] = Z * dx[i][j][k] * dy[i][j][k] * dt
