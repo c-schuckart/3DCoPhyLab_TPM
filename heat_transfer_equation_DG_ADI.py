@@ -63,7 +63,7 @@ def boundary_condition_implicit_z_sweep(r_H, albedo, dt, input_energy, sigma, ep
         S_p_rad = -4 * epsilon * sigma * (temperature[each[2]][each[1]][each[0]]**3 - ambient_temperature**3) * (dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][0] + surface[each[2]][each[1]][each[0]][1]) + dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][2] + surface[each[2]][each[1]][each[0]][3]) + dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][4] + surface[each[2]][each[1]][each[0]][5]))
         if S_p_rad > 0:
             S_p_rad = 0
-            S_c_rad = - epsilon * sigma * (temperature[each[2]][each[1]][each[0]]**4 - 300**4) * (dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][0] + surface[each[2]][each[1]][each[0]][1]) + dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][2] + surface[each[2]][each[1]][each[0]][3]) + dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][4] + surface[each[2]][each[1]][each[0]][5]))
+            S_c_rad = - epsilon * sigma * (temperature[each[2]][each[1]][each[0]]**4 - ambient_temperature**4) * (dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][0] + surface[each[2]][each[1]][each[0]][1]) + dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][2] + surface[each[2]][each[1]][each[0]][3]) + dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][4] + surface[each[2]][each[1]][each[0]][5]))
         Q = input_energy[each[2]][each[1]][each[0]] / r_H ** 2 * (1 - albedo) * surface[each[2]][each[1]][each[0]][1]
         a_t = 1 / 2 * Lambda[each[2]][each[1]][each[0]][0] * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] / Dr[each[2]][each[1]][each[0]][0] * (1 - surface[each[2]][each[1]][each[0]][0])
         a_b = 1 / 2 * Lambda[each[2]][each[1]][each[0]][1] * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] / Dr[each[2]][each[1]][each[0]][1] * (1 - surface[each[2]][each[1]][each[0]][1])
@@ -164,7 +164,7 @@ def boundary_condition_implicit_y_sweep(r_H, albedo, dt, input_energy, sigma, ep
         #S_p_rad = -4 * epsilon * sigma * (dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][0] + surface[each[2]][each[1]][each[0]][1]) * (temperature[each[2]][each[1]][each[0]]**3 - ambient_temperature[0]**3) + dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][2] + surface[each[2]][each[1]][each[0]][3]) * (temperature[each[2]][each[1]][each[0]]**3 - ambient_temperature[0]**3) + dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][4] + surface[each[2]][each[1]][each[0]][5]) * (temperature[each[2]][each[1]][each[0]]**3 - ambient_temperature[0]**3))
         if S_p_rad > 0:
             S_p_rad = 0
-            S_c_rad = epsilon * sigma * (temperature[each[2]][each[1]][each[0]]**4 - 300**4) * (dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][0] + surface[each[2]][each[1]][each[0]][1]) + dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][2] + surface[each[2]][each[1]][each[0]][3]) + dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][4] + surface[each[2]][each[1]][each[0]][5]))
+            S_c_rad = - epsilon * sigma * (temperature[each[2]][each[1]][each[0]]**4 - ambient_temperature**4) * (dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][0] + surface[each[2]][each[1]][each[0]][1]) + dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][2] + surface[each[2]][each[1]][each[0]][3]) + dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][4] + surface[each[2]][each[1]][each[0]][5]))
         Q = input_energy[each[2]][each[1]][each[0]] / r_H ** 2 * (1 - albedo) * surface[each[2]][each[1]][each[0]][1]
         a_t = Lambda[each[2]][each[1]][each[0]][0] * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] / Dr[each[2]][each[1]][each[0]][0] * (1 - surface[each[2]][each[1]][each[0]][0])
         a_b = Lambda[each[2]][each[1]][each[0]][1] * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] / Dr[each[2]][each[1]][each[0]][1] * (1 - surface[each[2]][each[1]][each[0]][1])
@@ -263,7 +263,7 @@ def boundary_condition_implicit_x_sweep(r_H, albedo, dt, input_energy, sigma, ep
         S_p_rad = -4 * epsilon * sigma * (temperature[each[2]][each[1]][each[0]]**3 - ambient_temperature**3) * (dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][0] + surface[each[2]][each[1]][each[0]][1]) + dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][2] + surface[each[2]][each[1]][each[0]][3]) + dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][4] + surface[each[2]][each[1]][each[0]][5]))
         if S_p_rad > 0:
             S_p_rad = 0
-            S_c_rad = epsilon * sigma * (temperature[each[2]][each[1]][each[0]]**4 - 300**4) * (dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][0] + surface[each[2]][each[1]][each[0]][1]) + dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][2] + surface[each[2]][each[1]][each[0]][3]) + dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][4] + surface[each[2]][each[1]][each[0]][5]))
+            S_c_rad = - epsilon * sigma * (temperature[each[2]][each[1]][each[0]]**4 - ambient_temperature**4) * (dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][0] + surface[each[2]][each[1]][each[0]][1]) + dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][2] + surface[each[2]][each[1]][each[0]][3]) + dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][4] + surface[each[2]][each[1]][each[0]][5]))
         Q = input_energy[each[2]][each[1]][each[0]] / r_H ** 2 * (1 - albedo) * surface[each[2]][each[1]][each[0]][1]
         a_t = Lambda[each[2]][each[1]][each[0]][0] * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] / Dr[each[2]][each[1]][each[0]][0] * (1 - surface[each[2]][each[1]][each[0]][0])
         a_b = Lambda[each[2]][each[1]][each[0]][1] * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] / Dr[each[2]][each[1]][each[0]][1] * (1 - surface[each[2]][each[1]][each[0]][1])
@@ -462,8 +462,8 @@ def set_matrices_rhs_z_sweep_periodic(n_z, j, k, rhs, temperature, surface, samp
     return rhs
 
 
-@njit
-def boundary_condition_implicit_z_sweep_periodic(r_H, albedo, dt, input_energy, sigma, epsilon, temperature, Lambda, Dr, heat_capacity, density, dx, dy, dz, surface, surface_reduced, sub_alpha, diag, sub_gamma, rhs, S_c, S_p, n_x, n_y, inner_structure):
+#@njit
+def boundary_condition_implicit_z_sweep_periodic(r_H, albedo, dt, input_energy, sigma, epsilon, temperature, Lambda, Dr, heat_capacity, density, dx, dy, dz, surface, surface_reduced, sub_alpha, diag, sub_gamma, rhs, S_c, S_p, n_x, n_y, inner_structure, ambient_temperature):
     for each in surface_reduced:
         x_neg_periodic, x_pos_periodic, y_neg_periodic, y_pos_periodic = 0, 0, 0, 0
         if each[0] == 1:
@@ -474,8 +474,11 @@ def boundary_condition_implicit_z_sweep_periodic(r_H, albedo, dt, input_energy, 
             y_neg_periodic = 1
         if each[1] == n_y-2:
             y_pos_periodic = 1
-        S_c_rad = 3 * epsilon * sigma * temperature[each[2]][each[1]][each[0]]**4 * (dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][0] + surface[each[2]][each[1]][each[0]][1]) + dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][2] + surface[each[2]][each[1]][each[0]][3]) + dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][4] + surface[each[2]][each[1]][each[0]][5]))
-        S_p_rad = -4 * epsilon * sigma * temperature[each[2]][each[1]][each[0]]**3 * (dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][0] + surface[each[2]][each[1]][each[0]][1]) + dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][2] + surface[each[2]][each[1]][each[0]][3]) + dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][4] + surface[each[2]][each[1]][each[0]][5]))
+        S_c_rad = 3 * epsilon * sigma * (temperature[each[2]][each[1]][each[0]]**4 - ambient_temperature**4) * (dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][0] + surface[each[2]][each[1]][each[0]][1]) + dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][2] + surface[each[2]][each[1]][each[0]][3]) + dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][4] + surface[each[2]][each[1]][each[0]][5]))
+        S_p_rad = -4 * epsilon * sigma * (temperature[each[2]][each[1]][each[0]]**3 - ambient_temperature**3) * (dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][0] + surface[each[2]][each[1]][each[0]][1]) + dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][2] + surface[each[2]][each[1]][each[0]][3]) + dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][4] + surface[each[2]][each[1]][each[0]][5]))
+        if S_p_rad > 0:
+            S_p_rad = 0
+            S_c_rad = - epsilon * sigma * (temperature[each[2]][each[1]][each[0]]**4 - ambient_temperature**4) * (dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][0] + surface[each[2]][each[1]][each[0]][1]) + dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][2] + surface[each[2]][each[1]][each[0]][3]) + dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][4] + surface[each[2]][each[1]][each[0]][5]))
         Q = input_energy[each[2]][each[1]][each[0]] / r_H ** 2 * (1 - albedo) * surface[each[2]][each[1]][each[0]][1]
         a_t = 1 / 2 * Lambda[each[2]][each[1]][each[0]][0] * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] / Dr[each[2]][each[1]][each[0]][0] * (1 - surface[each[2]][each[1]][each[0]][0]) * (1 - inner_structure[each[2]][each[1]][each[0]][0])
         a_b = 1 / 2 * Lambda[each[2]][each[1]][each[0]][1] * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] / Dr[each[2]][each[1]][each[0]][1] * (1 - surface[each[2]][each[1]][each[0]][1]) * (1 - inner_structure[each[2]][each[1]][each[0]][1])
@@ -537,7 +540,7 @@ def set_matrices_rhs_y_sweep_periodic(n_y, i, k, rhs, temperature, z_sweep_tempe
 
 
 @njit
-def boundary_condition_implicit_y_sweep_periodic(r_H, albedo, dt, input_energy, sigma, epsilon, temperature, z_sweep_temperature, Lambda, Dr, heat_capacity, density, dx, dy, dz, surface, surface_reduced, sub_alpha, diag, sub_gamma, rhs, S_c, S_p, n_x, n_y, inner_structure):
+def boundary_condition_implicit_y_sweep_periodic(r_H, albedo, dt, input_energy, sigma, epsilon, temperature, z_sweep_temperature, Lambda, Dr, heat_capacity, density, dx, dy, dz, surface, surface_reduced, sub_alpha, diag, sub_gamma, rhs, S_c, S_p, n_x, n_y, inner_structure, ambient_temperature):
     for each in surface_reduced:
         x_neg_periodic, x_pos_periodic, y_neg_periodic, y_pos_periodic = 0, 0, 0, 0
         if each[0] == 1:
@@ -548,8 +551,11 @@ def boundary_condition_implicit_y_sweep_periodic(r_H, albedo, dt, input_energy, 
             y_neg_periodic = 1
         if each[1] == n_y-2:
             y_pos_periodic = 1
-        S_c_rad = 3 * epsilon * sigma * temperature[each[2]][each[1]][each[0]]**4 * (dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][0] + surface[each[2]][each[1]][each[0]][1]) + dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][2] + surface[each[2]][each[1]][each[0]][3]) + dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][4] + surface[each[2]][each[1]][each[0]][5]))
-        S_p_rad = -4 * epsilon * sigma * temperature[each[2]][each[1]][each[0]]**3 * (dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][0] + surface[each[2]][each[1]][each[0]][1]) + dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][2] + surface[each[2]][each[1]][each[0]][3]) + dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][4] + surface[each[2]][each[1]][each[0]][5]))
+        S_c_rad = 3 * epsilon * sigma * (temperature[each[2]][each[1]][each[0]]**4 - ambient_temperature**4) * (dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][0] + surface[each[2]][each[1]][each[0]][1]) + dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][2] + surface[each[2]][each[1]][each[0]][3]) + dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][4] + surface[each[2]][each[1]][each[0]][5]))
+        S_p_rad = -4 * epsilon * sigma * (temperature[each[2]][each[1]][each[0]]**3 - ambient_temperature**3) * (dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][0] + surface[each[2]][each[1]][each[0]][1]) + dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][2] + surface[each[2]][each[1]][each[0]][3]) + dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][4] + surface[each[2]][each[1]][each[0]][5]))
+        if S_p_rad > 0:
+            S_p_rad = 0
+            S_c_rad = - epsilon * sigma * (temperature[each[2]][each[1]][each[0]]**4 - ambient_temperature**4) * (dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][0] + surface[each[2]][each[1]][each[0]][1]) + dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][2] + surface[each[2]][each[1]][each[0]][3]) + dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][4] + surface[each[2]][each[1]][each[0]][5]))
         Q = input_energy[each[2]][each[1]][each[0]] / r_H ** 2 * (1 - albedo) * surface[each[2]][each[1]][each[0]][1]
         a_t = Lambda[each[2]][each[1]][each[0]][0] * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] / Dr[each[2]][each[1]][each[0]][0] * (1 - surface[each[2]][each[1]][each[0]][0]) * (1 - inner_structure[each[2]][each[1]][each[0]][0])
         a_b = Lambda[each[2]][each[1]][each[0]][1] * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] / Dr[each[2]][each[1]][each[0]][1] * (1 - surface[each[2]][each[1]][each[0]][1]) * (1 - inner_structure[each[2]][each[1]][each[0]][1])
@@ -612,7 +618,7 @@ def set_matrices_rhs_x_sweep_periodic(n_x, i, j, rhs, temperature, z_sweep_tempe
 
 
 @njit
-def boundary_condition_implicit_x_sweep_periodic(r_H, albedo, dt, input_energy, sigma, epsilon, temperature, z_sweep_temperature, y_sweep_temperature, Lambda, Dr, heat_capacity, density, dx, dy, dz, surface, surface_reduced, sub_alpha, diag, sub_gamma, rhs, S_c, S_p, n_x, n_y, inner_structure):
+def boundary_condition_implicit_x_sweep_periodic(r_H, albedo, dt, input_energy, sigma, epsilon, temperature, z_sweep_temperature, y_sweep_temperature, Lambda, Dr, heat_capacity, density, dx, dy, dz, surface, surface_reduced, sub_alpha, diag, sub_gamma, rhs, S_c, S_p, n_x, n_y, inner_structure, ambient_temperature):
     for each in surface_reduced:
         x_neg_periodic, x_pos_periodic, y_neg_periodic, y_pos_periodic = 0, 0, 0, 0
         if each[0] == 1:
@@ -623,8 +629,11 @@ def boundary_condition_implicit_x_sweep_periodic(r_H, albedo, dt, input_energy, 
             y_neg_periodic = 1
         if each[1] == n_y-2:
             y_pos_periodic = 1
-        S_c_rad = 3 * epsilon * sigma * temperature[each[2]][each[1]][each[0]]**4 * (dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][0] + surface[each[2]][each[1]][each[0]][1]) + dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][2] + surface[each[2]][each[1]][each[0]][3]) + dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][4] + surface[each[2]][each[1]][each[0]][5]))
-        S_p_rad = -4 * epsilon * sigma * temperature[each[2]][each[1]][each[0]]**3 * (dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][0] + surface[each[2]][each[1]][each[0]][1]) + dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][2] + surface[each[2]][each[1]][each[0]][3]) + dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][4] + surface[each[2]][each[1]][each[0]][5]))
+        S_c_rad = 3 * epsilon * sigma * (temperature[each[2]][each[1]][each[0]]**4 - ambient_temperature**4) * (dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][0] + surface[each[2]][each[1]][each[0]][1]) + dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][2] + surface[each[2]][each[1]][each[0]][3]) + dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][4] + surface[each[2]][each[1]][each[0]][5]))
+        S_p_rad = -4 * epsilon * sigma * (temperature[each[2]][each[1]][each[0]]**3 - ambient_temperature**3) * (dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][0] + surface[each[2]][each[1]][each[0]][1]) + dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][2] + surface[each[2]][each[1]][each[0]][3]) + dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][4] + surface[each[2]][each[1]][each[0]][5]))
+        if S_p_rad > 0:
+            S_p_rad = 0
+            S_c_rad = - epsilon * sigma * (temperature[each[2]][each[1]][each[0]]**4 - ambient_temperature**4) * (dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][0] + surface[each[2]][each[1]][each[0]][1]) + dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][2] + surface[each[2]][each[1]][each[0]][3]) + dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] * (surface[each[2]][each[1]][each[0]][4] + surface[each[2]][each[1]][each[0]][5]))
         Q = input_energy[each[2]][each[1]][each[0]] / r_H ** 2 * (1 - albedo) * surface[each[2]][each[1]][each[0]][1]
         a_t = Lambda[each[2]][each[1]][each[0]][0] * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] / Dr[each[2]][each[1]][each[0]][0] * (1 - surface[each[2]][each[1]][each[0]][0]) * (1 - inner_structure[each[2]][each[1]][each[0]][0])
         a_b = Lambda[each[2]][each[1]][each[0]][1] * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] / Dr[each[2]][each[1]][each[0]][1] * (1 - surface[each[2]][each[1]][each[0]][1]) * (1 - inner_structure[each[2]][each[1]][each[0]][1])
@@ -642,8 +651,8 @@ def boundary_condition_implicit_x_sweep_periodic(r_H, albedo, dt, input_energy, 
     return sub_alpha, diag, sub_gamma, rhs
 
 
-@njit
-def hte_implicit_DGADI_periodic(n_x, n_y, n_z, surface_reduced, r_H, albedo, dt, input_energy, sigma, epsilon, temperature, Lambda, Dr, heat_capacity, density, dx, dy, dz, surface, S_c, S_p, sample_holder, inner_structure):
+#@njit
+def hte_implicit_DGADI_periodic(n_x, n_y, n_z, surface_reduced, r_H, albedo, dt, input_energy, sigma, epsilon, temperature, Lambda, Dr, heat_capacity, density, dx, dy, dz, surface, S_c, S_p, sample_holder, inner_structure, ambient_temperature):
     next_step_temperature = np.zeros((n_z, n_y, n_x), dtype=np.float64)
     z_sweep_temperature = np.zeros((n_z, n_y, n_x), dtype=np.float64)
     y_sweep_temperature = np.zeros((n_z, n_y, n_x), dtype=np.float64)
@@ -659,7 +668,7 @@ def hte_implicit_DGADI_periodic(n_x, n_y, n_z, surface_reduced, r_H, albedo, dt,
                 if each[1] == j and each[0] == k:
                     surface_elements_in_line[counter] = np.array([each[0], each[1], each[2]], dtype=np.float64)
                     counter += 1
-            sub_alpha, diag, sub_gamma, rhs = boundary_condition_implicit_z_sweep_periodic(r_H, albedo, dt, input_energy, sigma, epsilon, temperature, Lambda, Dr, heat_capacity, density, dx, dy, dz, surface, surface_elements_in_line[0:counter], sub_alpha, diag, sub_gamma, rhs, S_c, S_p, n_x, n_y, inner_structure)
+            sub_alpha, diag, sub_gamma, rhs = boundary_condition_implicit_z_sweep_periodic(r_H, albedo, dt, input_energy, sigma, epsilon, temperature, Lambda, Dr, heat_capacity, density, dx, dy, dz, surface, surface_elements_in_line[0:counter], sub_alpha, diag, sub_gamma, rhs, S_c, S_p, n_x, n_y, inner_structure, ambient_temperature)
             sub_alpha, diag, sub_gamma = set_matrices_lhs_z_sweep_periodic(n_z, j, k, sub_alpha, diag, sub_gamma, Lambda, dx, dy, dz, Dr, density, heat_capacity, dt, S_p, temperature, surface, sample_holder, inner_structure)
             rhs = set_matrices_rhs_z_sweep_periodic(n_z, j, k, rhs, temperature, surface, sample_holder, dx, dy, dz, Dr, Lambda, density, heat_capacity, dt, S_c, n_x, n_y, inner_structure)
             z_sweep_temperature[1:n_z-1, j, k] = tridiagonal_matrix_solver(n_z-2, diag[1:n_z-1], sub_gamma[1:n_z-1], sub_alpha[1:n_z-1], rhs[1:n_z-1])
@@ -675,7 +684,7 @@ def hte_implicit_DGADI_periodic(n_x, n_y, n_z, surface_reduced, r_H, albedo, dt,
                 if each[2] == i and each[0] == k:
                     surface_elements_in_line[counter] = np.array([each[0], each[1], each[2]], dtype=np.float64)
                     counter += 1
-            sub_alpha, diag, sub_gamma, rhs = boundary_condition_implicit_y_sweep_periodic(r_H, albedo, dt, input_energy, sigma, epsilon, temperature, z_sweep_temperature, Lambda, Dr, heat_capacity, density, dx, dy, dz, surface, surface_elements_in_line[0:counter], sub_alpha, diag, sub_gamma, rhs, S_c, S_p, n_x, n_y, inner_structure)
+            sub_alpha, diag, sub_gamma, rhs = boundary_condition_implicit_y_sweep_periodic(r_H, albedo, dt, input_energy, sigma, epsilon, temperature, z_sweep_temperature, Lambda, Dr, heat_capacity, density, dx, dy, dz, surface, surface_elements_in_line[0:counter], sub_alpha, diag, sub_gamma, rhs, S_c, S_p, n_x, n_y, inner_structure, ambient_temperature)
             sub_alpha, diag, sub_gamma = set_matrices_lhs_y_sweep_periodic(n_y, i, k, sub_alpha, diag, sub_gamma, Lambda, dx, dy, dz, Dr, density, heat_capacity, dt, S_p, temperature, surface, sample_holder, inner_structure)
             rhs = set_matrices_rhs_y_sweep_periodic(n_y, i, k, rhs, temperature, z_sweep_temperature, surface, sample_holder, dx, dy, dz, Dr, Lambda, density, heat_capacity, dt, S_c, n_x, inner_structure)
             y_sweep_temperature[i, 1:n_y-1, k] = periodic_tridiagonal_matrix_solver(n_y-2, diag[1:n_y-1], sub_gamma[1:n_y-1], sub_alpha[1:n_y-1], rhs[1:n_y-1])
@@ -691,7 +700,7 @@ def hte_implicit_DGADI_periodic(n_x, n_y, n_z, surface_reduced, r_H, albedo, dt,
                 if each[2] == i and each[1] == j:
                     surface_elements_in_line[counter] = np.array([each[0], each[1], each[2]], dtype=np.float64)
                     counter += 1
-            sub_alpha, diag, sub_gamma, rhs = boundary_condition_implicit_x_sweep_periodic(r_H, albedo, dt, input_energy, sigma, epsilon, temperature, z_sweep_temperature, y_sweep_temperature, Lambda, Dr, heat_capacity, density, dx, dy, dz, surface, surface_elements_in_line[0:counter], sub_alpha, diag, sub_gamma, rhs, S_c, S_p, n_x, n_y, inner_structure)
+            sub_alpha, diag, sub_gamma, rhs = boundary_condition_implicit_x_sweep_periodic(r_H, albedo, dt, input_energy, sigma, epsilon, temperature, z_sweep_temperature, y_sweep_temperature, Lambda, Dr, heat_capacity, density, dx, dy, dz, surface, surface_elements_in_line[0:counter], sub_alpha, diag, sub_gamma, rhs, S_c, S_p, n_x, n_y, inner_structure, ambient_temperature)
             sub_alpha, diag, sub_gamma = set_matrices_lhs_x_sweep_periodic(n_x, i, j, sub_alpha, diag, sub_gamma, Lambda, dx, dy, dz, Dr, density, heat_capacity, dt, S_p, temperature, surface, sample_holder, inner_structure)
             rhs = set_matrices_rhs_x_sweep_periodic(n_x, i, j, rhs, temperature, z_sweep_temperature, y_sweep_temperature, surface, sample_holder, dx, dy, dz, Dr, Lambda, density, heat_capacity, dt, S_c, n_y, inner_structure)
             next_step_temperature[i, j, 1:n_x-1] = periodic_tridiagonal_matrix_solver(n_x-2, diag[1:n_x-1], sub_gamma[1:n_x-1], sub_alpha[1:n_x-1], rhs[1:n_x-1])

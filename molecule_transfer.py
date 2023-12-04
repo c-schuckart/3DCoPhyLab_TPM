@@ -188,7 +188,7 @@ def calculate_molecule_flux_diag(n_x, n_y, n_z, temperature, pressure, a_1, b_1,
     return sublimated_mass, resublimated_mass, pressure, outgassed_mass/dt, empty_voxels, mass_flux
 
 @njit
-def calculate_molecule_surface(n_x, n_y, n_z, temperature, pressure, a_1, b_1, c_1, d_1, m_H2O, R_gas, VFF, r_grain, Phi, tortuosity, dx, dy, dz, dt, surface_reduced, avogadro_constant, k_B, sample_holder, water_mass_per_layer, n_x_lr, n_y_lr, n_z_lr, Dr, surface_reduction_factor):
+def calculate_molecule_surface(n_x, n_y, n_z, temperature, pressure, a_1, b_1, c_1, d_1, m_H2O, R_gas, VFF, r_grain, Phi, tortuosity, dx, dy, dz, dt, surface_reduced, avogadro_constant, k_B, sample_holder, water_mass_per_layer, n_x_lr, n_y_lr, n_z_lr, Dr):
     p_sub = np.zeros(np.shape(temperature), dtype=np.float64)
     sublimated_mass = np.zeros(np.shape(temperature), dtype=np.float64)
     resublimated_mass = np.zeros((n_z, n_y, n_x), dtype=np.float64)
@@ -290,7 +290,7 @@ def calculate_molecule_flux_test(n_x, n_y, n_z, temperature, pressure, a_1, b_1,
 
 
 @njit
-def calculate_molecule_flux_test_Q(n_x, n_y, n_z, temperature, pressure, a_1, b_1, c_1, d_1, m_H2O, R_gas, VFF, r_grain, Phi, tortuosity, dx, dy, dz, dt, surface_reduced, avogadro_constant, k_B, sample_holder, water_mass_per_layer, n_x_lr, n_y_lr, n_z_lr, Dr, surface_reduction_factor, latent_heat_water, surface):
+def calculate_molecule_flux_test_Q(n_x, n_y, n_z, temperature, pressure, a_1, b_1, c_1, d_1, m_H2O, R_gas, VFF, r_grain, Phi, tortuosity, dx, dy, dz, dt, surface_reduced, avogadro_constant, k_B, sample_holder, water_mass_per_layer, n_x_lr, n_y_lr, n_z_lr, Dr, latent_heat_water, surface):
     p_sub = np.zeros(np.shape(temperature), dtype=np.float64)
     sublimated_mass = np.zeros(np.shape(temperature), dtype=np.float64)
     resublimated_mass = np.zeros((n_z, n_y, n_x), dtype=np.float64)
@@ -318,16 +318,16 @@ def calculate_molecule_flux_test_Q(n_x, n_y, n_z, temperature, pressure, a_1, b_
         mass_flux[each[2]][each[1]][each[0]] = sublimated_mass[each[2]][each[1]][each[0]]
         # p_sub[each[2]][each[1]][each[0]] = 0
         S_c[each[2]][each[1]][each[0]] = - sublimated_mass[each[2]][each[1]][each[0]] * latent_heat_water[each[2]][each[1]][each[0]] / (dt * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]])
-    for i in range(1, n_z-1):
+    '''for i in range(1, n_z-1):
         for j in range(1, n_y-1):
             for k in range(1, n_x-1):
                 if np.sum(surface[i][j][k]) == 0 and temperature[i][j][k] > 0:
                     p_sub[i][j][k] = 10 ** (a_1[0] + b_1[0] / temperature[i][j][k] + c_1[0] * np.log10(temperature[i][j][k]) + d_1[0] * temperature[i][j][k])
                     sublimated_mass[i][j][k] = (p_sub[i][j][k] - pressure[i][j][k]) * np.sqrt(m_H2O / (2 * np.pi * k_B * temperature[i][j][k])) * dx[i][j][k] * dy[i][j][k] * dt
-                    S_c[i][j][k] = - sublimated_mass[i][j][k] * latent_heat_water[i][j][k] / (dt * dx[i][j][k] * dy[i][j][k] * dz[i][j][k])
+                    S_c[i][j][k] = - sublimated_mass[i][j][k] * latent_heat_water[i][j][k] / (dt * dx[i][j][k] * dy[i][j][k] * dz[i][j][k])'''
     # pressure = p_sub
     # Non 100% resublimation missing
-    return S_c, sublimated_mass
+    return S_c, sublimated_mass, empty_voxels[0:empty_voxel_count]
 
 @njit
 def calculate_molecule_flux_moon(n_x, n_y, n_z, temperature, pressure, a_1, b_1, c_1, d_1, m_H2O, dx, dy, dz, dt, k_B, sample_holder, water_mass_per_layer, latent_heat_water, water_particle_number, r_mono_water):
@@ -419,13 +419,13 @@ def calculate_source_terms_sintering_diffusion(n_x, n_y, n_z, temperature, dx, d
                         empty_voxels[empty_voxel_count] = np.array([k, j, i], dtype=np.int32)
                         empty_voxel_count += 1
                     S_c_hte[i][j][k] = - sublimated_mass[i][j][k] * latent_heat_water[i][j][k] / (dt * dx[i][j][k] * dy[i][j][k] * dz[i][j][k])
-                    if S_c_hte[i][j][k] < 0:
+                    '''if S_c_hte[i][j][k] < 0:
                         S_p_hte[i][j][k] = 3 * S_c_hte[i][j][k] / temperature[i][j][k]
-                        S_c_hte[i][j][k] = - 2 * S_c_hte[i][j][k]
+                        S_c_hte[i][j][k] = - 2 * S_c_hte[i][j][k]'''
                     S_c_de[i][j][k] = sublimated_mass[i][j][k] / (dt * dx[i][j][k] * dy[i][j][k] * dz[i][j][k])
-                    if S_c_de[i][j][k] < 0 and gas_density[i][j][k] > 0:
+                    '''if S_c_de[i][j][k] < 0 and gas_density[i][j][k] > 0:
                         S_p_de[i][j][k] = 3 * S_c_de[i][j][k] / gas_density[i][j][k]
-                        S_c_de[i][j][k] = - 2 * S_c_de[i][j][k]
+                        S_c_de[i][j][k] = - 2 * S_c_de[i][j][k]'''
                     outgassed_mass += sublimated_mass[i][j][k]
     # pressure = p_sub
     return S_c_hte, S_p_hte, S_c_de, S_p_de, empty_voxels[0:empty_voxel_count]
