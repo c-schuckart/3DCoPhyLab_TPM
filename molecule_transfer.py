@@ -419,13 +419,13 @@ def calculate_source_terms_sintering_diffusion(n_x, n_y, n_z, temperature, dx, d
                         empty_voxels[empty_voxel_count] = np.array([k, j, i], dtype=np.int32)
                         empty_voxel_count += 1
                     S_c_hte[i][j][k] = - sublimated_mass[i][j][k] * latent_heat_water[i][j][k] / (dt * dx[i][j][k] * dy[i][j][k] * dz[i][j][k])
-                    '''if S_c_hte[i][j][k] < 0:
+                    if S_c_hte[i][j][k] < 0:
                         S_p_hte[i][j][k] = 3 * S_c_hte[i][j][k] / temperature[i][j][k]
-                        S_c_hte[i][j][k] = - 2 * S_c_hte[i][j][k]'''
+                        S_c_hte[i][j][k] = - 2 * S_c_hte[i][j][k]
                     S_c_de[i][j][k] = sublimated_mass[i][j][k] / (dt * dx[i][j][k] * dy[i][j][k] * dz[i][j][k])
-                    '''if S_c_de[i][j][k] < 0 and gas_density[i][j][k] > 0:
+                    if S_c_de[i][j][k] < 0 and gas_density[i][j][k] > 0:
                         S_p_de[i][j][k] = 3 * S_c_de[i][j][k] / gas_density[i][j][k]
-                        S_c_de[i][j][k] = - 2 * S_c_de[i][j][k]'''
+                        S_c_de[i][j][k] = - 2 * S_c_de[i][j][k]
                     outgassed_mass += sublimated_mass[i][j][k]
     # pressure = p_sub
     return S_c_hte, S_p_hte, S_c_de, S_p_de, empty_voxels[0:empty_voxel_count]
