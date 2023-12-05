@@ -32,6 +32,9 @@ for albedo in albedo_arr:
             #for heat_capacity_sand in ambient_temperature_arr:
                 for epsilon in epsilon_arr:
                     for epsilon_ambient in epsilon_ambient_arr:
+                        if albedo == 0.8 and lambda_sand_c < 0.2:
+                            break
+                        print(albedo, lambda_sand_c, abs_depth, epsilon, epsilon_ambient)
                         temp_max_const = np.zeros(const.k, dtype=np.float64)
                         temp_max_daynight = np.zeros(const.k,dtype=np.float64)
                         for type in [1, 2]:
