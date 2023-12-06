@@ -419,13 +419,13 @@ def calculate_source_terms_sintering_diffusion(n_x, n_y, n_z, temperature, dx, d
                         empty_voxels[empty_voxel_count] = np.array([k, j, i], dtype=np.int32)
                         empty_voxel_count += 1
                     S_c_hte[i][j][k] = - sublimated_mass[i][j][k] * latent_heat_water[i][j][k] / (dt * dx[i][j][k] * dy[i][j][k] * dz[i][j][k])
-                    if S_c_hte[i][j][k] < 0:
+                    '''if S_c_hte[i][j][k] < 0:
                         S_p_hte[i][j][k] = 3 * S_c_hte[i][j][k] / temperature[i][j][k]
-                        S_c_hte[i][j][k] = - 2 * S_c_hte[i][j][k]
+                        S_c_hte[i][j][k] = - 2 * S_c_hte[i][j][k]'''
                     S_c_de[i][j][k] = sublimated_mass[i][j][k] / (dt * dx[i][j][k] * dy[i][j][k] * dz[i][j][k])
-                    if S_c_de[i][j][k] < 0 and gas_density[i][j][k] > 0:
+                    '''if S_c_de[i][j][k] < 0 and gas_density[i][j][k] > 0:
                         S_p_de[i][j][k] = 3 * S_c_de[i][j][k] / gas_density[i][j][k]
-                        S_c_de[i][j][k] = - 2 * S_c_de[i][j][k]
+                        S_c_de[i][j][k] = - 2 * S_c_de[i][j][k]'''
                     outgassed_mass += sublimated_mass[i][j][k]
     # pressure = p_sub
     return S_c_hte, S_p_hte, S_c_de, S_p_de, empty_voxels[0:empty_voxel_count]
@@ -830,6 +830,40 @@ def sinter_neck_calculation_time_dependent_diffusion(r_n, r_p, dt, temperature, 
                         #print(Z[i][j][k], water_particle_number[i][j][k], r_p[i][j][k], neck_area[i][j][k], cond_rate[i][j][k], delta[i][j][k], r_n[i][j][k])
                     r_n[i][j][k] = r_n[i][j][k] + dt * rate
     return r_n, r_p, sublimated_mass, areas
+
+
+'''@njit
+def sinter_neck_calculation_time_dependent_diffusion(r_n, r_p, dt, temperature, a_1, b_1, c_1, d_1, omega, surface_energy, R_gas, r_grain, alpha, m_mol, density, pressure, m_H2O, k_B, k_factor, water_particle_number, blocked_voxels, n_x, n_y, n_z, sample_holder, dx, dy, dz, gas_density, areas):
+    p_sub = np.zeros((n_z, n_y, n_x), dtype=np.float64)
+    sublimated_mass = np.zeros((n_z, n_y, n_x), dtype=np.float64)
+    #areas = np.zeros((n_z, n_y, n_x), dtype=np.float64)
+    for i in range(1, n_z-1):
+        for j in range(1, n_y-1):
+            for k in range(1, n_x-1):
+                if temperature[i][j][k] > 0 and sample_holder[i][j][k] == 0:
+                    if blocked_voxels[i][j][k] == -1:
+                        sublimated_mass[i][j][k] = 10 ** (a_1[0] + b_1[0] / temperature[i][j][k] + c_1[0] * np.log10(temperature[i][j][k]) + d_1[0] * temperature[i][j][k]) * np.sqrt(m_H2O/(2 * np.pi * k_B * temperature[i][j][k])) * dx[i][j][k] * dy[i][j][k]
+                        v = np.sqrt(8 * k_B * temperature[i][j][k] / (np.pi * m_H2O))
+                        pressure_impulse = 1/6 * 1 / (dx[i][j][k] * dy[i][j][k]) * sublimated_mass[i][j][k] * v**2 / (2 * r_p[i][j][k])    # 2 * r_mono ~~ mean free path
+                        if pressure_impulse > p_sub[i][j][k]:
+                            sublimated_mass[i][j][k] = p_sub[i][j][k] * 6 * dx[i][j][k] * dy[i][j][k] * 2 * r_p[i][j][k] / (v**2) - (gas_density[i][j][k] * dx[i][j][k] * dy[i][j][k] * dz[i][j][k])
+                        areas[i][j][k] = dx[i][j][k] * dy[i][j][k]
+                        p_sub[i][j][k] = 0
+                    elif blocked_voxels[i][j][k] == 0:
+                        p_sub[i][j][k] = 10 ** (a_1[0] + b_1[0] / temperature[i][j][k] + c_1[0] * np.log10(temperature[i][j][k]) + d_1[0] * temperature[i][j][k])
+                        #p_sub[i][j][k] = 3.23E12 * np.exp(-6134.6 / temperature[i][j][k]) * blocked_voxels[i][j][k]
+                    else:
+                        p_sub[i][j][k] = 10 ** (a_1[0] + b_1[0] / temperature[i][j][k] + c_1[0] * np.log10(temperature[i][j][k]) + d_1[0] * temperature[i][j][k])
+                    Z = (p_sub[i][j][k] - pressure[i][j][k]) * np.sqrt(m_H2O/(2 * np.pi * k_B * temperature[i][j][k]))
+                    r_c = 2 * m_mol * surface_energy / (density[i][j][k] * R_gas * temperature[i][j][k])
+                    areas[i][j][k] = (water_particle_number[i][j][k] * 4 * np.pi * r_p[i][j][k] ** 2)
+                    sublimated_mass[i][j][k] = Z * (water_particle_number[i][j][k] * np.exp(r_c / r_p[i][j][k]) * 4 * np.pi * r_p[i][j][k] ** 2) * dt
+                    v = np.sqrt(8 * k_B * temperature[i][j][k] / (np.pi * m_H2O))
+                    pressure_impulse = 1 / areas[i][j][k] * sublimated_mass[i][j][k] * v ** 2 / (2 * r_p[i][j][k])  # 2 * r_mono ~~ mean free path
+                    #pressure_impulse = 1/6 * 1 / (dx[i][j][k] * dy[i][j][k]) * sublimated_mass[i][j][k] * v**2 / (2 * r_p[i][j][k])    # 2 * r_mono ~~ mean free path
+                    if pressure_impulse > p_sub[i][j][k]:
+                        sublimated_mass[i][j][k] = p_sub[i][j][k] * areas[i][j][k] * 2 * r_p[i][j][k] / (v**2) - (gas_density[i][j][k] * dx[i][j][k] * dy[i][j][k] * dz[i][j][k])
+    return r_n, r_p, sublimated_mass, areas'''
 
 
 @njit
