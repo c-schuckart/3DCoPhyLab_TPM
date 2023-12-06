@@ -3,6 +3,7 @@ from numba import njit, prange
 import csv
 import pandas as pd
 from os import path
+import matplotlib.pyplot as plt
 
 
 @njit
@@ -167,3 +168,49 @@ def auto_path(path_string):
             out_path = path.join(out_path, path_components[i])
     return out_path.replace("\\", "/")
 
+def prescribe_temp_profile_from_data(n_x, n_y, n_z, temperature, surface_temp, bottom_temp, file, timestamp, height_1, height_2, height_3, height_4, height_5, min_dx, min_dy, r_sh):
+    sensor_1, sensor_2, sensor_3, sensor_4, sensor_5 = 0, 0, 0, 0, 0
+    with open(file) as csvdatei:
+        dat = csv.reader(csvdatei)
+        for each in dat:
+            if each[0] == timestamp:
+                sensor_1 = float(each[1])
+                sensor_2 = float(each[2])
+                sensor_3 = float(each[3])
+                sensor_4 = float(each[4])
+                sensor_5 = float(each[5])
+    profile = np.zeros(np.shape(temperature)[0], dtype=np.float64)
+    if np.isnan(sensor_1):
+        sensor_1 = (surface_temp + sensor_2) / 2
+    for i in range(0, height_1-1):
+        profile[i+1] = surface_temp + (sensor_1 - surface_temp) * i / (height_1-1)
+    for i in range(height_1+1, height_2):
+        profile[i] = sensor_1 + (sensor_2 - sensor_1) * (i - height_1)/(height_2 - height_1)
+    for i in range(height_2+1, height_3):
+        profile[i] = sensor_2 + (sensor_3 - sensor_2) * (i - height_2)/(height_3 - height_2)
+    for i in range(height_3+1, height_4):
+        profile[i] = sensor_3 + (sensor_4 - sensor_3) * (i - height_3)/(height_4 - height_3)
+    for i in range(height_4+1, height_5):
+        profile[i] = sensor_4 + (sensor_5 - sensor_4) * (i - height_4) / (height_5 - height_4)
+    for i in range(height_5+1, n_z-1):
+        profile[i] = sensor_5 + (bottom_temp - sensor_5) * (i - height_5) / (n_z - 1 - height_5)
+    profile[height_1] = sensor_1
+    profile[height_2] = sensor_2
+    profile[height_3] = sensor_3
+    profile[height_4] = sensor_4
+    profile[height_5] = sensor_5
+    sand_base_temp = np.full(n_z, bottom_temp, dtype=np.float64)
+    for j in range(1, n_y-1):
+        for k in range(1, n_x-1):
+            temperature[1:n_z-1, j, k] = sand_base_temp[1:n_z-1] + (profile[1:n_z-1] - sand_base_temp[1:n_z-1]) * np.exp(- (((j - n_y//2) * min_dy)**2 + ((k - n_x//2) * min_dx)**2) / (1/2*r_sh)**2)
+            #temperature[0:n_z, j, k] = profile
+            if np.isnan(temperature[1, j, k]):
+                print(j, k)
+    '''print(temperature[11][n_y//2-8][n_x//2-8] * 3/4 + temperature[11][n_y//2-7][n_x//2-7] * 1/4)
+    print(temperature[21][n_y//2+3-8][n_x//2-8] * 3/4 + temperature[21][n_y//2+3-7][n_x//2-7] * 1/4)
+    print((temperature[22][n_y//2-3-8][n_x//2-8] * 3/4 + temperature[22][n_y//2-3-7][n_x//2-7] * 1/4) * 4/5 + (temperature[23][n_y//2-3-8][n_x//2-8] * 3/4 + temperature[23][n_y//2-3-7][n_x//2-7] * 1/4) * 1/5)
+    print(temperature[24][n_y//2-8][n_x//2-8] * 3/4 + temperature[24][n_y//2-7][n_x//2-7] * 1/4)
+    print(temperature[27][n_y//2+3-8][n_x//2-8] * 3/4 + temperature[27][n_y//2+3-8][n_x//2-8] * 1/4)'''
+    #plt.plot(np.arange(1, n_z), profile[1:n_z])
+    #plt.show()
+    return temperature
