@@ -77,7 +77,7 @@ gravitational_pressure = 0        #Placeholder! [Pa]
 surface_reduction_factor = 1
 #Thermal Properties
 #temperature_ini = 150             # Start Temperature                      [K]
-temperature_ini = 180
+temperature_ini = 170
 sample_holder_starting_temp = 77  # Starting temperature of the sample holder [K]
 Input_Intensity = 6500             # Intensity of the Light Source (Sun)    [W/m^2]
 #epsilon = 1                       # Emissivity                             [-]
