@@ -251,7 +251,7 @@ def calculate_deeper_layer_source(n_x, n_y, n_z, input_energy, r_H, albedo, surf
 
 @njit
 def day_night_cycle(lamp_power, S_c, period, current_time):
-	time_factor = np.sin(2 * current_time / period * np.pi)
+	time_factor = np.sin(2 * current_time / period * np.pi - 15/19 * np.pi)
 	if time_factor >= 0:
 		lamp_power = lamp_power * time_factor
 		S_c = S_c * time_factor

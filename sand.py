@@ -17,11 +17,11 @@ from utility_functions import thermal_reservoir, prescribe_temp_profile_from_dat
 lambda_arr = [0.002, 0.003, 0.0074, 0.015, 0.2, 0.27]
 absorption_depth_arr = [0.5E-3, 1E-3, 2E-3, 3E-3]'''
 print('here')
-albedo_arr = [0.85]
-lambda_arr = [0.002]
+albedo_arr = [0.95]
+lambda_arr = [0.003]
 absorption_depth_arr = [1E-3]
 ambient_temperature_arr = [840]
-ambient_temperature = 308
+ambient_temperature = 300
 epsilon_arr = [0.95]
 epsilon_ambient_arr = [0.95]
 #abs_depth = absorption_depth_arr[0]
@@ -35,7 +35,7 @@ for albedo in albedo_arr:
                         print(albedo, lambda_sand_c, abs_depth, epsilon, epsilon_ambient)
                         temp_max_const = np.zeros(const.k, dtype=np.float64)
                         temp_max_daynight = np.zeros(const.k,dtype=np.float64)
-                        for type in [2]:
+                        for type in [1]:
                             #work arrays and mesh creation + surface detection
                             #temperature, dx, dy, dz, Dr, a, a_rad, b, b_rad = create_equidistant_mesh(const.n_x, const.n_y, const.n_z, const.temperature_ini, const.min_dx, const.min_dy, const.min_dz, False)
                             temperature, dx, dy, dz, Dr, a, a_rad, b, b_rad = create_equidistant_mesh_2_layer(const.n_x, const.n_y, const.n_z, const.temperature_ini, const.min_dx, const.min_dy, const.min_dz, 21, 10)
@@ -89,22 +89,22 @@ for albedo in albedo_arr:
                             #data_save_file = 'C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/Sand_sim_thesis_' + str(albedo) + '_Absdepth_' + str(abs_depth) + '_Lambda_' + str(lambda_sand_c) +'.json'
                             #data_save_file = 'D:/TPM_Data/Big_sand/Thesis_run/Periodic_sand_sim_thesis_' + str(albedo) + '_Absdepth_' + str(abs_depth) + '_Lambda_' + str(lambda_sand_c) +'.json'
                             #data_save_file = 'D:/TPM_Data/Big_sand/Thesis_run/varying_epsilon' + str(epsilon) + '_ambient_epsilon' + str(epsilon_ambient) + '_test_308K.json'
-                            data_save_file = 'D:/TPM_Data/Big_sand/Thesis_run/dn_best_fit.json'
+                            data_save_file = 'D:/TPM_Data/Big_sand/Thesis_run/const_illum_best_fit_am_300K.json'
                             #data_save_file_2 = 'D:/TPM_data/Big_sand/Sand_sim_thesis_' + str(albedo) + '_Absdepth_' + str(abs_depth) + '_Lambda_' + str(lambda_sand_c) + '.json'
                             #data_save_file_2 = 'D:/TPM_Data/Big_sand/Thesis_run/Periodic_surface_sand_sim_thesis_' + str(albedo) + '_Absdepth_' + str(abs_depth) + '_Lambda_' + str(lambda_sand_c) +'.json'
-                            data_save_file_2 = 'D:/TPM_Data/Big_sand/Thesis_run/dn_best_fit.json'
+                            data_save_file_2 = 'D:/TPM_Data/Big_sand/Thesis_run/const_illum_surface_best_fit_am_300K.json'
                             middle_slices = np.zeros((const.k, const.n_z), dtype=np.float64)
                             sensors = np.zeros((const.k, 5), dtype=np.float64)
                             outer_sensors = np.zeros((const.k, 5), dtype=np.float64)
                             temp_surface = np.zeros((const.n_y-2, const.n_x-2), dtype=np.float64)
-                            temperature = prescribe_temp_profile_from_data(const.n_x, const.n_y, const.n_z, temperature, 305, 301, 'C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/temps_sandy_randy.txt', '2023-07-20 13:53:07', 11, 21, 22, 24, 27, const.min_dx, const.min_dy, 0.125)
+                            #temperature = prescribe_temp_profile_from_data(const.n_x, const.n_y, const.n_z, temperature, 305, 301, 'C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/temps_sandy_randy.txt', '2023-07-20 13:53:07', 11, 21, 22, 24, 27, const.min_dx, const.min_dy, 0.125)
                             temperature = sample_holder_data(const.n_x, const.n_y, const.n_z, sample_holder, temperature, 301)
                             '''
                             Main Loop of the model. Comment out/Uncomment function calls to disable/enable features
                             '''
                             Lambda = lambda_sand(const.n_x, const.n_y, const.n_z, temperature, Dr, lambda_sand_c, sample_holder, const.lambda_sample_holder_L, var.sensor_positions)
-                            print(temperature[1, 0:const.n_y, const.n_x // 2])
-                            print(np.isnan(temperature).any())
+                            #print(temperature[1, 0:const.n_y, const.n_x // 2])
+                            #print(np.isnan(temperature).any())
                             #print(1)
                             for j in tqdm(range(0, const.k)):
                                 middle_slices[j] = temperature[0:const.n_z, const.n_y//2, const.n_x//2].copy()
