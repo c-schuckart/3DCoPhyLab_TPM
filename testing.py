@@ -85,9 +85,9 @@ fig, ax = plt.subplots(1, 1)
 A, D, L = '0.95', '0.001', '0.003'
 epsilon, epsilon_ambient = 0.95, 0.8
 config = 'inner'
-string = 'de'
-string_title = r'$\lambda = 0.003$ W/(m*K), $l = 1$ mm, $A = 0.95$'
-string_file = 'const_illum_best_fit_surface_am_308_de.png'
+string = 'eng'
+string_title = r'$\epsilon = 0.9$, $\epsilon_{umg.} = 0.9$, $l = 0.9$ mm'
+string_file = 'varying_epsilon_0.9_ambient_0.9_inner_eng.png'
 
 if string == 'eng':
     if config == 'inner':
@@ -116,7 +116,7 @@ sen_4 = []
 sen_5 = []
 sen_6 = []
 
-with open('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/temps_sandy_randy.txt') as csvdatei:
+with open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/temps_sandy_randy.txt') as csvdatei:
     dat = csv.reader(csvdatei)
     b = True
     start = False
@@ -155,9 +155,9 @@ with open('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG
                 #if timestamps[len(timestamps) - 1] > 330000:
                     break
 
-surface_measured = []
+'''surface_measured = []
 timestamps_surface = []
-with open('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/sand_surface_temperatures.csv') as csvdatei2:
+with open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/sand_surface_temperatures.csv') as csvdatei2:
     dat = csv.reader(csvdatei2)
     b = True
     start = False
@@ -176,7 +176,7 @@ with open('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG
 
 time_sim_surface = []
 surface_sim = []
-with open('D:/TPM_Data/Big_sand/Thesis_run/const_illum_surface_best_fit_am_308K.json') as json_file_2:
+with open('D:/TPM_Data/Big_sand/Thesis_run/varying_epsilon_surface_0.95_ambient_0.8_absdepth_1.25.json') as json_file_2:
 #with open('D:/TPM_Data/Big_sand/Thesis_run/Periodic_sand_sim_thesis_' + A + '_Absdepth_' + D + '_Lambda_' + L +'.json') as json_file:
     jdata_surface = json.load(json_file_2)
     for i in range(0, 3000):
@@ -188,9 +188,9 @@ if string == 'eng':
     ax.plot(timestamps_surface, surface_measured, label='surface hottest temperature', color='tab:orange', ls='--')
 else:
     ax.plot(time_sim_surface, surface_sim, label='Höchste Oberflächentemperatur SIM', color='tab:blue')
-    ax.plot(timestamps_surface, surface_measured, label='Höchste Oberflächentemperatur', color='tab:orange', ls='--')
+    ax.plot(timestamps_surface, surface_measured, label='Höchste Oberflächentemperatur', color='tab:orange', ls='--')'''
 
-'''ax.plot(timestamps, sen_1, label='1. ' + string_sens, color='tab:blue')
+ax.plot(timestamps, sen_1, label='1. ' + string_sens, color='tab:blue')
 ax.plot(timestamps, sen_2, label='2. ' + string_sens, color='tab:orange')
 ax.plot(timestamps, sen_3, label='3. ' + string_sens, color='tab:green')
 ax.plot(timestamps, sen_4, label='4. ' + string_sens, color='tab:red')
@@ -207,7 +207,7 @@ sen_4_sim = []
 sen_5_sim = []
 #sen_6 = []
 
-with open('D:/TPM_Data/Big_sand/Thesis_run/const_illum_best_fit_am_300K.json') as json_file:
+with open('D:/TPM_Data/Big_sand/Thesis_run/varying_epsilon_0.9_ambient_0.9_absdepth_0.9.json') as json_file:
 #with open('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/varying_epsilon_testing_2.json') as json_file:
 #with open('D:/TPM_Data/Big_sand/Thesis_run/Periodic_sand_sim_thesis_' + A + '_Absdepth_' + D + '_Lambda_' + L +'.json') as json_file:
     jdata = json.load(json_file)
@@ -254,9 +254,12 @@ ax.text(120500, np.average(sen_4[len(sen_4)-50:len(sen_4)]), '4. Sensor', fontsi
 ax.text(120500, np.average(sen_5[len(sen_5)-50:len(sen_5)]), '5. Sensor', fontsize='x-small')
 print(np.average(sen_4[len(sen_4)-50:len(sen_4)]))
 print()
-print(np.average(sen_5[len(sen_5)-50:len(sen_5)]))'''
+print(np.average(sen_5[len(sen_5)-50:len(sen_5)]))
 
-ax.set_ylim(290, 420)
+if config == 'outer':
+    ax.set_ylim(290, 320)
+else:
+    ax.set_ylim(290, 420)
 #ax.set_ylim(290, 320)
 ax.set_xlim(-5000, 120000)
 plt.tick_params(axis='x', which='both', direction='in', top=True, labeltop=False)
@@ -270,7 +273,7 @@ plt.title(string_title)
 ax.set_xlabel(string_x + ' (s)')
 ax.set_ylabel(string_y + ' (K)')
 #plt.savefig('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/Plots/P_thesis_DAY_NIGHT_heat_cap_840_ambient_300K_A_' + A + '_Absdepth_' + D + '_Lambda_' + L + '.png', dpi=600)
-plt.savefig('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/Plots/' + string_file, dpi=600)
+plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/Plots/' + string_file, dpi=600)
 plt.show()
 #plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/Plots/CORROuter_sensors_sand_L_chamber_A_0.95_Absdepth_0.001_Lambda_0.003.png', dpi=600)
 ax.clear()
