@@ -41,7 +41,44 @@ def create_equidistant_mesh(n_x, n_y, n_z, temperature_ini, dx, dy, dz, diffusio
     return mesh, dx_arr, dy_arr, dz_arr, Dr, a, (a_rad-1), b, (b_rad-1)
 
 
-def create_equidistant_mesh_2_layer(n_x, n_y, n_z, temperature_ini, dx, dy, dz, particle_diameter, layer_boundary, factor):
+def create_equidistant_mesh_2_layer(n_x, n_y, n_z, temperature_ini, dx, dy, dz, layer_boundary, factor=10):
+    if sett.mesh_form == 1:
+        a = n_x / 2 - 0.5
+        a_rad = (n_x - 2) // 2
+        b = n_y / 2 - 0.5
+        b_rad = (n_y - 2) // 2
+        x, y = np.ogrid[:n_x, :n_y]
+        mesh = np.zeros((n_z, n_y, n_x), dtype=np.float64)
+        slice = np.zeros((n_y, n_x), dtype=np.float64)
+        mask = ((x - a) / a_rad) ** 2 + ((y - b) / b_rad) ** 2 <= 1
+        slice[mask] = temperature_ini
+        for i in range(0, n_z - 1):
+            if i != 0:
+                mesh[i] = slice
+    elif sett.mesh_form == 0:
+        mesh = np.zeros((n_z, n_y, n_x), dtype=np.float64)
+        mesh[1:n_z - 1, 1:n_y - 1, 1:n_x - 1] = np.full((n_z - 2, n_y - 2, n_x - 2), temperature_ini, dtype=np.float64)
+        a, a_rad, b, b_rad = 0, np.infty, 0, np.infty
+    else:
+        raise NotImplementedError
+    dx_arr = np.full((n_z, n_y, n_x), dx, dtype=np.float64)
+    dy_arr = np.full((n_z, n_y, n_x), dy, dtype=np.float64)
+    dz_arr = np.full((n_z, n_y, n_x), dz, dtype=np.float64)
+    dz_arr[1] = np.full((n_y, n_x,), dz / 2, dtype=np.float64)
+    #dz_arr[layer_boundary:n_z] = np.full((n_z-layer_boundary, n_y, n_x), dz * 10, dtype=np.float64)
+    Dr = np.full((n_z, n_y, n_x, 6), np.array([dz, dz, dy, dy, dx, dx]), dtype=np.float64)
+    for i in range(layer_boundary, n_z):
+        if i == layer_boundary:
+            Dr[i] = np.full((n_y, n_x, 6), np.array([dz * 10, dz, dy, dy, dx, dx]), dtype=np.float64)
+            dz_arr[i] = np.full((n_y, n_x), (dz/2 + dz*factor/2), dtype=np.float64)
+        else:
+            Dr[i] = np.full((n_y, n_x, 6), np.array([dz * factor, dz * factor, dy, dy, dx, dx]), dtype=np.float64)
+            dz_arr[i] = np.full((n_y, n_x), dz * factor, dtype=np.float64)
+    return mesh, dx_arr, dy_arr, dz_arr, Dr, a, (a_rad - 1), b, (b_rad - 1)
+
+
+
+def create_diffusion_mesh_2_layer(n_x, n_y, n_z, temperature_ini, dx, dy, dz, particle_diameter, layer_boundary, factor):
     if sett.mesh_form == 1:
         a = n_x / 2 - 0.5
         a_rad = (n_x - 2) // 2

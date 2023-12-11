@@ -5,23 +5,25 @@ import settings as sett
 from tqdm import tqdm
 import json
 from os import listdir
-from surface_detection import create_equidistant_mesh, DEBUG_print_3D_arrays, find_surface, surrounding_checker_moon, update_surface_arrays, get_sample_holder_adjacency
-from thermal_parameter_functions import calculate_latent_heat, calculate_density, thermal_functions, calculate_bulk_density_and_VFF, thermal_conductivity_moon_regolith, heat_capacity_moon_regolith, calculate_water_grain_radius
-from molecule_transfer import calculate_molecule_flux_moon, diffusion_parameters_moon, calculate_source_terms, pressure_calculation, calculate_source_terms_linearised, calculate_molecule_flux_moon_test
+from surface_detection import create_equidistant_mesh, DEBUG_print_3D_arrays, find_surface, surrounding_checker_moon, update_surface_arrays, get_sample_holder_adjacency, create_equidistant_mesh_2_layer
+from thermal_parameter_functions import calculate_latent_heat, calculate_density, thermal_functions, calculate_bulk_density_and_VFF, thermal_conductivity_moon_regolith, heat_capacity_moon_regolith, calculate_water_grain_radius, calculate_heat_capacity, lambda_granular
+from molecule_transfer import calculate_molecule_surface, diffusion_parameters_moon, calculate_source_terms, pressure_calculation, calculate_source_terms_linearised, calculate_molecule_flux_moon_test, sinter_neck_calculation_time_dependent, sintered_surface_checker
 from heat_transfer_equation_DG_ADI import hte_implicit_DGADI, hte_implicit_DGADI_zfirst
 from diffusion_equation_DG_ADI import de_implicit_DGADI, de_implicit_DGADI_zfirst
-from boundary_conditions import sample_holder_data
+from boundary_conditions import sample_holder_data, day_night_cycle, calculate_L_chamber_lamp_bd
 
 #work arrays and mesh creation + surface detection
-temperature, dx, dy, dz, Dr, a, a_rad, b, b_rad = create_equidistant_mesh(const.n_x, const.n_y, const.n_z, const.temperature_ini, const.min_dx, const.min_dy, const.min_dz, False)
+#temperature, dx, dy, dz, Dr, a, a_rad, b, b_rad = create_equidistant_mesh(const.n_x, const.n_y, const.n_z, const.temperature_ini, const.min_dx, const.min_dy, const.min_dz, False)
+temperature, dx, dy, dz, Dr, a, a_rad, b, b_rad = create_equidistant_mesh_2_layer(const.n_x, const.n_y, const.n_z, const.temperature_ini, const.min_dx, const.min_dy, const.min_dz, 21, 10)
 #temperature, dx, dy, dz, Dr, Lambda = one_d_test(const.n_x, const.n_y, const.n_z, const.min_dx, const.min_dy, const.min_dz, 'y')
-heat_capacity = var.heat_capacity_sand
+heat_capacity = var.heat_capacity
 #density = var.density * const.VFF_pack_const
 #density = var.density_sand
 delta_T = var.delta_T
 print(np.shape(temperature))
 #DEBUG_print_3D_arrays(const.n_x, const.n_y, const.n_z, temperature)
 surface, surface_reduced, sample_holder, mesh_shape_positive, mesh_shape_negative = find_surface(const.n_x, const.n_y, const.n_z, 0, 0, 0, const.n_x, const.n_y, const.n_z, temperature, var.surface, a, a_rad, b, b_rad, True, False)
+print(len(surface_reduced))
 water_ice_grain_density = calculate_density(temperature, var.VFF_pack)[0]
 density = water_ice_grain_density * (1 / (const.dust_ice_ratio_global + 1)) * var.VFF_pack + const.density_TUBS_M * np.ones((const.n_z, const.n_y, const.n_x), dtype=np.float64) * (const.dust_ice_ratio_global / (const.dust_ice_ratio_global + 1)) * var.VFF_pack
 uniform_water_masses = density * dx * dy * dz * (1 / (const.dust_ice_ratio_global + 1))
@@ -113,14 +115,12 @@ surface = np.zeros((const.n_z, const.n_y, const.n_x, 6))'''
 #Lambda = lambda_granular(const.n_x, const.n_y, const.n_z, temperature, Dr, dx, dy, dz, const.lambda_water_ice, const.poisson_ratio_par, const.young_modulus_par, const.surface_energy_par, const.r_mono, const.f_1, const.f_2, var.VFF_pack, const.sigma, const.e_1, sample_holder, const.lambda_sample_holder)
 #print(Lambda[15][0][0])
 Delta_cond_ges = 0
-lamp_power = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
 outgassed_mass_complete = 0
 
 #file = open('D:/Masterarbeit_data/Sand_no_tubes/Results/sensor_data_lambda_' + str(round(lambda_sand_val, 5)) + '.csv', 'a')
 #file = open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Sand(no_tubes)/sand_lambda_' + str(const.lambda_sand) + '.csv', 'a')
 #Lambda = lambda_sand(const.n_x, const.n_y, const.n_z, temperature, Dr, const.lambda_sand, sample_holder, const.lambda_sample_holder, var.sensor_positions)
 #for j in tqdm(range(0, min(const.k, max_k, max_k_2))):
-sample_holder_data(const.n_x, const.n_y, const.n_z, sample_holder, temperature, 400)
 temperature_previous = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
 gas_density = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
 S_c = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
@@ -130,36 +130,22 @@ sub_gasdens_begin = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64
 gas_density_previous = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
 temp_begin =np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
 
-sample_holder_diffusion = sample_holder.copy()
-surface_reduced_diffusion = np.zeros((const.n_x*const.n_y, 3), dtype=np.int32)
-surf_counter = 0
-
-for j in range(0, const.n_y):
-    for k in range(0, const.n_x):
-        if temperature[const.n_z-2][j][k] > 0:
-            temperature[const.n_z-2][j][k] = 150
-        if sample_holder[2][j][k] != 1 and temperature[2][j][k] > 0:
-            sample_holder_diffusion[1][j][k] = 0
-            mesh_shape_positive[1][j][k] = 0
-            mesh_shape_negative[1][j][k] = 1
-            surface_reduced_diffusion[surf_counter] = np.array([k, j, 2], dtype=np.int32)
-            surf_counter += 1
-
-surface_reduced_diffusion = surface_reduced_diffusion[0:surf_counter]
-surrounding_surface = surrounding_checker_moon(surface_reduced_diffusion, surface, var.n_x_lr, var.n_y_lr, var.n_z_lr, temperature)
-#sample_holder_diffusion = sample_holder.copy()
-#sample_holder_diffusion[1] = np.zeros((const.n_y, const.n_x), dtype=np.float64)
-sh_adjacent_voxel = get_sample_holder_adjacency(const.n_x, const.n_y, const.n_z, sample_holder_diffusion, temperature)
 #mesh_shape_positive[1] = np.zeros((const.n_y, const.n_x), dtype=np.int32)
 #mesh_shape_negative = 1 - mesh_shape_positive
 #print(sh_adjacent_voxel[0:2, 10:20, 10:20])
 max_temp = np.zeros(const.k, dtype=np.float64)
+r_n_start = (const.R_JKL*const.K_JKL*(const.P_JKL + 3*const.surface_energy_par*np.pi*const.R_JKL + np.sqrt(6*const.surface_energy_par*np.pi*const.R_JKL*const.P_JKL + (3*const.surface_energy_par*np.pi*const.R_JKL)**2)))**(1/3)
+r_n = np.full((const.n_z, const.n_y, const.n_x), r_n_start, dtype=np.float64)
+S_c_deeper = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
+lamp_power = calculate_L_chamber_lamp_bd(24, 'L', const.n_x, const.n_y, const.n_z, const.min_dx, const.min_dy, const.min_dz, False, 0)
+lamp_power_dn = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
+blocked_voxels = sintered_surface_checker(const.n_x, const.n_y, const.n_z, r_n, r_mono_water)
 
-data_dict = {'SSurface': sh_adjacent_voxel.tolist(), 'Surface': surface.tolist(), 'RSurface': surface_reduced_diffusion.tolist(), 'SH': sample_holder.tolist(), 'SHD': sample_holder_diffusion.tolist()}
+'''data_dict = {'SSurface': sh_adjacent_voxel.tolist(), 'Surface': surface.tolist(), 'RSurface': surface_reduced_diffusion.tolist(), 'SH': sample_holder.tolist(), 'SHD': sample_holder_diffusion.tolist()}
 with open('test.json', 'w') as outfile:
-    json.dump(data_dict, outfile)
+    json.dump(data_dict, outfile)'''
 
-for j in tqdm(range(0, const.k)):
+'''for j in tqdm(range(0, const.k)):
     #if (j * const.dt) % 15 == 0:
         #print(np.sum(uniform_water_masses) + outgassed_mass_complete)
         #np.save('D:/TPM_Data/Luwex/only_temps_equilibriated/only_temperature_sim_' + str(j * const.dt) + '.npy', temperature)
@@ -203,9 +189,9 @@ for j in tqdm(range(0, const.k)):
         sublimated_mass = (gas_density - gas_density_previous) * dx * dy * dz
         #print(np.max(sublimated_mass))
         #print(sublimated_mass[1:3, 10:20, 10:20], 4)
-        '''if np.abs(np.sum(sub_gas_begin) - np.sum(sublimated_mass)) > 1E-20:
+        if np.abs(np.sum(sub_gas_begin) - np.sum(sublimated_mass)) > 1E-20:
             print(np.abs(np.sum(sub_gas_begin) - np.sum(sublimated_mass)))
-            print('Mass conservation warning')'''
+            print('Mass conservation warning')
         pressure = pressure_calculation(const.n_x, const.n_y, const.n_z, temperature, gas_density, const.k_boltzmann, const.m_H2O, var.VFF_pack, const.r_mono, dx, dy, dz, const.dt, sample_holder, sublimated_mass, water_particle_number)
         if np.max(np.abs(temperature - temp_begin)) < 1E-7:
             break
@@ -244,30 +230,45 @@ for j in tqdm(range(0, const.k)):
         #sensor_10mm, sensor_20mm, sensor_35mm, sensor_55mm, sensor_90mm, temperature_save = data_store_sensors(j, const.n_x, const.n_y, const.n_z, temperature, sensor_10mm, sensor_20mm, sensor_35mm, sensor_55mm, sensor_90mm, sett.data_reduce, temperature_save)
         #temperature_save[j//sett.data_reduce] = temperature
         #water_content_save[j // sett.data_reduce] = uniform_water_masses
-        #sublimated_mass_save[j // sett.data_reduce] = sublimated_mass
+        #sublimated_mass_save[j // sett.data_reduce] = sublimated_mass'''
 
-'''for j in tqdm(range(0, const.k)):
-    #if (j * const.dt) % 15 == 0:
+r_mono_base = r_mono_water.copy()
+r_n_base = r_n.copy()
+
+for j in tqdm(range(0, const.k)):
+    if j % 100 == 0:
+        print(temperature[0:const.n_z, const.n_y // 2, const.n_x // 2])
+        print(lamp_power_dn[1][26][26])
         #print(np.sum(uniform_water_masses) + outgassed_mass_complete)
         #np.save('D:/TPM_Data/Luwex/only_temps_equilibriated/only_temperature_sim_' + str(j * const.dt) + '.npy', temperature)
         #np.save('D:/TPM_Data/Luwex/sublimation_test/sublimation_test' + str(j * const.dt) + '.npy', temperature)
         #np.save('D:/TPM_Data/Luwex/sublimation_test/WATERsublimation_test' + str(j * const.dt) + '.npy', uniform_water_masses)
         #np.save('D:/TPM_Data/Luwex/sublimation_and_diffusion/GASsublimation_and_diffusion' + str(j * const.dt) + '.npy', gas_density * dx * dy * dz)
     #temperature_previous = temperature[0:const.n_z, 0:const.n_y, 0:const.n_x]
-    density, VFF, water_ice_grain_density = calculate_bulk_density_and_VFF(temperature, VFF, uniform_dust_masses, uniform_water_masses, const.density_TUBS_M, dx, dy, dz)
-    r_mono_water = calculate_water_grain_radius(const.n_x, const.n_y, const.n_z, uniform_water_masses, water_ice_grain_density, water_particle_number, r_mono_water)
+    lamp_power_dn, S_c_deeper = day_night_cycle(lamp_power, S_c_deeper, 3 * 3600, j * const.dt)
+    #density, VFF, water_ice_grain_density = calculate_bulk_density_and_VFF(temperature, VFF, uniform_dust_masses, uniform_water_masses, const.density_TUBS_M, dx, dy, dz)
+    density = calculate_density(temperature, VFF)[1]
+    #r_n, r_mono_water, sublimated_mass, areas = sinter_neck_calculation_time_dependent(r_n, r_mono_water, const.dt, temperature, const.lh_a_1, const.lh_b_1, const.lh_c_1, const.lh_d_1, const.molecular_volume_H2O, const.surface_energy_par, const.R, const.r_mono, const.packing_geometry_factor, const.molar_mass_water, density, pressure, const.m_H2O, const.k_boltzmann, 0.001, water_particle_number, blocked_voxels, const.n_x, const.n_y, const.n_z, sample_holder, dx, dy, dz, surface)
+    sublimated_mass, empty_voxels = calculate_molecule_surface(const.n_x, const.n_y, const.n_z, temperature, pressure, const.lh_a_1, const.lh_b_1, const.lh_c_1, const.lh_d_1, const.m_H2O, dx, dy, dz, const.dt, surface_reduced, const.k_boltzmann, uniform_water_masses)[0:2]
+    blocked_voxels = sintered_surface_checker(const.n_x, const.n_y, const.n_z, r_n, r_mono_water)
+    #r_mono_water = calculate_water_grain_radius(const.n_x, const.n_y, const.n_z, uniform_water_masses, water_ice_grain_density, water_particle_number, r_mono_water)
     latent_heat_water = calculate_latent_heat(temperature, const.lh_b_1, const.lh_c_1, const.lh_d_1, const.R, const.m_mol)
-    density = density + sample_holder * const.density_sample_holder
-    Lambda, interface_temperatures = thermal_conductivity_moon_regolith(const.n_x, const.n_y, const.n_z, temperature, dx, dy, dz, Dr, VFF, const.r_mono, const.fc1, const.fc2, const.fc3, const.fc4, const.fc5, const.mu, const.E, const.gamma, const.f1, const.f2, const.e1, const.chi_maria, const.sigma, const.epsilon, uniform_water_masses, uniform_dust_masses, const.lambda_water_ice, const.lambda_sample_holder, sample_holder)
-    heat_capacity = heat_capacity_moon_regolith(const.n_x, const.n_y, const.n_z, temperature, const.c0, const.c1, const.c2, const.c3, const.c4, uniform_water_masses, uniform_dust_masses, const.heat_capacity_sample_holder, sample_holder)
-    S_c, S_p, sublimated_mass, outgassed_mass_timestep = calculate_molecule_flux_moon_test(const.n_x, const.n_y, const.n_z, temperature, pressure, const.lh_a_1, const.lh_b_1, const.lh_c_1, const.lh_d_1, const.m_H2O, dx, dy, dz, const.dt, const.k_boltzmann, sample_holder, uniform_water_masses, latent_heat_water, water_particle_number, r_mono_water)
-    temperature = hte_implicit_DGADI(const.n_x, const.n_y, const.n_z, surface_reduced, const.r_H, const.albedo, const.dt, lamp_power, const.sigma, const.epsilon, temperature, Lambda, Dr, heat_capacity, density, dx, dy, dz, surface, S_c, S_p, sample_holder, const.ambient_radiative_temperature)
-    outgassed_mass_complete += outgassed_mass_timestep
+    density = density + sample_holder * (const.density_copper - density[const.n_z-2, const.n_y//2, const.n_x//2])
+    #Lambda, interface_temperatures = thermal_conductivity_moon_regolith(const.n_x, const.n_y, const.n_z, temperature, dx, dy, dz, Dr, VFF, const.r_mono, const.fc1, const.fc2, const.fc3, const.fc4, const.fc5, const.mu, const.E, const.gamma, const.f1, const.f2, const.e1, const.chi_maria, const.sigma, const.epsilon, uniform_water_masses, uniform_dust_masses, const.lambda_water_ice, const.lambda_sample_holder, sample_holder)
+    Lambda, interface_temperatures = lambda_granular(const.n_x, const.n_y, const.n_z, temperature, Dr, dx, dz, dz, const.lambda_water_ice, const.poisson_ratio_par, const.young_modulus_par, const.activation_energy_water_ice, const.R, r_mono_water, const.f_1, const.f_2, VFF, const.sigma, const.e_1, sample_holder, const.lambda_copper, r_n)
+    #heat_capacity = heat_capacity_moon_regolith(const.n_x, const.n_y, const.n_z, temperature, const.c0, const.c1, const.c2, const.c3, const.c4, uniform_water_masses, uniform_dust_masses, const.heat_capacity_sample_holder, sample_holder)
+    heat_capacity = calculate_heat_capacity(temperature)
+    S_c, S_p = calculate_source_terms(const.n_x, const.n_y, const.n_z, temperature, gas_density, pressure, sublimated_mass, dx, dy, dz, const.dt, surface_reduced, uniform_water_masses, latent_heat_water, surface)[0:2]
+    #S_c, S_p, sublimated_mass, outgassed_mass_timestep = calculate_molecule_flux_moon_test(const.n_x, const.n_y, const.n_z, temperature, pressure, const.lh_a_1, const.lh_b_1, const.lh_c_1, const.lh_d_1, const.m_H2O, dx, dy, dz, const.dt, const.k_boltzmann, sample_holder, uniform_water_masses, latent_heat_water, water_particle_number, r_mono_water)
+    temperature = hte_implicit_DGADI_zfirst(const.n_x, const.n_y, const.n_z, surface_reduced, const.r_H, const.albedo, const.dt, lamp_power_dn, const.sigma, const.epsilon, temperature, Lambda, Dr, heat_capacity, density, dx, dy, dz, surface, S_c, S_p, sample_holder, np.full(6, const.ambient_radiative_temperature, dtype=np.float64))
+    outgassed_mass_complete += np.sum(sublimated_mass)
     uniform_water_masses = uniform_water_masses - sublimated_mass
-    outgassing_rate[j] = outgassed_mass_timestep/const.dt
+    outgassing_rate[j] = np.sum(sublimated_mass)/const.dt
+    #print(temperature[1, const.n_y // 2, const.n_x // 2], uniform_water_masses[1, const.n_y // 2, const.n_x // 2], sublimated_mass[1, const.n_y // 2, const.n_x // 2], empty_voxels, density[1, const.n_y // 2, const.n_x // 2], VFF[1, const.n_y // 2, const.n_x // 2])
+    surface, surface_reduced = update_surface_arrays(empty_voxels, surface, surface_reduced, temperature, const.n_x, const.n_y, const.n_z, a, a_rad, b, b_rad, False)
     #print(np.sum(sublimated_mass))
-    if np.max(np.abs(temperature - temperature_previous)) < 50E-6:
-        break'''
+    #if np.max(np.abs(temperature - temperature_previous)) < 50E-6:
+        #break
 
 
 #Data saving and output

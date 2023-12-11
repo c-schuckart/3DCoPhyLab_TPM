@@ -5,7 +5,7 @@ import variables_and_arrays as var
 
 
 @njit(parallel=True)
-def lambda_granular(n_x, n_y, n_z, temperature, Dr, dx, dy, dz, lambda_water_ice, poisson_ratio_par, young_modulus_par, surface_energy_par, r_mono, f_1, f_2, VFF_pack, sigma, e_1, sample_holder, lambda_sample_holder, r_n):
+def lambda_granular(n_x, n_y, n_z, temperature, Dr, dx, dy, dz, lambda_water_ice, poisson_ratio_par, young_modulus_par, activation_energy, R_gas, r_mono, f_1, f_2, VFF_pack, sigma, e_1, sample_holder, lambda_sample_holder, r_n):
 	lambda_total = np.zeros((n_z, n_y, n_x, 6), dtype=np.float64)
 	lambda_cond = np.zeros(6, dtype=np.float64)
 	interface_temperatures = np.zeros((n_z, n_y, n_x, 6), dtype=np.float64)
@@ -22,12 +22,14 @@ def lambda_granular(n_x, n_y, n_z, temperature, Dr, dx, dy, dz, lambda_water_ice
 					T_z_neg = temperature[i][j][k] + (temperature[i - 1][j][k] - temperature[i][j][k]) / Dr[i][j][k][1] * 1 / 2 * dz[i][j][k]
 					temps = np.array([T_z_pos, T_z_neg, T_y_pos, T_y_neg, T_x_pos, T_x_neg])
 					interface_temperatures[i][j][k] = temps
+					surface_energy_par = 0.17 * np.exp(- activation_energy / (R_gas * temps))
 					if r_n[i][j][k] == 0:
 						lambda_grain = (lambda_water_ice / temps) * (9 * np.pi / 4 * (1 - poisson_ratio_par ** 2) / young_modulus_par * surface_energy_par * r_mono[i][j][k] ** 2) ** (1 / 3) * f_1 * np.exp(f_2 * VFF_pack[i][j][k]) / r_mono[i][j][k]
 					elif r_n[i][j][k] < r_mono[i][j][k]:
 						lambda_grain = (lambda_water_ice / temps) * (3 / 4 * (1 - poisson_ratio_par ** 2) / young_modulus_par * np.sqrt(3/2 * np.pi * surface_energy_par * 2/3 * young_modulus_par * 1/(1 - poisson_ratio_par**2))) ** (1 / 3) * f_1 * np.exp(f_2 * VFF_pack[i][j][k]) * r_n[i][j][k]**(1/2) / r_mono[i][j][k]**(2/3)
 					else:
-						lambda_grain = (lambda_water_ice / temps)
+						lambda_grain = (lambda_water_ice / temps) * (3 / 4 * (1 - poisson_ratio_par ** 2) / young_modulus_par * np.sqrt(3/2 * np.pi * surface_energy_par * 2/3 * young_modulus_par * 1/(1 - poisson_ratio_par**2))) ** (1 / 3) * f_1 * np.exp(f_2 * VFF_pack[i][j][k]) * r_n[i][j][k]**(1/2) / r_mono[i][j][k]**(2/3)
+						#lambda_grain = (lambda_water_ice / temps)
 					lambda_cond = lambda_grain
 					for a in range(0, len(lambda_grain)):
 						if sample_holder[i + var.n_z_lr[a]][j + var.n_y_lr[a]][k + var.n_x_lr[a]] == 1 or sample_holder[i][j][k] == 1:

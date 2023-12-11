@@ -402,3 +402,21 @@ def calculate_L_chamber_lamp_bd(Volt, sample_holder, n_x, n_y, n_z, min_dx, min_
 	return lamp_energy
 
 
+@njit
+def day_night_cycle(lamp_power, S_c, period, current_time):
+	time_factor = np.sin(2 * current_time / period * np.pi)
+	if time_factor >= 0:
+		lamp_power = lamp_power * time_factor
+		S_c = S_c * time_factor
+	else:
+		lamp_power = lamp_power * 0
+		S_c = S_c * 0
+	return lamp_power, S_c
+
+
+@njit
+def calculate_deeper_layer_source(n_x, n_y, n_z, input_energy, r_H, albedo, surface, dx, dy, dz):
+	S_c = np.zeros((n_z, n_y, n_x), dtype=np.float64)
+	Q = input_energy / r_H ** 2 * (1 - albedo)
+	S_c[2:const.n_z] = Q[2:const.n_z] / (dx[2:const.n_z] * dy[2:const.n_z] * dz[2:const.n_z])
+	return S_c
