@@ -20,7 +20,7 @@ n_y = 25
 n_z = 25'''
 n = np.array([n_x, n_y, n_z])
 #k = 36288 * 5                      # Number of Timesteps                    [-]'''
-k = int(3601 * 2)                    # Number of Timesteps                    [-]
+k = int(3601 * 1)                    # Number of Timesteps                    [-]
 #k = 10001
 #Definition of Physical Parameters
 #Material Properties
@@ -78,11 +78,11 @@ gravitational_pressure = 0        #Placeholder! [Pa]
 surface_reduction_factor = 1
 #Thermal Properties
 #temperature_ini = 150             # Start Temperature                      [K]
-temperature_ini = 77
-sample_holder_starting_temp = 77  # Starting temperature of the sample holder [K]
+temperature_ini = 145
+sample_holder_starting_temp = 145  # Starting temperature of the sample holder [K]
 Input_Intensity = 6500             # Intensity of the Light Source (Sun)    [W/m^2]
 #epsilon = 1                       # Emissivity                             [-]
-albedo = 0.95                  # Albedo                                 [-]
+albedo = 0.85                  # Albedo                                 [-]
 lambda_water_ice = 651            # thermal conductivity of water ice      [W/(m * T)], depending on T!
 #lambda_water_ice = 567
 lambda_co2_ice = 0.02             # thermal conductivity of water ice      [W/(m * K)]
@@ -100,7 +100,7 @@ r_H = 1                           # Lamp Distance                  		   [m]
 wire_cross_section = 0.08096E-6   # Cross-section of the AWG 28 wire      [m^2]
 wire_length = 0.30                # Length of the sensor wires from the plug to the sensor  [m]
 temperature_plug = 295            # Temperature of the plug
-ambient_radiative_temperature = 0
+ambient_radiative_temperature = 160
 
 
 #Constants

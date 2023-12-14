@@ -439,8 +439,8 @@ def sintered_surface_checker(n_x, n_y, n_z, r_n, r_p):
             for i in range(0, n_z):
                 if r_n[i][j][k] > r_p[i][j][k]:
                     blocked_lanes[i][j][k] = -1
-                    blocked_lanes[i+1:n_z, j, k] = 0
-                    break
+                    #blocked_lanes[i+1:n_z, j, k] = 0
+                    #break
     return blocked_lanes
 
 
@@ -773,6 +773,8 @@ def sinter_neck_calculation_time_dependent(r_n, r_p, dt, temperature, a_1, b_1, 
                     if blocked_voxels[i][j][k] == 1 and delta > 0:
                         if np.sum(surface[i][j][k]) != 0:
                             sublimated_mass[i][j][k] = Z * dt * (dx[i][j][k] * dy[i][j][k] * (surface[i][j][k][1] + surface[i][j][k][0]) + dx[i][j][k] * dz[i][j][k] * (surface[i][j][k][2] + surface[i][j][k][3]) + dy[i][j][k] * dz[i][j][k] * (surface[i][j][k][4] + surface[i][j][k][5]))
+                            if i == 2:
+                                print(sublimated_mass[i][j][k], i, j, k)
                         #sublimated_mass[i][j][k] = Z * (water_particle_number[i][j][k] * np.exp(r_c / r_p[i][j][k]) * 4 * np.pi * r_p[i][j][k] ** 2 + 3 * np.exp(-r_c / (r_n[i][j][k] * k_factor)) * neck_area - 3 * np.pi * r_n[i][j][k]**2) * dt
                         #sublimated_mass[i][j][k] = 10 ** (a_1[0] + b_1[0] / temperature[i][j][k] + c_1[0] * np.log10(temperature[i][j][k]) + d_1[0] * temperature[i][j][k]) * np.sqrt(m_H2O / (2 * np.pi * k_B * temperature[i][j][k])) * dx[i][j][k] * dy[i][j][k]
                     elif blocked_voxels[i][j][k] == 1 and delta <= 0:

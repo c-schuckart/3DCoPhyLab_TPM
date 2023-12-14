@@ -2,7 +2,7 @@ import numpy as np
 from numba import njit, prange
 
 @njit
-def generate_topology(surface, reduced_surface, dx, dy, dz):
+def generate_topography(surface, reduced_surface, dx, dy, dz):
     polygon_number = 0
     for each in reduced_surface:
         polygon_number += np.sum(surface[each[2]][each[1]][each[0]])
@@ -28,6 +28,24 @@ def generate_topology(surface, reduced_surface, dx, dy, dz):
             polygon_list[counter][0], polygon_list[counter][1] = np.array([each[0], each[1], each[2]], dtype=np.float64), np.array([- dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]], 0, 0], dtype=np.float64) #middle point of plane and normal vector
             counter += 1
     return polygon_list
+
+
+@njit
+def get_temperature_vector(n_x, n_y, n_z, temperature, surface, surface_reduced, length, view_factor_matrix, sigma, epsilon):
+    surface_temperature_vector = np.zeros(length, dtype=np.float64)
+    thermal_heating_energy = np.zeros((n_z, n_y, n_x), dtype=np.float64)
+    counter_polygons = 0
+    for each in surface_reduced:
+        for i in range(0, np.sum(surface[each[2]][each[1]][each[0]])):
+            surface_temperature_vector[counter_polygons] = temperature[each[2]][each[1]][each[0]]
+            counter_polygons += 1
+    counter_polygons = 0
+    for each in surface_reduced:
+        for i in range(0, np.sum(surface[each[2]][each[1]][each[0]])):
+            thermal_heating_energy[each[2]][each[1]][each[0]] += sigma * epsilon * np.sum(view_factor_matrix[counter_polygons] * surface_temperature_vector[counter_polygons]) - view_factor_matrix[counter_polygons][counter_polygons] * surface_temperature_vector[counter_polygons][counter_polygons]
+            counter_polygons += 1
+    return thermal_heating_energy, surface_temperature_vector
+
 
 @njit
 def intersect_plane(ray_origin, ray_direction, plane_point, plane_normal):
