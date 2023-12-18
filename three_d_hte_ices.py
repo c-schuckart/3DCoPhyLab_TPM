@@ -12,6 +12,7 @@ from heat_transfer_equation_DG_ADI import hte_implicit_DGADI, hte_implicit_DGADI
 from diffusion_equation_DG_ADI import de_implicit_DGADI, de_implicit_DGADI_zfirst
 from boundary_conditions import sample_holder_data, day_night_cycle, calculate_L_chamber_lamp_bd
 from ray_tracer import generate_topography, trace_rays_MC, get_temperature_vector
+from utility_functions import save_sensors_L_sample_holder
 
 #work arrays and mesh creation + surface detection
 #temperature, dx, dy, dz, Dr, a, a_rad, b, b_rad = create_equidistant_mesh(const.n_x, const.n_y, const.n_z, const.temperature_ini, const.min_dx, const.min_dy, const.min_dz, False)
@@ -238,6 +239,9 @@ r_n_base = r_n.copy()
 max_temps = np.zeros(const.k, dtype=np.float64)
 sublimated_mass_mid = np.zeros(const.k, dtype=np.float64)
 surface_topography_polygons = np.empty(0)
+reradiated_heat = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
+sensors_right = np.zeros((const.k, 11), dtype=np.float64)
+sensors_rear = np.zeros((const.k, 11), dtype=np.float64)
 
 for j in tqdm(range(0, const.k)):
     if j % 100 == 0:
@@ -257,8 +261,9 @@ for j in tqdm(range(0, const.k)):
         #np.save('D:/TPM_Data/Luwex/sublimation_test/WATERsublimation_test' + str(j * const.dt) + '.npy', uniform_water_masses)
         #np.save('D:/TPM_Data/Luwex/sublimation_and_diffusion/GASsublimation_and_diffusion' + str(j * const.dt) + '.npy', gas_density * dx * dy * dz)
     #temperature_previous = temperature[0:const.n_z, 0:const.n_y, 0:const.n_x]
+    sensors_right, sensors_rear = save_sensors_L_sample_holder(const.n_x, const.n_y, const.n_z, temperature, sensors_right, sensors_rear, j)
     if sett.enable_ray_tracing and len(surface_topography_polygons) != 0:
-        surface_temperatur_vector = get_temperature_vector(temperature, surface, surface_reduced, len(surface_topography_polygons))
+        reradiated_heat = get_temperature_vector(const.n_x, const.n_y, const.n_z, temperature, surface, surface_reduced, len(surface_topography_polygons), view_factor_matrix, const.sigma, const.epsilon)[0]
     lamp_power_dn, S_c_deeper = day_night_cycle(lamp_power, S_c_deeper, 3 * 3600, j * const.dt)
     #density, VFF, water_ice_grain_density = calculate_bulk_density_and_VFF(temperature, VFF, uniform_dust_masses, uniform_water_masses, const.density_TUBS_M, dx, dy, dz)
     density = calculate_density(temperature, VFF)[1]
@@ -275,7 +280,7 @@ for j in tqdm(range(0, const.k)):
     S_c, S_p, Scde, Spde, empty_voxels = calculate_source_terms(const.n_x, const.n_y, const.n_z, temperature, gas_density, pressure, sublimated_mass, dx, dy, dz, const.dt, surface_reduced, uniform_water_masses, latent_heat_water, surface)
     #S_c, S_p = calculate_source_terms(const.n_x, const.n_y, const.n_z, temperature, gas_density, pressure, sublimated_mass, dx, dy, dz, const.dt, surface_reduced, uniform_water_masses, latent_heat_water, surface)[0:2]
     #S_c, S_p, sublimated_mass, outgassed_mass_timestep = calculate_molecule_flux_moon_test(const.n_x, const.n_y, const.n_z, temperature, pressure, const.lh_a_1, const.lh_b_1, const.lh_c_1, const.lh_d_1, const.m_H2O, dx, dy, dz, const.dt, const.k_boltzmann, sample_holder, uniform_water_masses, latent_heat_water, water_particle_number, r_mono_water)
-    temperature = hte_implicit_DGADI_zfirst(const.n_x, const.n_y, const.n_z, surface_reduced, const.r_H, const.albedo, const.dt, lamp_power_dn, const.sigma, const.epsilon, temperature, Lambda, Dr, heat_capacity, density, dx, dy, dz, surface, S_c, S_p, sample_holder, np.full(6, const.ambient_radiative_temperature, dtype=np.float64))
+    temperature = hte_implicit_DGADI_zfirst(const.n_x, const.n_y, const.n_z, surface_reduced, const.r_H, const.albedo, const.dt, lamp_power_dn, const.sigma, const.epsilon, temperature, Lambda, Dr, heat_capacity, density, dx, dy, dz, surface, S_c, S_p, sample_holder, np.full(6, const.ambient_radiative_temperature, dtype=np.float64), reradiated_heat)
     outgassed_mass_complete += np.sum(sublimated_mass)
     uniform_water_masses = uniform_water_masses - sublimated_mass
     outgassing_rate[j] = np.sum(sublimated_mass)/const.dt
@@ -285,7 +290,7 @@ for j in tqdm(range(0, const.k)):
         if sett.enable_ray_tracing:
             surface_topography_polygons = generate_topography(surface, surface_reduced, dx, dy, dz)
             print('Tracing rays')
-            view_factor_matrix = trace_rays_MC(surface_topography_polygons, 4000)
+            view_factor_matrix = trace_rays_MC(surface_topography_polygons, 3000, True, surface)
             print('Finished')
     max_temps[j] = np.max(temperature)
     sublimated_mass_mid[j] = np.sum(sublimated_mass[0:const.n_z, const.n_y//2, const.n_x//2])
@@ -296,9 +301,9 @@ for j in tqdm(range(0, const.k)):
 
 #Data saving and output
 #save_current_arrays(temperature, water_content_per_layer, co2_content_per_layer, dust_ice_ratio_per_layer, co2_h2o_ratio_per_layer, heat_capacity, highest_pressure, highest_pressure_co2, ejection_times, var.time_passed + const.dt * const.k)
-'''data_dict = {'Temperature': temperature.tolist(), 'OR': outgassing_rate.tolist()}
-with open('test_or_nodiff.json', 'w') as outfile:
-    json.dump(data_dict, outfile)'''
+data_dict = {'Right': sensors_right.tolist(), 'Rear': sensors_rear.tolist(), 'Outgassing rate': outgassing_rate.tolist()}
+with open('D:/TPM_Data/Ice/Test_all_sensors.json', 'w') as outfile:
+    json.dump(data_dict, outfile)
 
 #data_save_sensors(const.k * const.dt, sensor_10mm, sensor_20mm, sensor_35mm, sensor_55mm, sensor_90mm, file)
 #file.close()

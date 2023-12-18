@@ -228,3 +228,51 @@ for each in [ax1, ax2, ax3]:
     each.set_yticks([])
 plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/Plots/Comparison_surface_309Kco.png', dpi=600)
 #plt.show()'''
+
+'''path = 'D:/TPM_Data/Ice/screenshots/'
+filenames = listdir(path)
+
+print(filenames[0])
+
+width = (929 - 655) * 2 + 100
+height = (929 - 655) * 2 + 100
+x = 578
+y = 655
+mask_lamp_spot = np.zeros((width, height), dtype=np.float64)
+mask_inverse_lamp_spot = np.zeros((width, height), dtype=np.float64)
+for i in range(x - width//2, x + width//2):
+    for j in range(y - height//2, y + height//2):
+        if (i - x + 10)**2 + (j - y + 5)**2 < 110**2:
+            mask_lamp_spot[i - (x - width//2)][j - (y - height//2)] = np.nan
+        else:
+            mask_inverse_lamp_spot[i - (x - width//2)][j - (y - height//2)] = np.nan
+
+mask_outer = np.zeros((width, height), dtype=np.float64)
+#mask_inverse_lamp_spot = np.zeros((width, height), dtype=np.float64)
+for i in range(x - width//2, x + width//2):
+    for j in range(y - height//2, y + height//2):
+        if (i - x + 10)**2 + (j - y + 5)**2 < 350**2:
+            pass
+        else:
+            mask_outer[i - (x - width//2)][j - (y - height//2)] = np.nan
+
+target = open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Thesis/ice_surface_temperature.csv', 'a')
+target.write('File name' + ',' + 'Max temp lamp spot' + ',' + 'Mean temp lamp spot' + ',' + 'Median temp lamp spot' + ',' + 'Mean temp shadowed area' + ',' + 'Median temp shadowed area' + '\n')
+for each in filenames:
+    im = np.array(PIL.Image.open(path + each).convert('L'))
+    ggT = GCD(const.n_x, width)
+    length = width // ggT
+    #Surface_temperatures_cam = np.zeros((const.k, const.n_x, const.n_y), dtype=np.float64)
+    im_cur = im[int(y - height / 2):int(y + height / 2), int(x - width / 2):int(x + width / 2)]
+    #OS_cur = (im_cur / 255) * 255 + 145
+    OS_cur = (im_cur / 255) * 50
+    # Surface_temperatures_cur = np.rot90(calibration_high(OS_cur), 3)
+    Surface_temperatures_cur = calibration_low(OS_cur)
+    Surface_lamp_spot = Surface_temperatures_cur + mask_inverse_lamp_spot
+    Surface_without_lamp = Surface_temperatures_cur + mask_lamp_spot + mask_outer
+    #convolved_cur = convolve(Surface_temperatures_cur, length, const.n_x, len(Surface_temperatures_cur[0]), const.n_x, const.n_y)[0]
+    #Con_shifted = np.full(np.shape(Surface_temperatures_cur), np.nan)
+    #Con_shifted[0:const.n_y - 5 - 1, 0:const.n_x - 1 - 1] = convolved_cur[5:const.n_y - 1, 1:const.n_x - 1]
+    target.write(each + ',' + str(np.nanmax(Surface_lamp_spot)) + ',' + str(np.nanmean(Surface_lamp_spot)) + ',' + str(np.nanmedian(Surface_lamp_spot)) + ',' + str(np.nanmean(Surface_without_lamp)) + ',' + str(np.nanmedian(Surface_without_lamp)) + '\n')
+    #target.write(each + ',' + str(np.max(Surface_temperatures_cur)) + ',' + str(np.mean(Surface_temperatures_cur)) + ',' + str(np.median(Surface_temperatures_cur)) + '\n')
+target.close()'''

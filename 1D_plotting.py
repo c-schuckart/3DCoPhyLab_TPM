@@ -5,11 +5,14 @@ import matplotlib.animation as animation
 from matplotlib import rcParams
 from matplotlib.gridspec import GridSpec
 from matplotlib.ticker import (AutoLocator, AutoMinorLocator, MultipleLocator, LogLocator, LogFormatterMathtext)
+import matplotlib.dates as mdates
 import matplotlib.lines as mlines
 import json
 import csv
 import constants as const
-from scipy import interpolate
+import pandas as pd
+from scipy.interpolate import interp1d
+from datetime import timedelta
 from data_input import read_temperature_data, getPath
 from IPython.display import Video
 from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -498,7 +501,7 @@ writer = Writer
 anim.save('D:/TPM_Data/Testing data/radial_mixing_test_long.mp4', writer=writer, dpi=600)
 Video('D:/TPM_Data/Testing data/radial_mixing_test_long.mp4')'''
 
-time = [i * 0.5 for i in range(0, 880)]
+'''time = [i * 0.5 for i in range(0, 880)]
 top_temps = []
 bottom_temps = []
 for t in time:
@@ -517,4 +520,74 @@ ax.set_ylabel('Temperature (K)')
 plt.title('Sample holder boundary condition')
 #plt.show()
 plt.legend()
-plt.savefig('D:/TPM_Data/Noah/sample_holder_boundary_condition.png', dpi=600)
+plt.savefig('D:/TPM_Data/Noah/sample_holder_boundary_condition.png', dpi=600)'''
+
+
+InputPath = 'C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Thesis/Agilent_L_chamber_30_11_2023_14_20_44.txt'
+
+data = pd.read_csv(InputPath,
+                   names=['Time', 'pen1', 'pen2', 'pen3', 'MOT1', 'MOT2','Right_25', 'Rear_25', 'Right_20',
+                              'Rear_20', 'Right_15', 'Rear_15', 'Right_10', 'Rear_10_side', 'Right_15_side',
+                              'Rear_5', 'Right_5', 'Rear_10', 'Sidewall_55','Sidewall_25','Copperplate', 'Sidewall_85',
+                              'Blackbody',
+                              'Right_30', 'Rear_30', 'Rear_40', 'Right_40', 'Right_50', 'Rear_50',
+                              'Rear_75', 'Right_75', 'Right_100_side', 'Rear_100', 'CP_tube',
+                              'CS_left_top', 'CS_rear_top', 'CS_right_top', 'CS_top_plate', 'CS_left_bot', 'CS_rear_bot',
+                              'CS_right_bot'],sep=',',skiprows=1)
+
+data['Time'] = pd.to_datetime(data['Time'], format='%d_%m_%Y_%H:%M:%S')
+h_fmt = mdates.DateFormatter('%d_%m_%H:%M:%S')
+start = np.datetime64(data['Time'][45770], 's')
+time = np.zeros(len(data['Time'])-45770, np.int32)
+for i in range(45770, len(data['Time'])):
+    time[i-45770] = (np.datetime64(data['Time'][i], 's') - start).astype(int)
+
+shift = -28
+
+coef = [3.9083e-3, -5.775e-7, -4.183e-12]
+trange = np.linspace(60, 550, 500) - 273.15
+R = (1 + coef[0] * trange + coef[1] * trange ** 2 + coef[2] * (trange - 100) * trange ** 3) * 1000
+f = interp1d(R, trange, bounds_error=False, fill_value=np.nan)
+
+coef2 = [3.9083e-3, -5.775e-7, -4.183e-12]
+trange2 = np.linspace(60, 550, 500) - 273.15
+R2 = (1 + coef2[0] * trange2 + coef2[1] * trange2 ** 2 + coef2[2] * (trange2 - 100) * trange2 ** 3) * 100
+h = interp1d(R2, trange2, bounds_error=False, fill_value=np.nan)
+
+timetogoback = timedelta(minutes=2)
+
+
+#labels=['Right_5','Right_10','Right_15','Right_15_side','Right_20','Right_25','Right_30','Right_40','Right_50','Right_75','Right_100_side']
+
+#labels=['Rear_5','Rear_10','Rear_10_side','Rear_15','Rear_20','Rear_25','Rear_30','Rear_40','Rear_50','Rear_75','Rear_100']
+
+labels=['Right_5', 'Right_10','Right_15','Right_15_side','Right_20']
+
+time_sim = [i * const.dt for i in range(0, const.k)]
+with open('D:/TPM_Data/Ice/Test_all_sensors.json') as json_file:
+    jdata = json.load(json_file)
+
+
+
+NUM_COLORS = 20
+cm = plt.get_cmap('tab20')
+fig, ax = plt.subplots(1, 1)
+ax.set_prop_cycle(color=[cm(1. * i / NUM_COLORS) for i in range(NUM_COLORS)])
+count = 0
+for label in labels:
+    ax.plot(time, ((data[label]+shift).apply(f) + 273.15)[45770:len(data['Time'])], label=label)
+    if label[0:5] == 'Right':
+        ax.plot(time_sim, np.array(jdata['Right'])[0:const.k, count], label=label + ' SIM')
+    else:
+        ax.plot(time_sim, np.array(jdata['Rear'])[0:const.k, count], label=label + ' SIM')
+    count += 1
+
+#ax.set_xlim(data['Time'][36000], data['Time'][66000])
+#ax.set_ylim(142, 182)
+#ax.add_artist(mlines.Line2D([data['Time'][45000], data['Time'][45000]], [140, 190], ls='--', color='black'))
+#ax.add_artist(mlines.Line2D([data['Time'][65000], data['Time'][65000]], [140, 190], ls='--', color='black'))
+fig.legend(loc=9, ncol=6, fontsize='x-small')
+ax.set_xlabel('Time')
+ax.set_ylabel('Temperature (K)')
+#plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Thesis/overview_right.png', dpi=600)
+plt.show()

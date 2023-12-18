@@ -66,7 +66,12 @@ for i in range(0, const.n_z):
 sample = plot_3D(temperature)'''
 
 #sample = plot_3D(np.load('D:/TPM_Data/Noria/pure_water_top_sublimation' + str(float(0)) + '.npy'))
-sample = plot_3D(np.load('D:/TPM_Data/Noria/pure_water_top_sublimation' + str(float(1007*600)) + '.npy'))
+with open('test_ray_trace.json') as json_file:
+    jdata = json.load(json_file)
+temp = np.array(jdata['Temperature'])
+temp[1, const.n_y//2, 0:const.n_x//2] = np.zeros(const.n_y//2, dtype=np.float64)
+temp[1, 0:const.n_y//2, const.n_x//2] = np.zeros(const.n_y//2, dtype=np.float64)
+sample = plot_3D(temp)
 
 '''temperature_array = np.zeros((1008, const.n_z, const.n_y, const.n_x), dtype=np.float64)
 time_vals = [i * 600 for i in range(0, 1008)]

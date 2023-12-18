@@ -283,10 +283,31 @@ def check_array(n_x, n_y, n_z, target_array, instruction, target_nr):
 
 
 
+'''
+The sensors are in n_y//2 to n_y for the right sensors and 0 to n_x//2 for the rear sensors
+'''
 @njit
-def check_array(n_x, n_y, n_z, target_array, mode, number):
-    for i in range(0, n_z):
-        for j in range(0, n_y):
-            for k in range(0, n_x):
-                if target_array[i][j][k] > number:
-                    print(i, j, k)
+def save_sensors_L_sample_holder(n_x, n_y, n_z, temperature, sensors_right, sensors_rear, time):
+    sensors_rear[time][0] = (temperature[2][n_y//2-2][n_x//2-15] * 3/5 + temperature[2][n_y//2-2][n_x//2-16] * 2/5)       # rear 5mm
+    sensors_rear[time][1] = ((temperature[3][n_y//2] [n_x//2-13] * 1/5 + temperature[3][n_y//2+1] [n_x//2-13] * 4/5) * 4/5 + (temperature[3][n_y//2] [n_x//2-12] * 1/5 + temperature[3][n_y//2+1] [n_x//2-12] * 4/5) * 1/5)      # rear 10mm
+    sensors_rear[time][2] = (temperature[3][n_y//2-12] [n_x//2-13] * 4/5 + temperature[3][n_y//2-12] [n_x//2-12] * 1/5)       # rear 10mm side
+    sensors_rear[time][3] = temperature[4][n_y//2-1][n_x//2-17]        # rear 15mm
+    sensors_rear[time][4] = (temperature[5][n_y//2+3][n_x//2-15] * 1/5 + temperature[5][n_y//2+3][n_x//2-14] * 4/5)      # rear 20mm
+    sensors_rear[time][5] = ((temperature[6][n_y//2+1] [n_x//2-13] * 4/5 + temperature[6][n_y//2+1] [n_x//2-12] * 1/5) * 3/5 + (temperature[6][n_y//2+2] [n_x//2-13] * 4/5 + temperature[6][n_y//2+2] [n_x//2-12] * 1/5) * 2/5)       # rear 25mm
+    sensors_rear[time][6] = ((temperature[7][n_y//2+3][n_x//2-17] * 4/5 + temperature[7][n_y//2+2][n_x//2-17] * 1/5) * 4/5 + (temperature[7][n_y//2+3][n_x//2-16] * 4/5 + temperature[7][n_y//2+2][n_x//2-16] * 1/5) * 1/5)     # rear 30mm
+    sensors_rear[time][7] = (temperature[9][n_y//2][n_x//2-14] * 2/5 + temperature[9][n_y//2][n_x//2-13] * 3/5)         # rear 40mm
+    sensors_rear[time][8] = ((temperature[11][n_y//2] [n_x//2-13] * 1/5 + temperature[11][n_y//2+1] [n_x//2-13] * 4/5) * 4/5 + (temperature[11][n_y//2] [n_x//2-12] * 1/5 + temperature[11][n_y//2+1] [n_x//2-12] * 4/5) * 1/5)       # rear 50mm
+    sensors_rear[time][9] = (temperature[16][n_y//2-2][n_x//2-15] * 3/5 + temperature[16][n_y//2-2][n_x//2-16] * 2/5)       # rear 75mm
+    sensors_rear[time][10] = ((temperature[20][n_y//2][n_x//2-13] * 3/5 + temperature[20][n_y//2-1][n_x//2-13] * 2/5) * 4/5 + (temperature[20][n_y//2][n_x//2-12] * 3/5 + temperature[20][n_y//2-1][n_x//2-12] * 2/5) * 1/5)     # rear 100mm (20, because 21 is already sample holder)
+    sensors_right[time][0] = (temperature[2][n_y//2+14][n_x//2] * 3/5 + temperature[2][n_y//2+14][n_x//2-1] * 2/5)   # right 5mm
+    sensors_right[time][1] = temperature[3][n_y//2+12][n_x//2-4]  # right 10mm
+    sensors_right[time][2] = ((temperature[4][n_y//2+15][n_x//2+1] * 4/5 + temperature[4][n_y//2+15][n_x//2+2] * 1/5) * 4/5 + (temperature[4][n_y//2+16][n_x//2+1] * 4/5 + temperature[4][n_y//2+16][n_x//2+2] * 1/5) * 1/5) # right 15mm
+    sensors_right[time][3] = ((temperature[4][n_y//2+15][n_x//2+10] * 4/5 + temperature[4][n_y//2+16][n_x//2+10] * 1/5) * 4/5 + (temperature[4][n_y//2+15][n_x//2+9] * 4/5 + temperature[4][n_y//2+16][n_x//2+9] * 1/5) * 1/5)  # right 15mm side
+    sensors_right[time][4] = (temperature[5][n_y//2+15][n_x//2-3] * 3/5 + temperature[5][n_y//2+14][n_x//2-3] * 2/5)  # right 20mm
+    sensors_right[time][5] = (temperature[6][n_y//2+13][n_x//2] * 3/5 + temperature[6][n_y//2+12][n_x//2] * 2/5)  # right 25mm
+    sensors_right[time][6] = ((temperature[7][n_y//2+16][n_x//2-1] * 2/5 + temperature[7][n_y//2+15][n_x//2-1] * 3/5) * 3/5 + (temperature[7][n_y//2+16][n_x//2-2] * 2/5 + temperature[7][n_y//2+15][n_x//2-2] * 3/5) * 2/5)  # right 30mm
+    sensors_right[time][7] = ((temperature[9][n_y//2+13][n_x//2+1] * 3/5 + temperature[9][n_y//2+13][n_x//2+2] * 2/5) * 3/5 + (temperature[9][n_y//2+12][n_x//2+1] * 3/5 + temperature[9][n_y//2+12][n_x//2+2] * 2/5) * 2/5) # right 40mm
+    sensors_right[time][8] = (temperature[11][n_y//2+15][n_x//2-1] * 3/5 + temperature[11][n_y//2+14][n_x//2-1] * 2/5)  # right 50mm
+    sensors_right[time][9] = ((temperature[16][n_y//2+16][n_x//2-2] * 4/5 + temperature[16][n_y//2+16][n_x//2-3] * 1/5) * 2/5 + (temperature[16][n_y//2+15][n_x//2-2] * 4/5 + temperature[16][n_y//2+15][n_x//2-3] * 1/5) * 3/5) # right 75mm
+    sensors_right[time][10] = ((temperature[20][n_y//2+14][n_x//2+15] * 1/5 + temperature[20][n_y//2+13][n_x//2+15] * 4/5) * 3/5 + (temperature[20][n_y//2+14][n_x//2+16] * 1/5 + temperature[20][n_y//2+13][n_x//2+16] * 4/5) * 2/5)  # right 100mm side (20, because 21 is already sample holder)
+    return sensors_right, sensors_rear
