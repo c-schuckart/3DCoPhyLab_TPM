@@ -523,7 +523,7 @@ plt.legend()
 plt.savefig('D:/TPM_Data/Noah/sample_holder_boundary_condition.png', dpi=600)'''
 
 
-InputPath = 'C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Thesis/Agilent_L_chamber_30_11_2023_14_20_44.txt'
+InputPath = 'C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Thesis/Agilent_L_chamber_30_11_2023_14_20_44.txt'
 
 data = pd.read_csv(InputPath,
                    names=['Time', 'pen1', 'pen2', 'pen3', 'MOT1', 'MOT2','Right_25', 'Rear_25', 'Right_20',
@@ -558,10 +558,7 @@ timetogoback = timedelta(minutes=2)
 
 
 #labels=['Right_5','Right_10','Right_15','Right_15_side','Right_20','Right_25','Right_30','Right_40','Right_50','Right_75','Right_100_side']
-
-#labels=['Rear_5','Rear_10','Rear_10_side','Rear_15','Rear_20','Rear_25','Rear_30','Rear_40','Rear_50','Rear_75','Rear_100']
-
-labels=['Right_5', 'Right_10','Right_15','Right_15_side','Right_20']
+labels=['Rear_5','Rear_10','Rear_10_side','Rear_15','Rear_20','Rear_25','Rear_30','Rear_40','Rear_50','Rear_75','Rear_100']
 
 time_sim = [i * const.dt for i in range(0, const.k)]
 with open('D:/TPM_Data/Ice/Test_all_sensors.json') as json_file:

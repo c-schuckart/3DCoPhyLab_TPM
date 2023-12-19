@@ -4,6 +4,7 @@ from numba import njit, prange
 import csv
 import pandas as pd
 from os import path
+from scipy.interpolate import interp1d
 
 
 @njit
@@ -311,3 +312,67 @@ def save_sensors_L_sample_holder(n_x, n_y, n_z, temperature, sensors_right, sens
     sensors_right[time][9] = ((temperature[16][n_y//2+16][n_x//2-2] * 4/5 + temperature[16][n_y//2+16][n_x//2-3] * 1/5) * 2/5 + (temperature[16][n_y//2+15][n_x//2-2] * 4/5 + temperature[16][n_y//2+15][n_x//2-3] * 1/5) * 3/5) # right 75mm
     sensors_right[time][10] = ((temperature[20][n_y//2+14][n_x//2+15] * 1/5 + temperature[20][n_y//2+13][n_x//2+15] * 4/5) * 3/5 + (temperature[20][n_y//2+14][n_x//2+16] * 1/5 + temperature[20][n_y//2+13][n_x//2+16] * 4/5) * 2/5)  # right 100mm side (20, because 21 is already sample holder)
     return sensors_right, sensors_rear
+
+
+def prescribe_temp_profile_from_data(n_x, n_y, n_z, temperature, time_profile, surface_temp, bottom_temp, file, height_list, sample_holder):
+    data = pd.read_csv(file,
+                       names=['Time', 'pen1', 'pen2', 'pen3', 'MOT1', 'MOT2', 'Right_25', 'Rear_25', 'Right_20',
+                              'Rear_20', 'Right_15', 'Rear_15', 'Right_10', 'Rear_10_side', 'Right_15_side',
+                              'Rear_5', 'Right_5', 'Rear_10', 'Sidewall_55', 'Sidewall_25', 'Copperplate',
+                              'Sidewall_85',
+                              'Blackbody',
+                              'Right_30', 'Rear_30', 'Rear_40', 'Right_40', 'Right_50', 'Rear_50',
+                              'Rear_75', 'Right_75', 'Right_100_side', 'Rear_100', 'CP_tube',
+                              'CS_left_top', 'CS_rear_top', 'CS_right_top', 'CS_top_plate', 'CS_left_bot',
+                              'CS_rear_bot',
+                              'CS_right_bot'], sep=',', skiprows=1)
+
+    data['Time'] = pd.to_datetime(data['Time'], format='%d_%m_%Y_%H:%M:%S')
+
+    shift = -28
+
+    coef = [3.9083e-3, -5.775e-7, -4.183e-12]
+    trange = np.linspace(60, 550, 500) - 273.15
+    R = (1 + coef[0] * trange + coef[1] * trange ** 2 + coef[2] * (trange - 100) * trange ** 3) * 1000
+    f = interp1d(R, trange, bounds_error=False, fill_value=np.nan)
+
+    sensor_list = np.zeros(10, dtype=np.float64)
+    count = 0
+    for each in ['Rear_5', 'Rear_10', 'Rear_15', 'Rear_20', 'Rear_25', 'Rear_30', 'Rear_40', 'Rear_50', 'Rear_75',
+                 'Rear_100']:
+        sensor_list[count] = ((data[each] + shift).apply(f) + 273.15)[time_profile]
+        count += 1
+
+    profile = np.zeros(np.shape(temperature)[0], dtype=np.float64)
+    if np.isnan(sensor_list[0]):
+        sensor_1 = (surface_temp + sensor_list[1]) / 2
+    for i in range(0, height_list[0] - 1):
+        profile[i + 1] = surface_temp + (sensor_list[0] - surface_temp) * i / (height_list[0] - 1)
+    for j in range(0, len(sensor_list) - 1):
+        for i in range(height_list[j] + 1, height_list[j + 1]):
+            profile[i] = sensor_list[j] + (sensor_list[j + 1] - sensor_list[j]) * (i - height_list[j]) / (
+                        height_list[j + 1] - height_list[j])
+    for i in range(height_list[9] + 1, n_z - 2):
+        profile[i] = sensor_list[9] + (bottom_temp - sensor_list[9]) * (i - height_list[9]) / (n_z - 2 - height_list[9])
+    profile[height_list[0]] = sensor_list[0]
+    profile[height_list[1]] = sensor_list[1]
+    profile[height_list[2]] = sensor_list[2]
+    profile[height_list[3]] = sensor_list[3]
+    profile[height_list[4]] = sensor_list[4]
+    profile[height_list[5]] = sensor_list[5]
+    profile[height_list[6]] = sensor_list[6]
+    profile[height_list[7]] = sensor_list[7]
+    profile[height_list[8]] = sensor_list[8]
+    profile[height_list[9]] = sensor_list[9]
+    profile[n_z-2] = bottom_temp
+    sand_base_temp = np.full(n_z, bottom_temp, dtype=np.float64)
+    for j in range(1, n_y - 1):
+        for k in range(1, n_x - 1):
+            # temperature[1:n_z-1, j, k] = sand_base_temp[1:n_z-1] + (profile[1:n_z-1] - sand_base_temp[1:n_z-1]) * np.exp(- (((j - n_y//2) * min_dy)**2 + ((k - n_x//2) * min_dx)**2) / (1/2*r_sh)**2)
+            if np.sum(temperature[0:n_z-2, j, k]) > 0 and np.sum(sample_holder[0:n_z-2, j, k]) == 0:
+                temperature[0:n_z, j, k] = profile
+            if np.isnan(temperature[1, j, k]):
+                print(j, k)
+    # plt.plot(np.arange(1, n_z), profile[1:n_z])
+    # plt.show()
+    return temperature

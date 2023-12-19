@@ -12,7 +12,7 @@ from heat_transfer_equation_DG_ADI import hte_implicit_DGADI, hte_implicit_DGADI
 from diffusion_equation_DG_ADI import de_implicit_DGADI, de_implicit_DGADI_zfirst
 from boundary_conditions import sample_holder_data, day_night_cycle, calculate_L_chamber_lamp_bd
 from ray_tracer import generate_topography, trace_rays_MC, get_temperature_vector
-from utility_functions import save_sensors_L_sample_holder
+from utility_functions import save_sensors_L_sample_holder, prescribe_temp_profile_from_data
 
 #work arrays and mesh creation + surface detection
 #temperature, dx, dy, dz, Dr, a, a_rad, b, b_rad = create_equidistant_mesh(const.n_x, const.n_y, const.n_z, const.temperature_ini, const.min_dx, const.min_dy, const.min_dz, False)
@@ -242,6 +242,13 @@ surface_topography_polygons = np.empty(0)
 reradiated_heat = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
 sensors_right = np.zeros((const.k, 11), dtype=np.float64)
 sensors_rear = np.zeros((const.k, 11), dtype=np.float64)
+data_file_sensors = 'C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Thesis/Agilent_L_chamber_30_11_2023_14_20_44.txt'
+height_list_sensors = np.array([2, 3, 4, 5, 6, 7, 9, 11, 16, 20])
+
+temperature = prescribe_temp_profile_from_data(const.n_x, const.n_y, const.n_z, temperature, 45770, 153, 145, data_file_sensors, height_list_sensors, sample_holder)
+
+#print(temperature[0:const.n_z, const.n_y//2, const.n_x//2])
+#print(temperature[0:const.n_z, 1, const.n_x//2])
 
 for j in tqdm(range(0, const.k)):
     if j % 100 == 0:
@@ -253,6 +260,7 @@ for j in tqdm(range(0, const.k)):
         #print(s_2[0:5, const.n_y//2, const.n_x//2])
         if j != 0:
             print(Lambda[0:5, const.n_y//2, const.n_x//2])
+            print(blocked_voxels[1, 0:const.n_y, const.n_x // 2])
             print(uniform_water_masses[0:5, const.n_y//2, const.n_x//2])
             print(np.sum(sublimated_mass_mid[j-100:j]))
         #print(np.sum(uniform_water_masses) + outgassed_mass_complete)
