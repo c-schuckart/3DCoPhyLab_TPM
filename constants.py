@@ -20,7 +20,7 @@ n_y = 25
 n_z = 25'''
 n = np.array([n_x, n_y, n_z])
 #k = 36288 * 5                      # Number of Timesteps                    [-]'''
-k = int(3601 * 1)                    # Number of Timesteps                    [-]
+k = int(1801 * 1)                    # Number of Timesteps                    [-]
 #k = 10001
 #Definition of Physical Parameters
 #Material Properties

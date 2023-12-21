@@ -229,7 +229,8 @@ for each in [ax1, ax2, ax3]:
 plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/Plots/Comparison_surface_309Kco.png', dpi=600)
 #plt.show()'''
 
-'''path = 'D:/TPM_Data/Ice/screenshots/'
+'''#path = 'D:/TPM_Data/Ice/screenshots/'
+path = 'D:/Laboratory_data/Ice/screenshots/'
 filenames = listdir(path)
 
 print(filenames[0])
@@ -256,8 +257,8 @@ for i in range(x - width//2, x + width//2):
         else:
             mask_outer[i - (x - width//2)][j - (y - height//2)] = np.nan
 
-target = open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Thesis/ice_surface_temperature.csv', 'a')
-target.write('File name' + ',' + 'Max temp lamp spot' + ',' + 'Mean temp lamp spot' + ',' + 'Median temp lamp spot' + ',' + 'Mean temp shadowed area' + ',' + 'Median temp shadowed area' + '\n')
+target = open('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Thesis/ice_surface_lamp_region_temperature.csv', 'a')
+target.write('File name' + ',' + 'Max temp lamp spot' + ',' + 'Mean temp lamp spot' + ',' + 'Median temp lamp spot' + ',' + '10% <' + ',' + '90% >' + '\n')
 for each in filenames:
     im = np.array(PIL.Image.open(path + each).convert('L'))
     ggT = GCD(const.n_x, width)
@@ -273,6 +274,6 @@ for each in filenames:
     #convolved_cur = convolve(Surface_temperatures_cur, length, const.n_x, len(Surface_temperatures_cur[0]), const.n_x, const.n_y)[0]
     #Con_shifted = np.full(np.shape(Surface_temperatures_cur), np.nan)
     #Con_shifted[0:const.n_y - 5 - 1, 0:const.n_x - 1 - 1] = convolved_cur[5:const.n_y - 1, 1:const.n_x - 1]
-    target.write(each + ',' + str(np.nanmax(Surface_lamp_spot)) + ',' + str(np.nanmean(Surface_lamp_spot)) + ',' + str(np.nanmedian(Surface_lamp_spot)) + ',' + str(np.nanmean(Surface_without_lamp)) + ',' + str(np.nanmedian(Surface_without_lamp)) + '\n')
+    target.write(each + ',' + str(np.nanmax(Surface_lamp_spot)) + ',' + str(np.nanmean(Surface_lamp_spot)) + ',' + str(np.nanmedian(Surface_lamp_spot)) + ',' + str(np.nanpercentile(Surface_lamp_spot, 10)) + ',' + str(np.nanpercentile(Surface_lamp_spot, 90)) + '\n')
     #target.write(each + ',' + str(np.max(Surface_temperatures_cur)) + ',' + str(np.mean(Surface_temperatures_cur)) + ',' + str(np.median(Surface_temperatures_cur)) + '\n')
 target.close()'''

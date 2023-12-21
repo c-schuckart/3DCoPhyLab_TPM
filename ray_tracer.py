@@ -31,18 +31,21 @@ def generate_topography(surface, reduced_surface, dx, dy, dz):
 
 
 @njit
-def get_temperature_vector(n_x, n_y, n_z, temperature, surface, surface_reduced, length, view_factor_matrix, sigma, epsilon):
+def get_temperature_vector(n_x, n_y, n_z, temperature, surface, surface_reduced, length, view_factor_matrix, sigma, epsilon, albedo, lamp_power):
     surface_temperature_vector = np.zeros(length, dtype=np.float64)
+    lamp_power_vector = np.zeros(length, dtype=np.float64)
     thermal_heating_energy = np.zeros((n_z, n_y, n_x), dtype=np.float64)
     counter_polygons = 0
     for each in surface_reduced:
         for i in range(0, np.sum(surface[each[2]][each[1]][each[0]])):
             surface_temperature_vector[counter_polygons] = temperature[each[2]][each[1]][each[0]]
+            if np.sum(temperature[0:each[2], each[1], each[0]]) == 0:
+                lamp_power_vector[counter_polygons] = lamp_power[each[2]][each[1]][each[0]]
             counter_polygons += 1
     counter_polygons = 0
     for each in surface_reduced:
         for i in range(0, np.sum(surface[each[2]][each[1]][each[0]])):
-            thermal_heating_energy[each[2]][each[1]][each[0]] += sigma * epsilon * np.sum(view_factor_matrix[counter_polygons] * surface_temperature_vector) - view_factor_matrix[counter_polygons][counter_polygons] * surface_temperature_vector[counter_polygons]
+            thermal_heating_energy[each[2]][each[1]][each[0]] += (1 - albedo) * (sigma * epsilon * (np.sum(view_factor_matrix[counter_polygons] * surface_temperature_vector) - view_factor_matrix[counter_polygons][counter_polygons] * surface_temperature_vector[counter_polygons]) + (albedo) * (np.sum(view_factor_matrix[counter_polygons] * lamp_power_vector) - view_factor_matrix[counter_polygons][counter_polygons] * lamp_power_vector[counter_polygons]))
             counter_polygons += 1
     return thermal_heating_energy, surface_temperature_vector
 

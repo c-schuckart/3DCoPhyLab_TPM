@@ -271,7 +271,7 @@ for j in tqdm(range(0, const.k)):
     #temperature_previous = temperature[0:const.n_z, 0:const.n_y, 0:const.n_x]
     sensors_right, sensors_rear = save_sensors_L_sample_holder(const.n_x, const.n_y, const.n_z, temperature, sensors_right, sensors_rear, j)
     if sett.enable_ray_tracing and len(surface_topography_polygons) != 0:
-        reradiated_heat = get_temperature_vector(const.n_x, const.n_y, const.n_z, temperature, surface, surface_reduced, len(surface_topography_polygons), view_factor_matrix, const.sigma, const.epsilon)[0]
+        reradiated_heat = get_temperature_vector(const.n_x, const.n_y, const.n_z, temperature, surface, surface_reduced, len(surface_topography_polygons), view_factor_matrix, const.sigma, const.epsilon, const.albedo, lamp_power)[0]
     lamp_power_dn, S_c_deeper = day_night_cycle(lamp_power, S_c_deeper, 3 * 3600, j * const.dt)
     #density, VFF, water_ice_grain_density = calculate_bulk_density_and_VFF(temperature, VFF, uniform_dust_masses, uniform_water_masses, const.density_TUBS_M, dx, dy, dz)
     density = calculate_density(temperature, VFF)[1]
@@ -283,6 +283,11 @@ for j in tqdm(range(0, const.k)):
     density = density + sample_holder * (const.density_copper - density[const.n_z-2, const.n_y//2, const.n_x//2])
     #Lambda, interface_temperatures = thermal_conductivity_moon_regolith(const.n_x, const.n_y, const.n_z, temperature, dx, dy, dz, Dr, VFF, const.r_mono, const.fc1, const.fc2, const.fc3, const.fc4, const.fc5, const.mu, const.E, const.gamma, const.f1, const.f2, const.e1, const.chi_maria, const.sigma, const.epsilon, uniform_water_masses, uniform_dust_masses, const.lambda_water_ice, const.lambda_sample_holder, sample_holder)
     Lambda, interface_temperatures = lambda_granular(const.n_x, const.n_y, const.n_z, temperature, Dr, dx, dz, dz, const.lambda_water_ice, const.poisson_ratio_par, const.young_modulus_par, const.activation_energy_water_ice, const.R, r_mono_water, const.f_1, const.f_2, VFF, const.sigma, const.e_1, sample_holder, const.lambda_copper, r_n)
+    '''for j in range (1, const.n_y-1):
+        for k in range(1, const.n_x-1):
+            if ((k - a) / a_rad) ** 2 + ((j - b) / b_rad) ** 2 >= 0.8 and ((k - a) / a_rad) ** 2 + ((j - b) / b_rad) ** 2 < 1:
+                Lambda[1:const.n_z-1, j, k] = np.full((const.n_z-2, 6), 0.01, dtype=np.float64)'''
+    #print(Lambda[1, 0:const.n_y, const.n_x//2, 1])
     #heat_capacity = heat_capacity_moon_regolith(const.n_x, const.n_y, const.n_z, temperature, const.c0, const.c1, const.c2, const.c3, const.c4, uniform_water_masses, uniform_dust_masses, const.heat_capacity_sample_holder, sample_holder)
     heat_capacity = calculate_heat_capacity(temperature)
     S_c, S_p, Scde, Spde, empty_voxels = calculate_source_terms(const.n_x, const.n_y, const.n_z, temperature, gas_density, pressure, sublimated_mass, dx, dy, dz, const.dt, surface_reduced, uniform_water_masses, latent_heat_water, surface)

@@ -560,6 +560,8 @@ timetogoback = timedelta(minutes=2)
 #labels=['Right_5','Right_10','Right_15','Right_15_side','Right_20','Right_25','Right_30','Right_40','Right_50','Right_75','Right_100_side']
 labels=['Rear_5','Rear_10','Rear_10_side','Rear_15','Rear_20','Rear_25','Rear_30','Rear_40','Rear_50','Rear_75','Rear_100']
 
+#labels = ['Sidewall_55','Sidewall_25','Copperplate', 'Sidewall_85']
+
 time_sim = [i * const.dt for i in range(0, const.k)]
 with open('D:/TPM_Data/Ice/Test_all_sensors.json') as json_file:
     jdata = json.load(json_file)
@@ -586,5 +588,23 @@ for label in labels:
 fig.legend(loc=9, ncol=6, fontsize='x-small')
 ax.set_xlabel('Time')
 ax.set_ylabel('Temperature (K)')
-#plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Thesis/overview_right.png', dpi=600)
+ax.set_ylim(140, 180)
+plt.savefig('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Thesis/overview_sim_test.png', dpi=600)
 plt.show()
+
+'''NUM_COLORS = 20
+cm = plt.get_cmap('tab20')
+fig, ax = plt.subplots(figsize=(16, 9))
+ax.set_prop_cycle(color=[cm(1. * i / NUM_COLORS) for i in range(NUM_COLORS)])
+for label in labels:
+    ax.plot(data['Time'], ((data[label]+shift).apply(f) + 273.15), label=label)
+ax.xaxis.set_major_formatter(h_fmt)
+#ax.set_xlim(data['Time'][36000], data['Time'][66000])
+ax.set_ylim(142, 192)
+ax.add_artist(mlines.Line2D([data['Time'][45000], data['Time'][45000]], [140, 210], ls='--', color='black'))
+ax.add_artist(mlines.Line2D([data['Time'][65000], data['Time'][65000]], [140, 210], ls='--', color='black'))
+fig.autofmt_xdate()
+fig.legend(loc=9, ncol=6)
+ax.set_xlabel('Time')
+ax.set_ylabel('Temperature (K)')
+plt.show()'''
