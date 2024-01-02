@@ -10,7 +10,7 @@ import matplotlib.animation as animation
 from IPython.display import Video
 import csv
 from data_input import read_temperature_data, getPath
-from utility_functions import sort_csv
+from utility_functions import sort_csv, sort_csv_ice
 from os import listdir
 from scipy.interpolate import interp1d
 from scipy.optimize import brentq
@@ -321,7 +321,7 @@ plt.legend(fontsize='x-small')
 plt.show()
 #plt.savefig('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/Temp_profile.png', dpi=600)'''
 
-'''with open('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Light_absorption_curve_real.csv') as csvdatei:
+'''with open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Light_absorption_curve_real.csv') as csvdatei:
     dat = csv.reader(csvdatei, delimiter=';')
     depth = []
     energy = []
@@ -329,20 +329,25 @@ plt.show()
         depth.append(float(each[0]))
         energy.append(float(each[1]))
 
+min_dz = 5E-6
+n_z = 100
 depth = np.sort(np.array(depth))
 energy = np.sort(np.array(energy))
 
 curve = interp1d(depth, energy)
-z = np.zeros(const.n_z+1, dtype=np.float64)
+z = np.zeros(n_z+1, dtype=np.float64)
 mi = True
-for i in range(0, const.n_z+1):
-    z[i] = i*const.min_dz
+z[0] = 0
+z[1] = 2.5E-6
+max_interp = len(z)
+for i in range(2, n_z+1):
+    z[i] = (i-1)*min_dz + z[1]
     if z[i] > 1E-3 and mi:
         max_interp = i
         mi = False
 intensity = curve(z[0:max_interp])
-int_per_layer = np.zeros(const.n_z, dtype=np.float64)
-for i in range(0, const.n_z):
+int_per_layer = np.zeros(n_z, dtype=np.float64)
+for i in range(0, n_z):
     if z[i+1] > 1E-3:
         int_per_layer[i] = 0
     else:
@@ -353,9 +358,9 @@ data_dict = {'factors': int_per_layer.tolist()}
 print(np.sum(int_per_layer))
 print(max_interp)
 
-with open('lamp_layer_absorption_factors_periodic300.json', 'w') as outfile:
-    json.dump(data_dict, outfile)
-'''
+with open('lamp_layer_absorption_factors_100.json', 'w') as outfile:
+    json.dump(data_dict, outfile)'''
+
 
 '''chi = [0.326, 0.1, 0.05, 0.01, 0.005, 0.001]
 T_10 = [85.1647, 91.3946, 96.8681, 116.779, 128.6403, 158.08926]
@@ -499,7 +504,7 @@ ax.set_title('First layer pressure and subl. pressure')
 plt.savefig('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Top_pressure_v_sublpress.png', dpi=600)
 #plt.show()'''
 
-#OR = [2.5851651252493537e-12, 2.5599845332821927e-12, 2.5588937352294457e-12, 2.5585387116951732e-12]
+'''#OR = [2.5851651252493537e-12, 2.5599845332821927e-12, 2.5588937352294457e-12, 2.5585387116951732e-12]
 OR_active = [2.5851651252528232e-12, 2.5851651252493537e-12, 2.585165125249339e-12, 2.585165125249339e-12, 2.5851651252493885e-12, 2.585165125250289e-12]
 #OR_with_gap = [3.084450563685384e-16, 3.0778476912483063e-16, 3.07784746522077e-16, 3.077845178143886e-16, 3.0778193719693644e-16, 3.0766353184259217e-16]
 #OR_without_gap = [3.0844509890573357e-16, 3.07784813073193e-16, 3.0778479053331925e-16, 3.077845624591281e-16, 3.0778198887898456e-16, 3.0766382933400704e-16]
@@ -521,7 +526,7 @@ ax.set_xscale('log')
 fig.set_tight_layout(True)
 #ax.set_title(r'High diffrate with changing dz')
 plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Thesis/changing_dt_dz5e6_active_medium_corr_de.png', dpi=600)
-plt.show()
+plt.show()'''
 
 '''path = 'C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/Ice/'
 files = ['5e-6_first_layer_particle_radius_corr.npy', '1e-6_first_layer_particle_radius_corr.npy', '5e-7_first_layer_particle_radius_corr.npy', '1e-7_first_layer_particle_radius_corr.npy']
@@ -683,3 +688,129 @@ fig.set_tight_layout(True)
 ax.set_title(r'Heiße Schicht in 25 $\mu$m Tiefe')
 #plt.savefig('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Intervoxel_outgassing_first_layer_particle_radius_corr_de.png', dpi=600)
 plt.show()'''
+
+'''mode = 'rear'
+
+timestamps = []
+sen_1 = []
+sen_2 = []
+sen_3 = []
+sen_4 = []
+sen_5 = []
+sen_6 = []
+sen_7 = []
+sen_8 = []
+sen_9 = []
+sen_10 = []
+sen_11 = []
+
+with open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Thesis/nicer_icer_3000.txt') as csvdatei:
+    dat = csv.reader(csvdatei)
+    b = True
+    start = False
+    for each in dat:
+        if each[0] == '2023-12-05 11:23:34' or start:
+            if b:
+                start_time = np.datetime64(each[0])
+                b = False
+                start = True
+            timestamps.append(np.datetime64(each[0]) - start_time)
+            if mode == 'rear':
+                index_shift = 0
+            else:
+                index_shift = 11
+            sen_1.append(float(each[1 + index_shift]))
+            sen_2.append(float(each[2 + index_shift]))
+            sen_3.append(float(each[3 + index_shift]))
+            sen_4.append(float(each[4 + index_shift]))
+            sen_5.append(float(each[5 + index_shift]))
+            sen_6.append(float(each[6 + index_shift]))
+            sen_7.append(float(each[7 + index_shift]))
+            sen_8.append(float(each[8 + index_shift]))
+            sen_9.append(float(each[9 + index_shift]))
+            sen_10.append(float(each[10 + index_shift]))
+            sen_11.append(float(each[11 + index_shift]))
+            if timestamps[len(timestamps) - 1] > 180050:
+                break
+
+sen_1s = []
+sen_2s = []
+sen_3s = []
+sen_4s = []
+sen_5s = []
+sen_6s = []
+sen_7s = []
+sen_8s = []
+sen_9s = []
+sen_10s = []
+sen_11s = []
+counter = 0
+for i in range(len(timestamps)-1):
+    if timestamps[i]//50 == counter:
+        sen_1s.append(sen_1[i])
+        sen_2s.append(sen_2[i])
+        sen_3s.append(sen_3[i])
+        sen_4s.append(sen_4[i])
+        sen_5s.append(sen_5[i])
+        sen_6s.append(sen_6[i])
+        sen_7s.append(sen_7[i])
+        sen_8s.append(sen_8[i])
+        sen_9s.append(sen_9[i])
+        sen_10s.append(sen_10[i])
+        sen_11s.append(sen_11[i])
+        counter += 1
+
+files = listdir('D:/TPM_Data/Ice/')
+target = open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Thesis/Changing_albedo_and_sinter_temp_' + mode + '.csv', 'w')
+for each in files:
+    if each[0:8] == 'Granular':
+        with open('D:/TPM_Data/Ice/' + each) as json_file:
+            jdata = json.load(json_file)
+        sen_1_sim = []
+        sen_2_sim = []
+        sen_3_sim = []
+        sen_4_sim = []
+        sen_5_sim = []
+        sen_6_sim = []
+        sen_7_sim = []
+        sen_8_sim = []
+        sen_9_sim = []
+        sen_10_sim = []
+        sen_11_sim = []
+        if mode == 'rear':
+            sensor_group = 'Rear'
+        else:
+            sensor_group = 'Right'
+        for i in range(0, const.k):
+            sen_1_sim.append(jdata[sensor_group][i][0])
+            sen_2_sim.append(jdata[sensor_group][i][1])
+            sen_3_sim.append(jdata[sensor_group][i][2])
+            sen_4_sim.append(jdata[sensor_group][i][3])
+            sen_5_sim.append(jdata[sensor_group][i][4])
+            sen_6_sim.append(jdata[sensor_group][i][5])
+            sen_7_sim.append(jdata[sensor_group][i][6])
+            sen_8_sim.append(jdata[sensor_group][i][7])
+            sen_9_sim.append(jdata[sensor_group][i][8])
+            sen_10_sim.append(jdata[sensor_group][i][9])
+            sen_11_sim.append(jdata[sensor_group][i][10])
+        json_file.close()
+        deltas_1 = np.abs(np.array(sen_1s, dtype=np.float64) - np.array(sen_1_sim, dtype=np.float64))
+        deltas_2 = np.abs(np.array(sen_2s, dtype=np.float64) - np.array(sen_2_sim, dtype=np.float64))
+        deltas_3 = np.abs(np.array(sen_3s, dtype=np.float64) - np.array(sen_3_sim, dtype=np.float64))
+        deltas_4 = np.abs(np.array(sen_4s, dtype=np.float64) - np.array(sen_4_sim, dtype=np.float64))
+        deltas_5 = np.abs(np.array(sen_5s, dtype=np.float64) - np.array(sen_5_sim, dtype=np.float64))
+        deltas_6 = np.abs(np.array(sen_6s, dtype=np.float64) - np.array(sen_6_sim, dtype=np.float64))
+        deltas_7 = np.abs(np.array(sen_7s, dtype=np.float64) - np.array(sen_7_sim, dtype=np.float64))
+        deltas_8 = np.abs(np.array(sen_8s, dtype=np.float64) - np.array(sen_8_sim, dtype=np.float64))
+        deltas_9 = np.abs(np.array(sen_9s, dtype=np.float64) - np.array(sen_9_sim, dtype=np.float64))
+        deltas_10 = np.abs(np.array(sen_10s, dtype=np.float64) - np.array(sen_10_sim, dtype=np.float64))
+        deltas_11 = np.abs(np.array(sen_11s, dtype=np.float64) - np.array(sen_11_sim, dtype=np.float64))
+        #target.write(str(each[:-4]) + '\t' + str(np.average(deltas_1)) + ',' + str(np.max(deltas_1)) + '\t' + str(np.average(deltas_2)) + ',' + str(np.max(deltas_2)) + '\t' + str(np.average(deltas_3)) + ',' + str(np.max(deltas_3)) + '\t' + str(np.average(deltas_4)) + ',' + str(np.max(deltas_4)) + '\t' + str(np.average(deltas_5)) + ',' + str(np.max(deltas_5)) +'\n')
+        target.write(str(each[:-5]) + ',' + str(np.nanmean(deltas_1)) + ',' + str(np.nanmax(deltas_1)) + ',' + str(np.nanmean(deltas_2)) + ',' + str(np.nanmax(deltas_2)) + ',' + str(np.nanmean(deltas_3)) + ',' + str(np.nanmax(deltas_3)) + ',' + str(np.nanmean(deltas_4)) + ',' + str(np.nanmax(deltas_4)) + ',' + str(np.nanmean(deltas_5)) + ',' + str(np.nanmax(deltas_5)) + ',' + str(np.nanmean(deltas_6)) + ',' + str(np.nanmax(deltas_6)) + ',' + str(np.nanmean(deltas_7)) + ',' + str(np.nanmax(deltas_7)) + ',' + str(np.nanmean(deltas_8)) + ',' + str(np.nanmax(deltas_8)) + ',' + str(np.nanmean(deltas_9)) + ',' + str(np.nanmax(deltas_9)) + ',' + str(np.nanmean(deltas_10)) + ',' + str(np.nanmax(deltas_10)) + ',' + str(np.nanmean(deltas_11)) + ',' + str(np.nanmax(deltas_11)) +'\n')
+        #target.write(str(each[:-5]) + ',' + str(0.0) + ',' + str(0.0) + ',' + str(np.average(deltas_2)) + ',' + str(np.max(deltas_2)) + ',' + str(np.average(deltas_3)) + ',' + str(np.max(deltas_3)) + ',' + str(np.average(deltas_4)) + ',' + str(np.max(deltas_4)) + ',' + str(np.average(deltas_5)) + ',' + str(np.max(deltas_5)) +'\n')
+
+target.close()
+'''
+
+temp = np.load('D:/TPM_Data/Ice/Diffusion/full_model/temperatures_3650.0.npy')
+print(temp[0:const.n_z, const.n_y//2, const.n_x//2])

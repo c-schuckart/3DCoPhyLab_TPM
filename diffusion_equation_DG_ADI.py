@@ -51,7 +51,8 @@ def set_matrices_rhs_z_sweep_de_zfirst(n_z, j, k, rhs, gas_mass, surface, dx, dy
         elif temperature[i][j][k] == 0 and rhs[i] == 0:
             rhs[i] = (dx[i][j][k] * dy[i][j][k] * dz[i][j][k] / dt) * gas_mass[i][j][k]
         elif np.sum(surface[i][j][k]) != 0 and rhs[i] == 0:
-            rhs[i] = (dx[i][j][k] * dy[i][j][k] * dz[i][j][k] / dt) * gas_mass[i][j][k]
+            #rhs[i] = (dx[i][j][k] * dy[i][j][k] * dz[i][j][k] / dt) * gas_mass[i][j][k]
+            rhs[i] = 0
     return rhs
 
 
@@ -98,16 +99,8 @@ def boundary_condition_implicit_z_sweep_de_zfirst(dt, gas_mass, Diffusion_coeffi
             sub_gamma[each[2]] = - a_b
             rhs[each[2]] = a_t * gas_mass[each[2] + 1][each[1]][each[0]] + a_b * gas_mass[each[2] - 1][each[1]][each[0]] + a_n * gas_mass[each[2]][each[1] + 1][each[0]] + a_s * gas_mass[each[2]][each[1] - 1][each[0]] + a_e * gas_mass[each[2]][each[1]][each[0] + 1] + a_w * gas_mass[each[2]][each[1]][each[0] - 1] + S_c[each[2]][each[1]][each[0]] * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] + (dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] / dt - a_t - a_b - a_n - a_s - a_w - a_e) * gas_mass[each[2]][each[1]][each[0]]
         else:
-            a_t = 1 / 2 * Diffusion_coefficient[each[2]][each[1]][each[0]][0] * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] / Dr[each[2]][each[1]][each[0]][0] * (1 - sh_adjacent_voxels[each[2]][each[1]][each[0]][0])
-            a_b = 0
-            a_n = Diffusion_coefficient[each[2]][each[1]][each[0]][2] * dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] / Dr[each[2]][each[1]][each[0]][2] * (1 - sh_adjacent_voxels[each[2]][each[1]][each[0]][2])
-            a_s = Diffusion_coefficient[each[2]][each[1]][each[0]][3] * dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] / Dr[each[2]][each[1]][each[0]][3] * (1 - sh_adjacent_voxels[each[2]][each[1]][each[0]][3])
-            a_e = Diffusion_coefficient[each[2]][each[1]][each[0]][4] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] / Dr[each[2]][each[1]][each[0]][4] * (1 - sh_adjacent_voxels[each[2]][each[1]][each[0]][4])
-            a_w = Diffusion_coefficient[each[2]][each[1]][each[0]][5] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] / Dr[each[2]][each[1]][each[0]][5] * (1 - sh_adjacent_voxels[each[2]][each[1]][each[0]][5])
-            diag[each[2]] = -S_p[each[2]][each[1]][each[0]] * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] + a_t + a_b + dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] / dt
-            sub_alpha[each[2]] = - a_t
-            sub_gamma[each[2]] = - a_b
-            rhs[each[2]] = a_t * gas_mass[each[2] + 1][each[1]][each[0]] + a_b * gas_mass[each[2] - 1][each[1]][each[0]] + a_n * gas_mass[each[2]][each[1] + 1][each[0]] + a_s * gas_mass[each[2]][each[1] - 1][each[0]] + a_e * gas_mass[each[2]][each[1]][each[0] + 1] + a_w * gas_mass[each[2]][each[1]][each[0] - 1] + S_c[each[2]][each[1]][each[0]] * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] + (dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] / dt - a_t - a_b - a_n - a_s - a_w - a_e) * gas_mass[each[2]][each[1]][each[0]]
+            diag[each[2]] = dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] / dt
+            rhs[each[2]] = 0
     return sub_alpha, diag, sub_gamma, rhs
 
 
@@ -159,7 +152,8 @@ def set_matrices_rhs_y_sweep_de_zfirst(n_y, i, k, rhs, gas_mass, z_sweep_gas_mas
         elif temperature[i][j][k] == 0 and rhs[j] == 0:
             rhs[j] = (dx[i][j][k] * dy[i][j][k] * dz[i][j][k] / dt) * gas_mass[i][j][k]
         elif np.sum(surface[i][j][k]) != 0 and rhs[j] == 0:
-            rhs[j] = (dx[i][j][k] * dy[i][j][k] * dz[i][j][k] / dt) * gas_mass[i][j][k]
+            #rhs[j] = (dx[i][j][k] * dy[i][j][k] * dz[i][j][k] / dt) * gas_mass[i][j][k]
+            rhs[i] = 0
     return rhs
 
 
@@ -206,16 +200,8 @@ def boundary_condition_implicit_y_sweep_de_zfirst(dt, gas_mass, z_sweep_gas_mass
             sub_gamma[each[1]] = - a_s
             rhs[each[1]] = a_t * (z_sweep_gas_mass[each[2] + 1][each[1]][each[0]] + gas_mass[each[2] + 1][each[1]][each[0]])/2 + a_b * (z_sweep_gas_mass[each[2] - 1][each[1]][each[0]] + gas_mass[each[2] - 1][each[1]][each[0]])/2 + a_n * gas_mass[each[2]][each[1] + 1][each[0]] + a_s * gas_mass[each[2]][each[1] - 1][each[0]] + a_e * gas_mass[each[2]][each[1]][each[0] + 1] + a_w * gas_mass[each[2]][each[1]][each[0] - 1] + S_c[each[2]][each[1]][each[0]] * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] + (dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] / dt - a_n - a_s - a_w - a_e) * gas_mass[each[2]][each[1]][each[0]] - (a_t + a_b) * (z_sweep_gas_mass[each[2]][each[1]][each[0]] + gas_mass[each[2]][each[1]][each[0]])/2
         else:
-            a_t = Diffusion_coefficient[each[2]][each[1]][each[0]][0] * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] / Dr[each[2]][each[1]][each[0]][0] * (1 - surface[each[2]][each[1]][each[0]][0]) * (1 - sh_adjacent_voxels[each[2]][each[1]][each[0]][0])
-            a_b = 0
-            a_n = 1 / 2 * Diffusion_coefficient[each[2]][each[1]][each[0]][2] * dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] / Dr[each[2]][each[1]][each[0]][2] * (1 - surface[each[2]][each[1]][each[0]][2]) * (1 - sh_adjacent_voxels[each[2]][each[1]][each[0]][2])
-            a_s = 1 / 2 * Diffusion_coefficient[each[2]][each[1]][each[0]][3] * dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] / Dr[each[2]][each[1]][each[0]][3] * (1 - surface[each[2]][each[1]][each[0]][3]) * (1 - sh_adjacent_voxels[each[2]][each[1]][each[0]][3])
-            a_e = Diffusion_coefficient[each[2]][each[1]][each[0]][4] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] / Dr[each[2]][each[1]][each[0]][4] * (1 - surface[each[2]][each[1]][each[0]][4]) * (1 - sh_adjacent_voxels[each[2]][each[1]][each[0]][4])
-            a_w = Diffusion_coefficient[each[2]][each[1]][each[0]][5] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] / Dr[each[2]][each[1]][each[0]][5] * (1 - surface[each[2]][each[1]][each[0]][5]) * (1 - sh_adjacent_voxels[each[2]][each[1]][each[0]][5])
-            diag[each[1]] = -S_p[each[2]][each[1]][each[0]] * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] +  a_n + a_s + dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] / dt
-            sub_alpha[each[1]] = - a_n
-            sub_gamma[each[1]] = - a_s
-            rhs[each[1]] = a_t * (z_sweep_gas_mass[each[2] + 1][each[1]][each[0]] + gas_mass[each[2] + 1][each[1]][each[0]])/2 + a_b * (z_sweep_gas_mass[each[2] - 1][each[1]][each[0]] + gas_mass[each[2] - 1][each[1]][each[0]])/2 + a_n * gas_mass[each[2]][each[1] + 1][each[0]] + a_s * gas_mass[each[2]][each[1] - 1][each[0]] + a_e * gas_mass[each[2]][each[1]][each[0] + 1] + a_w * gas_mass[each[2]][each[1]][each[0] - 1] + S_c[each[2]][each[1]][each[0]] * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] + (dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] / dt - a_n - a_s - a_w - a_e) * gas_mass[each[2]][each[1]][each[0]] - (a_t + a_b) * (z_sweep_gas_mass[each[2]][each[1]][each[0]] + gas_mass[each[2]][each[1]][each[0]])/2
+            diag[each[1]] = dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] / dt
+            rhs[each[1]] = 0
     return sub_alpha, diag, sub_gamma, rhs
 
 
@@ -267,7 +253,8 @@ def set_matrices_rhs_x_sweep_de_zfirst(n_x, i, j, rhs, gas_mass, z_sweep_gas_mas
         elif temperature[i][j][k] == 0 and rhs[k] == 0:
             rhs[k] = (dx[i][j][k] * dy[i][j][k] * dz[i][j][k] / dt) * gas_mass[i][j][k]
         elif np.sum(surface[i][j][k]) != 0 and rhs[k] == 0:
-            rhs[k] = (dx[i][j][k] * dy[i][j][k] * dz[i][j][k] / dt) * gas_mass[i][j][k]
+            #rhs[k] = (dx[i][j][k] * dy[i][j][k] * dz[i][j][k] / dt) * gas_mass[i][j][k]
+            rhs[i] = 0
     return rhs
 
 
@@ -319,16 +306,8 @@ def boundary_condition_implicit_x_sweep_de_zfirst(dt, gas_mass, z_sweep_gas_mass
             sub_gamma[each[0]] = - a_w
             rhs[each[0]] = a_t * (z_sweep_gas_mass[each[2] + 1][each[1]][each[0]] + gas_mass[each[2] + 1][each[1]][each[0]])/2 + a_b * (z_sweep_gas_mass[each[2] - 1][each[1]][each[0]] + gas_mass[each[2] - 1][each[1]][each[0]])/2 + a_n * (y_sweep_gas_mass[each[2]][each[1] + 1][each[0]] + gas_mass[each[2]][each[1] + 1][each[0]])/2 + a_s * (y_sweep_gas_mass[each[2]][each[1] - 1][each[0]] + gas_mass[each[2]][each[1] - 1][each[0]])/2 + a_e * gas_mass[each[2]][each[1]][each[0] + 1] + a_w * gas_mass[each[2]][each[1]][each[0] - 1] + S_c[each[2]][each[1]][each[0]] * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] + (dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] / dt - a_e - a_w) * gas_mass[each[2]][each[1]][each[0]] - (a_t + a_b) * (z_sweep_gas_mass[each[2]][each[1]][each[0]] + gas_mass[each[2]][each[1]][each[0]])/2 - (a_n + a_s) * (y_sweep_gas_mass[each[2]][each[1]][each[0]] + gas_mass[each[2]][each[1]][each[0]])/2
         else:
-            a_t = Diffusion_coefficient[each[2]][each[1]][each[0]][0] * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] / Dr[each[2]][each[1]][each[0]][0] * (1 - surface[each[2]][each[1]][each[0]][0]) * (1 - sh_adjacent_voxels[each[2]][each[1]][each[0]][0])
-            a_b = 0
-            a_n = Diffusion_coefficient[each[2]][each[1]][each[0]][2] * dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] / Dr[each[2]][each[1]][each[0]][2] * (1 - surface[each[2]][each[1]][each[0]][2]) * (1 - sh_adjacent_voxels[each[2]][each[1]][each[0]][2])
-            a_s = Diffusion_coefficient[each[2]][each[1]][each[0]][3] * dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] / Dr[each[2]][each[1]][each[0]][3] * (1 - surface[each[2]][each[1]][each[0]][3]) * (1 - sh_adjacent_voxels[each[2]][each[1]][each[0]][3])
-            a_e = 1 / 2 * Diffusion_coefficient[each[2]][each[1]][each[0]][4] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] / Dr[each[2]][each[1]][each[0]][4] * (1 - surface[each[2]][each[1]][each[0]][4]) * (1 - sh_adjacent_voxels[each[2]][each[1]][each[0]][4])
-            a_w = 1 / 2 * Diffusion_coefficient[each[2]][each[1]][each[0]][5] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] / Dr[each[2]][each[1]][each[0]][5] * (1 - surface[each[2]][each[1]][each[0]][5]) * (1 - sh_adjacent_voxels[each[2]][each[1]][each[0]][5])
-            diag[each[0]] = -S_p[each[2]][each[1]][each[0]] * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] + a_e + a_w + dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] / dt
-            sub_alpha[each[0]] = - a_e
-            sub_gamma[each[0]] = - a_w
-            rhs[each[0]] = a_t * (z_sweep_gas_mass[each[2] + 1][each[1]][each[0]] + gas_mass[each[2] + 1][each[1]][each[0]])/2 + a_b * (z_sweep_gas_mass[each[2] - 1][each[1]][each[0]] + gas_mass[each[2] - 1][each[1]][each[0]])/2 + a_n * (y_sweep_gas_mass[each[2]][each[1] + 1][each[0]] + gas_mass[each[2]][each[1] + 1][each[0]])/2 + a_s * (y_sweep_gas_mass[each[2]][each[1] - 1][each[0]] + gas_mass[each[2]][each[1] - 1][each[0]])/2 + a_e * gas_mass[each[2]][each[1]][each[0] + 1] + a_w * gas_mass[each[2]][each[1]][each[0] - 1] + S_c[each[2]][each[1]][each[0]] * dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] + (dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] / dt - a_e - a_w) * gas_mass[each[2]][each[1]][each[0]] - (a_t + a_b) * (z_sweep_gas_mass[each[2]][each[1]][each[0]] + gas_mass[each[2]][each[1]][each[0]])/2 - (a_n + a_s) * (y_sweep_gas_mass[each[2]][each[1]][each[0]] + gas_mass[each[2]][each[1]][each[0]])/2
+            diag[each[0]] = dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]] / dt
+            rhs[each[0]] = 0
     return sub_alpha, diag, sub_gamma, rhs
 
 
@@ -434,7 +413,7 @@ def de_implicit_DGADI(n_x, n_y, n_z, surface_reduced, dt, gas_mass, Diffusion_co
 
 
 @njit
-def de_implicit_DGADI_zfirst(n_x, n_y, n_z, surface_reduced, dt, gas_mass, Diffusion_coefficient, Dr, dx, dy, dz, surface, S_c, S_p, sh_adjacent_voxels, temperature, top_layer_zero, surrounding_layer, t):
+def de_implicit_DGADI_zfirst(n_x, n_y, n_z, surface_reduced, dt, gas_mass, Diffusion_coefficient, Dr, dx, dy, dz, surface, S_c, S_p, sh_adjacent_voxels, top_layer_zero, temperature, simulate_region):
     next_step_gas_mass = np.zeros((n_z, n_y, n_x), dtype=np.float64)
     z_sweep_gas_mass = np.zeros((n_z, n_y, n_x), dtype=np.float64)
     y_sweep_gas_mass = np.zeros((n_z, n_y, n_x), dtype=np.float64)
@@ -450,15 +429,21 @@ def de_implicit_DGADI_zfirst(n_x, n_y, n_z, surface_reduced, dt, gas_mass, Diffu
                 if each[1] == j and each[0] == k:
                     surface_elements_in_line[counter] = np.array([each[0], each[1], each[2]], dtype=np.float64)
                     counter += 1
-            for each in surrounding_layer:
+            '''for each in surrounding_layer:
                 if each[1] == j and each[0] == k:
                     surface_elements_in_line[counter] = np.array([each[0], each[1], each[2]], dtype=np.float64)
-                    counter += 1
+                    counter += 1'''
             #print(surface_elements_in_line[0:counter])
             sub_alpha, diag, sub_gamma, rhs = boundary_condition_implicit_z_sweep_de_zfirst(dt, gas_mass, Diffusion_coefficient, Dr, dx, dy, dz, surface, surface_elements_in_line[0:counter], sub_alpha, diag, sub_gamma, rhs, S_c, S_p, sh_adjacent_voxels, top_layer_zero)
             sub_alpha, diag, sub_gamma = set_matrices_lhs_z_sweep_de(n_z, j, k, sub_alpha, diag, sub_gamma, Diffusion_coefficient, dx, dy, dz, Dr, dt, S_p, gas_mass, surface, sh_adjacent_voxels, temperature)
             rhs = set_matrices_rhs_z_sweep_de_zfirst(n_z, j, k, rhs, gas_mass, surface, dx, dy, dz, Dr, Diffusion_coefficient, dt, S_c, sh_adjacent_voxels, temperature)
             z_sweep_gas_mass[0:n_z, j, k] = tridiagonal_matrix_solver(n_z, diag, sub_gamma, sub_alpha, rhs)
+            '''if np.isnan(z_sweep_gas_mass[0:n_z, j, k]).any() and k == 1 and j == 1:
+                print('g:', sub_gamma)
+                print('d:', diag)
+                print('a:', sub_alpha)
+                print('rhs 2.:', rhs)
+                print('z:', z_sweep_gas_mass[1:n_z - 1, j, k], j, k)'''
     for i in range(1, n_z-1):
         for k in range(1, n_x-1):
             sub_alpha = np.zeros(n_y, dtype=np.float64)
@@ -471,14 +456,20 @@ def de_implicit_DGADI_zfirst(n_x, n_y, n_z, surface_reduced, dt, gas_mass, Diffu
                 if each[2] == i and each[0] == k:
                     surface_elements_in_line[counter] = np.array([each[0], each[1], each[2]], dtype=np.float64)
                     counter += 1
-            for each in surrounding_layer:
+            '''for each in surrounding_layer:
                 if each[2] == i and each[0] == k:
                     surface_elements_in_line[counter] = np.array([each[0], each[1], each[2]], dtype=np.float64)
-                    counter += 1
+                    counter += 1'''
             sub_alpha, diag, sub_gamma, rhs = boundary_condition_implicit_y_sweep_de_zfirst(dt, gas_mass, z_sweep_gas_mass, Diffusion_coefficient, Dr, dx, dy, dz, surface, surface_elements_in_line[0:counter], sub_alpha, diag, sub_gamma, rhs, S_c, S_p, sh_adjacent_voxels, top_layer_zero)
-            sub_alpha, diag, sub_gamma = set_matrices_lhs_y_sweep_de(n_y, i, k, sub_alpha, diag, sub_gamma, Diffusion_coefficient, dx, dy, dz, Dr, dt, S_p, gas_mass, surface, sh_adjacent_voxels, temperature)
+            sub_alpha, diag, sub_gamma = set_matrices_lhs_y_sweep_de(n_y, i, k, sub_alpha, diag, sub_gamma, Diffusion_coefficient, dx, dy, dz, Dr, dt, S_p, gas_mass, surface, sh_adjacent_voxels, temperature, simulate_region)
             rhs = set_matrices_rhs_y_sweep_de_zfirst(n_y, i, k, rhs, gas_mass, z_sweep_gas_mass, surface, dx, dy, dz, Dr, Diffusion_coefficient, dt, S_c,sh_adjacent_voxels, temperature)
             y_sweep_gas_mass[i, 0:n_y, k] = tridiagonal_matrix_solver(n_y, diag, sub_gamma, sub_alpha, rhs)
+            '''if np.isnan(y_sweep_gas_mass[i, 0:n_y, k]).any():
+                print('g:', sub_gamma)
+                print('d:', diag)
+                print('a:', sub_alpha)
+                print('rhs 2.:', rhs)
+                print('y:', y_sweep_gas_mass[i, 0:n_y, k], i, k)'''
     for i in range(1, n_z-1):
         for j in range(1, n_y-1):
             sub_alpha = np.zeros(n_x, dtype=np.float64)
@@ -491,14 +482,20 @@ def de_implicit_DGADI_zfirst(n_x, n_y, n_z, surface_reduced, dt, gas_mass, Diffu
                 if each[2] == i and each[1] == j:
                     surface_elements_in_line[counter] = np.array([each[0], each[1], each[2]], dtype=np.float64)
                     counter += 1
-            for each in surrounding_layer:
+            '''for each in surrounding_layer:
                 if each[2] == i and each[1] == j:
                     surface_elements_in_line[counter] = np.array([each[0], each[1], each[2]], dtype=np.float64)
-                    counter += 1
+                    counter += 1'''
             sub_alpha, diag, sub_gamma, rhs = boundary_condition_implicit_x_sweep_de_zfirst(dt, gas_mass, z_sweep_gas_mass, y_sweep_gas_mass, Diffusion_coefficient, Dr, dx, dy, dz, surface, surface_elements_in_line[0:counter], sub_alpha, diag, sub_gamma, rhs, S_c, S_p, sh_adjacent_voxels, top_layer_zero)
-            sub_alpha, diag, sub_gamma = set_matrices_lhs_x_sweep_de(n_x, i, j, sub_alpha, diag, sub_gamma, Diffusion_coefficient, dx, dy, dz, Dr, dt, S_p, gas_mass, surface, sh_adjacent_voxels, temperature)
+            sub_alpha, diag, sub_gamma = set_matrices_lhs_x_sweep_de(n_x, i, j, sub_alpha, diag, sub_gamma, Diffusion_coefficient, dx, dy, dz, Dr, dt, S_p, gas_mass, surface, sh_adjacent_voxels, temperature, simulate_region)
             rhs = set_matrices_rhs_x_sweep_de_zfirst(n_x, i, j, rhs, gas_mass, z_sweep_gas_mass, y_sweep_gas_mass, surface,dx, dy, dz, Dr, Diffusion_coefficient, dt, S_c, sh_adjacent_voxels, temperature)
             next_step_gas_mass[i, j, 0:n_x] = tridiagonal_matrix_solver(n_x, diag, sub_gamma, sub_alpha, rhs)
+            if np.isnan(next_step_gas_mass[i, j, 0:n_x]).any():
+                print('g:', sub_gamma)
+                print('d:', diag)
+                print('a:', sub_alpha)
+                print('rhs 2.:', rhs)
+                print('nxt:', next_step_gas_mass[i, j, 0:n_x], i, j)
     return next_step_gas_mass
 
 

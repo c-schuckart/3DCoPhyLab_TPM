@@ -190,7 +190,7 @@ def create_equidistant_mesh_empty(n_x, n_y, n_z, temperature_ini, dx, dy, dz, di
     return mesh, dx_arr, dy_arr, dz_arr, Dr, a, (a_rad-1), b, (b_rad-1), mask_2
 
 
-@njit
+#@njit
 def find_surface(n_x, n_y, n_z, limiter_x_start, limiter_y_start, limiter_z_start, limiter_x_end, limiter_y_end, limiter_z_end, mesh, surface, a, a_rad, b, b_rad, initiation, diffusion_mesh):
     surface_elements = 0
     sample_holder = np.zeros((n_z, n_y, n_x), dtype=np.int32)
@@ -252,7 +252,7 @@ def find_surface(n_x, n_y, n_z, limiter_x_start, limiter_y_start, limiter_z_star
 def find_surface_periodic(n_x, n_y, n_z, limiter_x_start, limiter_y_start, limiter_z_start, limiter_x_end, limiter_y_end, limiter_z_end, mesh, surface, a, a_rad, b, b_rad, initiation, diffusion_mesh):
     surface_elements = 0
     sample_holder = np.zeros((n_z, n_y, n_x), dtype=np.int32)
-    for i in range(limiter_z_start, limiter_z_end-2):
+    for i in range(limiter_z_start, limiter_z_end):
         for j in range(limiter_y_start, limiter_y_end):
             for k in range(limiter_x_start, limiter_x_end):
                 surface[i][j][k] = np.zeros(6, dtype=np.int32)
@@ -426,7 +426,7 @@ def surrounding_checker_moon(array, surface, n_x_lr, n_y_lr, n_z_lr, temperature
     return surrounding_surface[0:count]
 
 
-@njit
+#@njit
 def update_surface_arrays(voxels_to_delete, surface, reduced_surface, temperature, n_x, n_y, n_z, a, a_rad, b, b_rad, diffusion_mesh):
     for each in voxels_to_delete:
         temperature[each[2]][each[1]][each[0]] = 0
@@ -450,9 +450,10 @@ def update_surface_arrays(voxels_to_delete, surface, reduced_surface, temperatur
                     empty_voxel_counted = count_el
             if not is_in:
                 non_duplicate_indicies = np.append(non_duplicate_indicies, np.int32(count))
-        if empty_voxel_counted != np.nan:
+        #print(empty_voxel_counted)
+        if not np.isnan(empty_voxel_counted):
             mask = np.delete(mask, int(empty_voxel_counted))
-            reduced_surface  = reduced_surface[mask]
+            reduced_surface = reduced_surface[mask]
         new_r_temp = np.zeros((len(reduced_surface) + len(non_duplicate_indicies), 3), dtype=np.int32)
         new_r_temp[0:len(reduced_surface)] = reduced_surface
         count_2 = len(reduced_surface)
@@ -466,6 +467,18 @@ def update_surface_arrays(voxels_to_delete, surface, reduced_surface, temperatur
         reduced_surface = new_r_temp
     return surface, reduced_surface
 
+
+#@njit
+def update_surface_arrays_slow(voxels_to_delete, surface, reduced_surface, temperature, n_x, n_y, n_z, a, a_rad, b, b_rad, diffusion_mesh, r_n, r_p):
+    for each in voxels_to_delete:
+        temperature[each[2]][each[1]][each[0]] = 0
+        r_n[each[2]][each[1]][each[0]] = 0
+        r_p[each[2]][each[1]][each[0]] = 0
+        #print(reduced_surface)
+    print('here')
+    surface, reduced_surface = find_surface(n_x, n_y, n_z, 0, 0, 0, n_x, n_y, n_z, temperature, surface, a, a_rad, b, b_rad, False, diffusion_mesh)[0:2]
+    print('there')
+    return surface, reduced_surface, temperature, r_n, r_p
 
 @njit
 def update_surface_arrays_periodic(voxels_to_delete, surface, reduced_surface, temperature, n_x, n_y, n_z, a, a_rad, b, b_rad, diffusion_mesh, r_n, r_p):

@@ -523,7 +523,7 @@ plt.legend()
 plt.savefig('D:/TPM_Data/Noah/sample_holder_boundary_condition.png', dpi=600)'''
 
 
-InputPath = 'C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Thesis/Agilent_L_chamber_30_11_2023_14_20_44.txt'
+InputPath = 'C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Thesis/Agilent_L_chamber_30_11_2023_14_20_44.txt'
 
 data = pd.read_csv(InputPath,
                    names=['Time', 'pen1', 'pen2', 'pen3', 'MOT1', 'MOT2','Right_25', 'Rear_25', 'Right_20',
@@ -538,6 +538,7 @@ data = pd.read_csv(InputPath,
 data['Time'] = pd.to_datetime(data['Time'], format='%d_%m_%Y_%H:%M:%S')
 h_fmt = mdates.DateFormatter('%d_%m_%H:%M:%S')
 start = np.datetime64(data['Time'][45770], 's')
+print(np.datetime64(data['Time'][65000], 's') - np.datetime64(data['Time'][45770], 's'))
 time = np.zeros(len(data['Time'])-45770, np.int32)
 for i in range(45770, len(data['Time'])):
     time[i-45770] = (np.datetime64(data['Time'][i], 's') - start).astype(int)
@@ -556,6 +557,30 @@ h = interp1d(R2, trange2, bounds_error=False, fill_value=np.nan)
 
 timetogoback = timedelta(minutes=2)
 
+names=['pen1', 'pen2', 'pen3', 'MOT1', 'MOT2','Right_25', 'Rear_25', 'Right_20',
+                              'Rear_20', 'Right_15', 'Rear_15', 'Right_10', 'Rear_10_side', 'Right_15_side',
+                              'Rear_5', 'Right_5', 'Rear_10', 'Sidewall_55','Sidewall_25','Copperplate', 'Sidewall_85',
+                              'Blackbody',
+                              'Right_30', 'Rear_30', 'Rear_40', 'Right_40', 'Right_50', 'Rear_50',
+                              'Rear_75', 'Right_75', 'Right_100_side', 'Rear_100', 'CP_tube',
+                              'CS_left_top', 'CS_rear_top', 'CS_right_top', 'CS_top_plate', 'CS_left_bot', 'CS_rear_bot',
+                              'CS_right_bot']
+'''for name in names:
+    data[name] = ((data[name]+shift).apply(f) + 273.15)'''
+
+'''labels=['Rear_5','Rear_10','Rear_10_side','Rear_15','Rear_20','Rear_25','Rear_30','Rear_40','Rear_50','Rear_75','Rear_100', 'Right_5','Right_10','Right_15','Right_15_side','Right_20','Right_25','Right_30','Right_40','Right_50','Right_75','Right_100_side']
+#target = open('D:/Laboratory_data/nicer_icer_3000.txt', 'w')
+target = open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Thesis/nicer_icer_3000.txt', 'w')
+target.write('Time,Rear_5,Rear_10,Rear_10_side,Rear_15,Rear_20,Rear_25,Rear_30,Rear_40,Rear_50,Rear_75,Rear_100,Right_5,Right_10,Right_15,Right_15_side,Right_20,Right_25,Right_30,Right_40,Right_50,Right_75,Right_100_side \n')
+for i in range(len(data['Time'])):
+    file_string = ''
+    file_string += str(data['Time'][i]) + ','
+    for each in labels:
+        file_string += str(data[each][i]) + ','
+    target.write(file_string[0:len(file_string)-1] + '\n')
+target.close()
+#((data[label]+shift).apply(f) + 273.15)[45770:len(data['Time'])]'''
+
 
 #labels=['Right_5','Right_10','Right_15','Right_15_side','Right_20','Right_25','Right_30','Right_40','Right_50','Right_75','Right_100_side']
 labels=['Rear_5','Rear_10','Rear_10_side','Rear_15','Rear_20','Rear_25','Rear_30','Rear_40','Rear_50','Rear_75','Rear_100']
@@ -563,7 +588,7 @@ labels=['Rear_5','Rear_10','Rear_10_side','Rear_15','Rear_20','Rear_25','Rear_30
 #labels = ['Sidewall_55','Sidewall_25','Copperplate', 'Sidewall_85']
 
 time_sim = [i * const.dt for i in range(0, const.k)]
-with open('D:/TPM_Data/Ice/Test_all_sensors.json') as json_file:
+with open('D:/TPM_Data/Ice/Granular_ice_L_albedo_0.75_sinter_T_red_20_t_0.95.json') as json_file:
     jdata = json.load(json_file)
 
 
@@ -574,7 +599,7 @@ fig, ax = plt.subplots(1, 1)
 ax.set_prop_cycle(color=[cm(1. * i / NUM_COLORS) for i in range(NUM_COLORS)])
 count = 0
 for label in labels:
-    ax.plot(time, ((data[label]+shift).apply(f) + 273.15)[45770:len(data['Time'])], label=label)
+    #ax.plot(time[0:19230], ((data[label]+shift).apply(f) + 273.15)[45770:65000], label=label)
     if label[0:5] == 'Right':
         ax.plot(time_sim, np.array(jdata['Right'])[0:const.k, count], label=label + ' SIM')
     else:
@@ -589,7 +614,7 @@ fig.legend(loc=9, ncol=6, fontsize='x-small')
 ax.set_xlabel('Time')
 ax.set_ylabel('Temperature (K)')
 ax.set_ylim(140, 180)
-plt.savefig('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Thesis/overview_sim_test.png', dpi=600)
+#plt.savefig('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Thesis/overview_sim_test.png', dpi=600)
 plt.show()
 
 '''NUM_COLORS = 20

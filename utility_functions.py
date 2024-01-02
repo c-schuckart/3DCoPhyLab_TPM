@@ -376,3 +376,53 @@ def prescribe_temp_profile_from_data(n_x, n_y, n_z, temperature, time_profile, s
     # plt.plot(np.arange(1, n_z), profile[1:n_z])
     # plt.show()
     return temperature
+
+@njit
+def prescribe_crater(n_x, n_y, n_z, temperature, Dr, amplitude, sigma, min_dz):
+    for j in range(0, n_y):
+        for k in range(0, n_x):
+            if temperature[1][j][k] > 0:
+                if j <= n_y//2 and k <= n_x//2:
+                    r = np.sqrt(np.sum(Dr[1, j:n_y//2, k, 2])**2 + np.sum(Dr[1, j, k:n_x//2, 4])**2)
+                elif j > n_y//2 and k <= n_x//2:
+                    r = np.sqrt(np.sum(Dr[1, n_y//2:j, k, 2]) ** 2 + np.sum(Dr[1, j, k:n_x // 2, 4]) ** 2)
+                elif j <= n_y//2 and k > n_x//2:
+                    r = np.sqrt(np.sum(Dr[1, j:n_y//2, k, 2])**2 + np.sum(Dr[1, j, n_x//2:k, 4])**2)
+                else:
+                    r = np.sqrt(np.sum(Dr[1, n_y//2:j, k, 2]) ** 2 + np.sum(Dr[1, j, n_x//2:k, 4]) ** 2)
+                h_crater = amplitude * np.exp(- r ** 2 / (2 * sigma ** 2))
+                for i in range(1, n_z):
+                    if h_crater > np.sum(Dr[1:i+1, j, k, 0]) - min_dz/2:
+                        temperature[i][j][k] = 0
+                    else:
+                        break
+    return temperature
+
+
+@njit
+def artificial_crater_heating(n_x, n_y, n_z, temperature, surface_reduced, factor):
+    max_temp_crater = np.nanmax(temperature[0:n_z-2, n_y//2-4:n_y//2+5, n_x//2-4:n_x//2+5])
+    for each in surface_reduced:
+        if each[2] > 1:
+            temperature[each[2]][each[1]][each[0]] = np.maximum(max_temp_crater * factor, temperature[each[2]][each[1]][each[0]])
+    return temperature
+
+
+def sort_csv_ice(path, sort_avrg, outpath):
+    csvdf = pd.read_csv(path, names=['Name', 'S1_avrg', 'S1_max', 'S2_avrg', 'S2_max', 'S3_avrg', 'S3_max', 'S4_avrg', 'S4_max', 'S5_avrg', 'S5_max', 'S6_avrg', 'S6_max', 'S7_avrg', 'S7_max', 'S8_avrg', 'S8_max', 'S9_avrg', 'S9_max', 'S10_avrg', 'S10_max', 'S11_avrg', 'S11_max'])
+    csvdf_mirror = csvdf.copy()
+    s1 = csvdf['Name']
+    s2 = csvdf['S1_avrg'] + csvdf['S2_avrg'] + csvdf['S3_avrg'] + csvdf['S4_avrg'] + csvdf['S5_avrg'] + csvdf['S6_avrg'] + csvdf['S7_avrg'] + csvdf['S8_avrg'] + csvdf['S9_avrg'] + csvdf['S10_avrg'] + csvdf['S11_avrg']
+    s3 = csvdf['S1_max'] + csvdf['S2_max'] + csvdf['S3_max'] + csvdf['S4_max'] + csvdf['S5_max'] + csvdf['S6_max'] + csvdf['S7_max'] + csvdf['S8_max'] + csvdf['S9_max'] + csvdf['S10_max'] + csvdf['S11_max']
+    content_arr = pd.DataFrame({'A': s1, 'B': s2, 'C': s3})
+    if sort_avrg:
+        content_arr.sort_values(by='B', inplace=True)
+    else:
+        content_arr.sort_values(by='C', inplace=True)
+    #print(content_arr)
+    #print(csvdf_mirror)
+    for i in range(len(csvdf)):
+        #print(csvdf.iloc[content_arr.iloc[[i]].index[0]][1])
+        csvdf_mirror.iloc[i] = csvdf.iloc[content_arr.iloc[[i]].index[0]][0], csvdf.iloc[content_arr.iloc[[i]].index[0]][1], csvdf.iloc[content_arr.iloc[[i]].index[0]][2], csvdf.iloc[content_arr.iloc[[i]].index[0]][3], csvdf.iloc[content_arr.iloc[[i]].index[0]][4], csvdf.iloc[content_arr.iloc[[i]].index[0]][5], csvdf.iloc[content_arr.iloc[[i]].index[0]][6], csvdf.iloc[content_arr.iloc[[i]].index[0]][7], csvdf.iloc[content_arr.iloc[[i]].index[0]][8], csvdf.iloc[content_arr.iloc[[i]].index[0]][9], csvdf.iloc[content_arr.iloc[[i]].index[0]][10], csvdf.iloc[content_arr.iloc[[i]].index[0]][11], csvdf.iloc[content_arr.iloc[[i]].index[0]][12], csvdf.iloc[content_arr.iloc[[i]].index[0]][13], csvdf.iloc[content_arr.iloc[[i]].index[0]][14], csvdf.iloc[content_arr.iloc[[i]].index[0]][15], csvdf.iloc[content_arr.iloc[[i]].index[0]][16], csvdf.iloc[content_arr.iloc[[i]].index[0]][17], csvdf.iloc[content_arr.iloc[[i]].index[0]][18], csvdf.iloc[content_arr.iloc[[i]].index[0]][19], csvdf.iloc[content_arr.iloc[[i]].index[0]][20], csvdf.iloc[content_arr.iloc[[i]].index[0]][21], csvdf.iloc[content_arr.iloc[[i]].index[0]][22]
+    #print(csvdf_mirror)
+    csvdf_mirror.to_csv(outpath)

@@ -5,10 +5,10 @@ min_dx = 5E-3                      # Layer Thickness of smallest layer in x dire
 min_dy = 5E-3                      # Layer Thickness of smallest layer in y direction, Numerical Resolution  [m]
 min_dz = 5E-3                      # Layer Thickness of smallest layer in z direction, Numerical Resolution  [m]
 dt = 5E1                           # Timestep                               [s]
-#dt = 1E1
+#dt = 1
 n_x = 52                            # Number of Layers                       [-]
 n_y = 52
-#n_z = 2104
+#n_z = 103
 n_z = 23
 '''min_dx = 5E-3                      # Layer Thickness of the smallest layer in x direction, Numerical Resolution  [m]
 min_dy = 5E-3                      # Layer Thickness of the smallest layer in y direction, Numerical Resolution  [m]
@@ -20,8 +20,8 @@ n_y = 25
 n_z = 25'''
 n = np.array([n_x, n_y, n_z])
 #k = 36288 * 5                      # Number of Timesteps                    [-]'''
-k = int(1801 * 1)                    # Number of Timesteps                    [-]
-#k = 10001
+#k = int(3601 * 1)                    # Number of Timesteps                    [-]
+k = 216
 #Definition of Physical Parameters
 #Material Properties
 lambda_constant = 0.01            # Thermal Conductivity                   [W/(K m)]
@@ -82,7 +82,7 @@ temperature_ini = 145
 sample_holder_starting_temp = 145  # Starting temperature of the sample holder [K]
 Input_Intensity = 6500             # Intensity of the Light Source (Sun)    [W/m^2]
 #epsilon = 1                       # Emissivity                             [-]
-albedo = 0.75                  # Albedo                                 [-]
+albedo = 0.85                  # Albedo                                 [-]
 lambda_water_ice = 651            # thermal conductivity of water ice      [W/(m * T)], depending on T!
 #lambda_water_ice = 567
 lambda_co2_ice = 0.02             # thermal conductivity of water ice      [W/(m * K)]
@@ -100,7 +100,7 @@ r_H = 1                           # Lamp Distance                  		   [m]
 wire_cross_section = 0.08096E-6   # Cross-section of the AWG 28 wire      [m^2]
 wire_length = 0.30                # Length of the sensor wires from the plug to the sensor  [m]
 temperature_plug = 295            # Temperature of the plug
-ambient_radiative_temperature = 160
+ambient_radiative_temperature = 175
 
 
 #Constants
@@ -141,3 +141,6 @@ e1 = 1.34 # empirical constant
 R_JKL = r_mono_water/2
 K_JKL = 3/4*np.pi*2*(1 - poisson_ratio_par**2)/(np.pi * young_modulus_par)
 P_JKL = np.pi*R_JKL*surface_energy_par
+
+activity_threshold = 0.5
+activity_split = 4/6 #this equates to a gas to mass loss ratio of 60:40

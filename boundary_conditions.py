@@ -403,7 +403,7 @@ def calculate_L_chamber_lamp_bd(Volt, sample_holder, n_x, n_y, n_z, min_dx, min_
 
 
 @njit
-def day_night_cycle(lamp_power, S_c, period, current_time):
+def day_night_cycle(lamp_power, S_c, period, current_time, activity_threshold, activity_split=4/6):
 	time_factor = np.sin(2 * current_time / period * np.pi)
 	if time_factor >= 0:
 		lamp_power = lamp_power * time_factor
@@ -411,7 +411,11 @@ def day_night_cycle(lamp_power, S_c, period, current_time):
 	else:
 		lamp_power = lamp_power * 0
 		S_c = S_c * 0
-	return lamp_power, S_c
+	if time_factor >= activity_threshold:
+		activity_factor = 1 + activity_split
+	else:
+		activity_factor = 1
+	return lamp_power, S_c, activity_factor
 
 
 @njit

@@ -379,6 +379,10 @@ def hte_implicit_DGADI_zfirst(n_x, n_y, n_z, surface_reduced, r_H, albedo, dt, i
             sub_alpha, diag, sub_gamma, rhs = boundary_condition_implicit_z_sweep_zfirst(r_H, albedo, dt, input_energy, sigma, epsilon, temperature, Lambda, Dr, heat_capacity, density, dx, dy, dz, surface, surface_elements_in_line[0:counter], sub_alpha, diag, sub_gamma, rhs, S_c, S_p, ambient_temperature, reradiated_heat)
             sub_alpha, diag, sub_gamma = set_matrices_lhs_z_sweep(n_z, j, k, sub_alpha, diag, sub_gamma, Lambda, dx, dy, dz, Dr, density, heat_capacity, dt, S_p, temperature, surface, sample_holder)
             rhs = set_matrices_rhs_z_sweep_zfirst(n_z, j, k, rhs, temperature, surface, sample_holder, dx, dy, dz, Dr, Lambda, density, heat_capacity, dt, S_c)
+            '''print(sub_gamma)
+            print(diag)
+            print(sub_alpha)
+            print(j, k, rhs)'''
             z_sweep_temperature[0:n_z, j, k] = tridiagonal_matrix_solver(n_z, diag, sub_gamma, sub_alpha, rhs)
     for i in range(1, n_z-1):
         for k in range(1, n_x-1):
