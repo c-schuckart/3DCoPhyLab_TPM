@@ -12,12 +12,12 @@ from heat_transfer_equation_DG_ADI import hte_implicit_DGADI, hte_implicit_DGADI
 from diffusion_equation_DG_ADI import de_implicit_DGADI, de_implicit_DGADI_zfirst
 from boundary_conditions import sample_holder_data, day_night_cycle, calculate_L_chamber_lamp_bd
 from ray_tracer import generate_topography, trace_rays_MC, get_temperature_vector
-from utility_functions import save_sensors_L_sample_holder, prescribe_temp_profile_from_data, prescribe_crater, artificial_crater_heating
+from utility_functions import save_sensors_L_sample_holder, save_sensors_L_sample_holder_high_res, prescribe_temp_profile_from_data, prescribe_crater, artificial_crater_heating, save_mean_temps_light_spot
 
-albedo_arr = [0.75]
+#albedo_arr = [0.95, 0.8, 0.85, 0.8, 0.75]
 #lambda_arr = [0.16, 0.14, 0.12, 0.1, 0.8]
-#albedo_arr = [0.85]
-sinter_temp_reduce_arr = [40]
+albedo_arr = [0.85]
+sinter_temp_reduce_arr = [1E-4]
 for albedo in albedo_arr:
     for sinter_temp_reduce in sinter_temp_reduce_arr:
         #work arrays and mesh creation + surface detection
@@ -261,6 +261,8 @@ for albedo in albedo_arr:
         sensors_rear = np.zeros((const.k, 11), dtype=np.float64)
         data_file_sensors = 'C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Thesis/Agilent_L_chamber_30_11_2023_14_20_44.txt'
         height_list_sensors = np.array([2, 3, 4, 5, 6, 7, 9, 11, 16, 20])
+        #height_list_sensors = np.array([11, 21, 31, 41, 51, 61, 81, 101, 151, 200])
+        #height_list_sensors = np.array([6, 11, 16, 21, 26, 31, 41, 51, 76, 100])
 
         '''latent_heat_water = calculate_latent_heat(temperature, const.lh_b_1, const.lh_c_1, const.lh_d_1, const.R, const.m_mol)
         heat_capacity = calculate_heat_capacity(temperature)
@@ -279,17 +281,17 @@ for albedo in albedo_arr:
 
         sinter_time_reducer = sinter_temp_reduce
         #sinter_time_reducer = 80
-        name_string = 'Granular_ice_L_albedo_' + str(albedo) + '_sinter_T_red_' + str(sinter_temp_reduce) + '_t_0.95.json'
+        name_string = 'Final_Granular_ice_L_albedo_' + str(albedo) + '_sinter_reduction_factor_' + str(sinter_temp_reduce) + '_side_res_max.json'
 
 
         for j in tqdm(range(0, const.k)):
-            if j * const.dt < 3 * 3600 * 16 and j * const.dt > 3 * 3600 * 15:
+            '''if j * const.dt < 3 * 3600 * 16 and j * const.dt > 3 * 3600 * 15:
                 np.save('D:/TPM_Data/Ice/Diffusion/temperatures_' + str(round(j * const.dt, 0)) + '_last.npy', temperature)
             print(temperature[1, 0:const.n_y, const.n_x // 2])
             print(sublimated_mass[1, 0:const.n_y, const.n_x // 2])
             print(lamp_power_dn[0:const.n_z, const.n_y // 2, const.n_x // 2])
             print(S_c[1, 0:const.n_y, const.n_x//2])
-            print(S_p[1, 0:const.n_y, const.n_x // 2])
+            print(S_p[1, 0:const.n_y, const.n_x // 2])'''
             if j % 100 == 0:
                 print(temperature[0:const.n_z, const.n_y // 2, const.n_x // 2])
                 print(lamp_power_dn[1][26][26])
@@ -308,8 +310,9 @@ for albedo in albedo_arr:
                 #np.save('D:/TPM_Data/Luwex/sublimation_test/WATERsublimation_test' + str(j * const.dt) + '.npy', uniform_water_masses)
                 #np.save('D:/TPM_Data/Luwex/sublimation_and_diffusion/GASsublimation_and_diffusion' + str(j * const.dt) + '.npy', gas_density * dx * dy * dz)
             #temperature_previous = temperature[0:const.n_z, 0:const.n_y, 0:const.n_x]
-
-            sensors_right, sensors_rear = save_sensors_L_sample_holder(const.n_x, const.n_y, const.n_z, temperature, sensors_right, sensors_rear, j)
+            #save_mean_temps_light_spot(const.n_x, const.n_y, const.n_z, temperature, 'D:/TPM_Data/Ice/a_0.85_srf_0.0001_std_0.90_walls_lamp_temps.csv')
+            #sensors_right, sensors_rear = save_sensors_L_sample_holder(const.n_x, const.n_y, const.n_z, temperature, sensors_right, sensors_rear, j)
+            sensors_right, sensors_rear = save_sensors_L_sample_holder_high_res(const.n_x, const.n_y, const.n_z, temperature, sensors_right, sensors_rear, j, height_list_sensors, sf=4)
             if sett.enable_ray_tracing and len(surface_topography_polygons) != 0:
                 reradiated_heat = get_temperature_vector(const.n_x, const.n_y, const.n_z, temperature, surface, surface_reduced, len(surface_topography_polygons), view_factor_matrix, const.sigma, const.epsilon, albedo, lamp_power)[0]
             lamp_power_dn, S_c_deeper, activity_factor = day_night_cycle(lamp_power, S_c_deeper, 3 * 3600, j * const.dt, const.activity_threshold, const.activity_split)
@@ -322,7 +325,7 @@ for albedo in albedo_arr:
             latent_heat_water = calculate_latent_heat(temperature, const.lh_b_1, const.lh_c_1, const.lh_d_1, const.R, const.m_mol)
             density = density + sample_holder * (const.density_copper - density[const.n_z-2, const.n_y//2, const.n_x//2])
             #Lambda, interface_temperatures = thermal_conductivity_moon_regolith(const.n_x, const.n_y, const.n_z, temperature, dx, dy, dz, Dr, VFF, const.r_mono, const.fc1, const.fc2, const.fc3, const.fc4, const.fc5, const.mu, const.E, const.gamma, const.f1, const.f2, const.e1, const.chi_maria, const.sigma, const.epsilon, uniform_water_masses, uniform_dust_masses, const.lambda_water_ice, const.lambda_sample_holder, sample_holder)
-            Lambda, interface_temperatures = lambda_granular(const.n_x, const.n_y, const.n_z, temperature, Dr, dx, dz, dz, const.lambda_water_ice, const.poisson_ratio_par, const.young_modulus_par, const.activation_energy_water_ice, const.R, r_mono_water, const.f_1, const.f_2, VFF, const.sigma, const.e_1, sample_holder, const.lambda_copper, r_n)
+            Lambda, interface_temperatures = lambda_granular(const.n_x, const.n_y, const.n_z, temperature, Dr, dx, dy, dz, const.lambda_water_ice, const.poisson_ratio_par, const.young_modulus_par, const.activation_energy_water_ice, const.R, r_mono_water, const.f_1, const.f_2, VFF, const.sigma, const.e_1, sample_holder, const.lambda_copper, r_n)
             #Lambda = np.full((const.n_z, const.n_y, const.n_x, 6), lambda_const, dtype=np.float64)
             #for j in range (1, const.n_y-1):
                 #for k in range(1, const.n_x-1):
@@ -334,7 +337,9 @@ for albedo in albedo_arr:
             S_c, S_p, Scde, Spde, empty_voxels = calculate_source_terms(const.n_x, const.n_y, const.n_z, temperature, gas_density, pressure, sublimated_mass, dx, dy, dz, const.dt, surface_reduced, uniform_water_masses, latent_heat_water, surface)
             #S_c, S_p = calculate_source_terms(const.n_x, const.n_y, const.n_z, temperature, gas_density, pressure, sublimated_mass, dx, dy, dz, const.dt, surface_reduced, uniform_water_masses, latent_heat_water, surface)[0:2]
             #S_c, S_p, sublimated_mass, outgassed_mass_timestep = calculate_molecule_flux_moon_test(const.n_x, const.n_y, const.n_z, temperature, pressure, const.lh_a_1, const.lh_b_1, const.lh_c_1, const.lh_d_1, const.m_H2O, dx, dy, dz, const.dt, const.k_boltzmann, sample_holder, uniform_water_masses, latent_heat_water, water_particle_number, r_mono_water)
+            #print(Lambda[2, 0:const.n_y, const.n_x // 2])
             temperature = hte_implicit_DGADI_zfirst(const.n_x, const.n_y, const.n_z, surface_reduced, const.r_H, albedo, const.dt, lamp_power_dn, const.sigma, const.epsilon, temperature, Lambda, Dr, heat_capacity, density, dx, dy, dz, surface, S_c, S_p, sample_holder, np.full(6, const.ambient_radiative_temperature, dtype=np.float64), reradiated_heat)
+            #print(temperature[0:const.n_z, const.n_y // 2, const.n_x // 2])
             outgassed_mass_complete += np.sum(sublimated_mass)
             uniform_water_masses = uniform_water_masses - sublimated_mass * activity_factor
             uniform_water_masses = np.maximum(uniform_water_masses, np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64))
@@ -351,8 +356,10 @@ for albedo in albedo_arr:
                     print('Finished')
             max_temps[j] = np.max(temperature)
             sublimated_mass_mid[j] = np.sum(sublimated_mass[0:const.n_z, const.n_y//2, const.n_x//2])
+            #if j == 2646:
+                #np.save('D:/TPM_Data/Ice/a_0.85_srf_0.0001_0.90_walls_13th_cycle', temperature)
             #print(temperature[0:const.n_z - 2, const.n_y // 2 - 4:const.n_y // 2 + 5, const.n_x // 2 - 4:const.n_x // 2 + 5])
-            #temperature = artificial_crater_heating(const.n_x, const.n_y, const.n_z, temperature, surface_reduced, 0.95)
+            temperature = artificial_crater_heating(const.n_x, const.n_y, const.n_z, temperature, surface_reduced, 0.90)
             #print(np.sum(sublimated_mass))
             #if np.max(np.abs(temperature - temperature_previous)) < 50E-6:
                 #break

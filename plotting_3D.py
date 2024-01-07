@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from tqdm import tqdm
+from matplotlib import cm, colors, colorbar
 from data_input import getPath
 from boundary_conditions import twoD_gaussian
 
@@ -16,6 +17,12 @@ def plot_3D(scalars):
     #x, y, z = np.mgrid[-5:5:53j, -5:5:1j, -5:5:1j]
 
     print(x.shape, y.shape, z.shape, scalars.shape)
+
+    '''for i in range(0, const.n_z):
+        for j in range(0, const.n_y):
+            for k in range(0, const.n_x):
+                if scalars[i][j][k] == 0:
+                    scalars[i][j][k] = np.nan'''
 
     #obj = mlab.volume_slice(scalars, plane_orientation='x_axes')
     #obj = mlab.volume_slice(x, y, z, scalars, plane_orientation='x_axes')
@@ -66,13 +73,11 @@ for i in range(0, const.n_z):
 sample = plot_3D(temperature)'''
 
 #sample = plot_3D(np.load('D:/TPM_Data/Noria/pure_water_top_sublimation' + str(float(0)) + '.npy'))
-with open('D:/TPM_Data/Ice/Granular_ice_L_albedo_0.75_sinter_T_red_0_t.json') as json_file:
+'''with open('D:/TPM_Data/Ice/Granular_ice_L_albedo_0.75_sinter_T_red_0_t.json') as json_file:
     jdata = json.load(json_file)
 temp = np.array(jdata['Temperature'])
-'''temp[1, const.n_y//2, 0:const.n_x//2] = np.zeros(const.n_y//2, dtype=np.float64)
-temp[1, 0:const.n_y//2, const.n_x//2] = np.zeros(const.n_y//2, dtype=np.float64)'''
-sample = plot_3D(temp)
-
+#sample = plot_3D(temp)
+sample = plot_3D(np.load('D:/TPM_Data/Ice/a_0.85_srf_0.0001_13th_cycle.npy'))'''
 '''temperature_array = np.zeros((1008, const.n_z, const.n_y, const.n_x), dtype=np.float64)
 time_vals = [i * 600 for i in range(0, 1008)]
 for i in time_vals:
@@ -187,8 +192,14 @@ def animate_N():
 
 #animate_N()
 #axes = mlab.axes(color=(0., 0., 0.,), x_label='Z', z_label='X')
-mlab.show()
-
+#mlab.show()
+'''sample.module_manager.scalar_lut_manager.lut.nan_color = 0, 0, 0, 1
+sample.update_pipeline()
+#mlab.pitch(22)
+sample.actor.actor.rotate_y(270-22)
+#sample.actor.actor.rotate_y(22)
+mlab.view(azimuth=90, elevation=180)
+mlab.show()'''
 #slice_3D(data_vis['Temperature'][0])
 
 def polygon_3D(polygon_list, file):
@@ -360,3 +371,58 @@ def polygon_3D_ray_traced(polygon_list, view_factor_matrix, target_polygon, elev
     ax.set_zlim(min_z - 0.5, max_z + 0.5)
     plt.savefig(file + '.png', dpi=600)
     plt.show()
+
+mask_lamp_spot = np.zeros((const.n_y, const.n_x), dtype=np.float64)
+inverse_mask_lamp_spot = np.zeros((const.n_y, const.n_x), dtype=np.float64)
+for i in range(0, const.n_y):
+    for j in range(0, const.n_x):
+        if (i - const.n_y//2)**2 + (j - const.n_x//2)**2 < 8**2:
+            mask_lamp_spot[i][j] = np.nan
+        else:
+            inverse_mask_lamp_spot[i][j] = np.nan
+
+fig = plt.figure(figsize=(10,7))
+cmap = cm.get_cmap('viridis')
+print(cmap(0.1))
+data = np.load('D:/TPM_Data/Ice/a_0.85_srf_0.0001_13th_cycle.npy')
+#max = np.max(data)
+max = 200
+min = 165
+dims = np.shape(data)
+color = np.zeros((dims[0], dims[1], dims[2], 4), dtype=np.float64)
+voxels = np.full(dims, False)
+for i in range(0, dims[0]):
+    for j in range(0, dims[1]):
+        for k in range(0, dims[2]):
+            if data[i][j][k] > 0 and not np.isnan(inverse_mask_lamp_spot[j][k]):
+                voxels[i][j][k] = True
+                color[i][j][k] = np.array(cmap((data[i][j][k] - min)/(max - min)))
+
+x, y, z = np.indices(np.array(dims) + 1, dtype=np.float64)
+x *= 0.1
+#x = np.swapaxes(x, 0, 2)
+#y = np.swapaxes(y, 0, 2)
+#z = np.swapaxes(z, 0, 2)
+#color = np.swapaxes(color, 0, 2)
+#voxels = np.swapaxes(voxels, 0, 2)
+#ax = fig.add_subplot(projection='3d')
+ax = plt.subplot2grid(shape=(2, 3), loc=(0, 0), colspan=2, rowspan=2, projection='3d')
+#fig.subplots_adjust(top=1.5, bottom=-.5)
+ax2 = plt.subplot2grid(shape=(2, 3), loc=(0, 2), rowspan=2)
+#ax.voxels(voxels, facecolors=color)
+vx = ax.voxels(x, y, z, voxels, facecolors=color, shade=False, cmap='viridis')
+ax.set_aspect('equal')
+colors.LightSource(180, 0)
+
+ax.view_init(22, 180, 180)
+ax.grid(False)
+ax.set_xticks([])
+ax.set_yticks([])
+ax.set_zticks([])
+norm = colors.Normalize(vmin=min, vmax=max)
+#cb = colorbar.ColorbarBase(ax, cmap=cmap, norm=norm, orientation='vertical')
+#ax.colorbar(colorbar.ColorbarBase(ax, cmap=cmap, norm=norm))
+fig.colorbar(cm.ScalarMappable(norm=norm, cmap=cmap), cax=ax2, label='Temperatur', shrink=1, aspect=1, fraction=0.05)
+#fig.colorbar(vx)
+plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Thesis/sim_0.85_0.0001_13th_cycle_only_mid_same_temps.png', dpi=600)
+plt.show()

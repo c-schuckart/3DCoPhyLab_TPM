@@ -229,7 +229,7 @@ for each in [ax1, ax2, ax3]:
 plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/Plots/Comparison_surface_309Kco.png', dpi=600)
 #plt.show()'''
 
-'''#path = 'D:/TPM_Data/Ice/screenshots/'
+#path = 'D:/TPM_Data/Ice/screenshots/'
 path = 'D:/Laboratory_data/Ice/screenshots/'
 filenames = listdir(path)
 
@@ -257,8 +257,10 @@ for i in range(x - width//2, x + width//2):
         else:
             mask_outer[i - (x - width//2)][j - (y - height//2)] = np.nan
 
-target = open('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Thesis/ice_surface_lamp_region_temperature.csv', 'a')
+'''target = open('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Thesis/ice_surface_lamp_region_temperature.csv', 'a')
 target.write('File name' + ',' + 'Max temp lamp spot' + ',' + 'Mean temp lamp spot' + ',' + 'Median temp lamp spot' + ',' + '10% <' + ',' + '90% >' + '\n')
+
+
 for each in filenames:
     im = np.array(PIL.Image.open(path + each).convert('L'))
     ggT = GCD(const.n_x, width)
@@ -277,3 +279,28 @@ for each in filenames:
     target.write(each + ',' + str(np.nanmax(Surface_lamp_spot)) + ',' + str(np.nanmean(Surface_lamp_spot)) + ',' + str(np.nanmedian(Surface_lamp_spot)) + ',' + str(np.nanpercentile(Surface_lamp_spot, 10)) + ',' + str(np.nanpercentile(Surface_lamp_spot, 90)) + '\n')
     #target.write(each + ',' + str(np.max(Surface_temperatures_cur)) + ',' + str(np.mean(Surface_temperatures_cur)) + ',' + str(np.median(Surface_temperatures_cur)) + '\n')
 target.close()'''
+
+fig, ax = plt.subplots(1, 1)
+file = '2023_12_07_00h_28m_21s'
+im = np.array(PIL.Image.open(path + file + '.png').convert('L'))
+ggT = GCD(const.n_x, width)
+length = width // ggT
+#Surface_temperatures_cam = np.zeros((const.k, const.n_x, const.n_y), dtype=np.float64)
+im_cur = im[int(y - height / 2):int(y + height / 2), int(x - width / 2):int(x + width / 2)]
+#OS_cur = (im_cur / 255) * 255 + 145
+OS_cur = (im_cur / 255) * 50
+# Surface_temperatures_cur = np.rot90(calibration_high(OS_cur), 3)
+Surface_temperatures_cur = calibration_low(OS_cur)
+Surface_lamp_spot = Surface_temperatures_cur + mask_inverse_lamp_spot
+#sls = ax.imshow(Surface_lamp_spot[200:430, 205:435])
+sls = ax.imshow(Surface_temperatures_cur)
+ax.scatter(270, 100, marker='x', color='black', s=6)
+ax.scatter(312, 275, marker='x', color='black', s=6)
+ax.set_yticks([648, 548, 448, 348, 248, 148, 48], [0, 100, 200, 300, 400, 500, 600])
+#ax.set_yticks([230, 180, 130, 80, 30], [0, 50, 100, 150, 200])
+ax.set_xlabel('Pixel')
+ax.set_ylabel('Pixel')
+ax.set_title('13. Tag-Nacht-Zyklus')
+plt.colorbar(sls, cmap='viridis')
+plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Thesis/crater_temp_13th_cycle_all.png', dpi=600)
+plt.show()

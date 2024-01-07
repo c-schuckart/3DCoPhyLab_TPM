@@ -743,7 +743,7 @@ def sinter_neck_calculation(r_n, dt, temperature, a_1, b_1, c_1, d_1, omega, sur
 
 
 @njit
-def sinter_neck_calculation_time_dependent(r_n, r_p, dt, temperature, a_1, b_1, c_1, d_1, omega, surface_energy, R_gas, r_grain, alpha, m_mol, density, pressure, m_H2O, k_B, k_factor, water_particle_number, blocked_voxels, n_x, n_y, n_z, sample_holder, dx, dy, dz, surface, sinter_time_reducer):
+def sinter_neck_calculation_time_dependent(r_n, r_p, dt, temperature, a_1, b_1, c_1, d_1, omega, surface_energy, R_gas, r_grain, alpha, m_mol, density, pressure, m_H2O, k_B, k_factor, water_particle_number, blocked_voxels, n_x, n_y, n_z, sample_holder, dx, dy, dz, surface, sinter_reduction_factor):
     p_sub = np.zeros((n_z, n_y, n_x), dtype=np.float64)
     sublimated_mass = np.zeros((n_z, n_y, n_x), dtype=np.float64)
     for i in range(1, n_z-1):
@@ -755,20 +755,20 @@ def sinter_neck_calculation_time_dependent(r_n, r_p, dt, temperature, a_1, b_1, 
                         p_sub[i][j][k] = 0
                         pressure[i][j][k] = 0
                     elif blocked_voxels[i][j][k] == 0:
-                        p_sub[i][j][k] = 10 ** (a_1[0] + b_1[0] / (temperature[i][j][k] - sinter_time_reducer) + c_1[0] * np.log10((temperature[i][j][k] - sinter_time_reducer)) + d_1[0] * (temperature[i][j][k] - sinter_time_reducer))
+                        p_sub[i][j][k] = 10 ** (a_1[0] + b_1[0] / (temperature[i][j][k]) + c_1[0] * np.log10((temperature[i][j][k])) + d_1[0] * (temperature[i][j][k]))
                         #p_sub[i][j][k] = 3.23E12 * np.exp(-6134.6 / temperature[i][j][k]) * blocked_voxels[i][j][k]
                         pressure[i][j][k] = 10 ** (a_1[0] + b_1[0] / temperature[i][j][k] + c_1[0] * np.log10(temperature[i][j][k]) + d_1[0] * temperature[i][j][k])
                     else:
-                        p_sub[i][j][k] = 10 ** (a_1[0] + b_1[0] / (temperature[i][j][k] - sinter_time_reducer) + c_1[0] * np.log10((temperature[i][j][k] - sinter_time_reducer)) + d_1[0] * (temperature[i][j][k] - sinter_time_reducer))
+                        p_sub[i][j][k] = 10 ** (a_1[0] + b_1[0] / (temperature[i][j][k]) + c_1[0] * np.log10((temperature[i][j][k])) + d_1[0] * (temperature[i][j][k]))
                         pressure[i][j][k] = 0
                     Z = (p_sub[i][j][k] - pressure[i][j][k]) * np.sqrt(m_H2O/(2 * np.pi * k_B * temperature[i][j][k]))
-                    Z_sinterneck = (p_sub[i][j][k] - pressure[i][j][k]) * np.sqrt(m_H2O/(2 * np.pi * k_B * (temperature[i][j][k] - sinter_time_reducer)))
+                    Z_sinterneck = (p_sub[i][j][k] - pressure[i][j][k]) * np.sqrt(m_H2O/(2 * np.pi * k_B * (temperature[i][j][k])))
                     r_c = 2 * m_mol * surface_energy / (density[i][j][k] * R_gas * temperature[i][j][k])
-                    r_p[i][j][k] = r_p[i][j][k] - Z_sinterneck * np.exp(r_c/r_p[i][j][k]) * dt / density[i][j][k]
+                    r_p[i][j][k] = r_p[i][j][k] - Z_sinterneck * np.exp(r_c/r_p[i][j][k]) * dt / density[i][j][k] * sinter_reduction_factor
                     #r_p = r_grain - (r_grain / (r_grain - r_c)) * Z * time*dt / density
                     delta = r_n[i][j][k]**2 / (2 * (r_p[i][j][k] - r_n[i][j][k])) * k_factor
                     d_s = r_p[i][j][k] * (alpha/2 + np.arctan(r_p[i][j][k]/(r_n[i][j][k] + delta)) - np.pi/2)
-                    rate = ((omega**2 * surface_energy * p_sub[i][j][k])/(R_gas * temperature[i][j][k] - sinter_time_reducer) * 1/np.sqrt(2*np.pi * m_mol * R_gas * temperature[i][j][k] - sinter_time_reducer) * d_s / (d_s + delta * np.arctan(r_p[i][j][k]/(r_n[i][j][k] + delta))) * (2/r_p[i][j][k] + 1/delta - 1/r_n[i][j][k]) - Z_sinterneck/density[i][j][k] * np.exp(- r_c/(r_n[i][j][k] * k_factor)))
+                    rate = ((omega**2 * surface_energy * p_sub[i][j][k])/(R_gas * temperature[i][j][k]) * 1/np.sqrt(2*np.pi * m_mol * R_gas * temperature[i][j][k]) * d_s / (d_s + delta * np.arctan(r_p[i][j][k]/(r_n[i][j][k] + delta))) * (2/r_p[i][j][k] + 1/delta - 1/r_n[i][j][k]) - Z_sinterneck/density[i][j][k] * np.exp(- r_c/(r_n[i][j][k] * k_factor)))
                     neck_area = 4 * np.pi * delta * ((r_n[i][j][k] + delta) * np.arcsin((r_p[i][j][k]*delta/(r_p[i][j][k] + delta) * 1/delta)) - r_p[i][j][k]*delta/(r_p[i][j][k] + delta))
                     #sublimated_mass = sublimated_mass + (Z * (water_particle_number * np.exp(r_c/r_p) * 4 * np.pi * r_p**2 + 3 * np.exp(-r_c/(r_n * k_factor)) * neck_area) - 3 * cond_rate) * dt
                     if blocked_voxels[i][j][k] == 1 and delta > 0:
@@ -784,7 +784,7 @@ def sinter_neck_calculation_time_dependent(r_n, r_p, dt, temperature, a_1, b_1, 
                         pressure[i][j][k] = 0
                     #if np.isnan(sublimated_mass[i][j][k]):
                         #print(Z[i][j][k], water_particle_number[i][j][k], r_p[i][j][k], neck_area[i][j][k], cond_rate[i][j][k], delta[i][j][k], r_n[i][j][k])
-                    r_n[i][j][k] = r_n[i][j][k] + dt * rate
+                    r_n[i][j][k] = r_n[i][j][k] + dt * rate * sinter_reduction_factor
     return r_n, r_p, sublimated_mass, pressure
 
 

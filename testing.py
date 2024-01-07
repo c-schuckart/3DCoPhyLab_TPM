@@ -689,7 +689,7 @@ ax.set_title(r'Heiße Schicht in 25 $\mu$m Tiefe')
 #plt.savefig('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Intervoxel_outgassing_first_layer_particle_radius_corr_de.png', dpi=600)
 plt.show()'''
 
-'''mode = 'rear'
+mode = 'rear'
 
 timestamps = []
 sen_1 = []
@@ -763,7 +763,7 @@ for i in range(len(timestamps)-1):
 files = listdir('D:/TPM_Data/Ice/')
 target = open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Thesis/Changing_albedo_and_sinter_temp_' + mode + '.csv', 'w')
 for each in files:
-    if each[0:8] == 'Granular':
+    if each[0:5] == 'Final':
         with open('D:/TPM_Data/Ice/' + each) as json_file:
             jdata = json.load(json_file)
         sen_1_sim = []
@@ -810,7 +810,9 @@ for each in files:
         #target.write(str(each[:-5]) + ',' + str(0.0) + ',' + str(0.0) + ',' + str(np.average(deltas_2)) + ',' + str(np.max(deltas_2)) + ',' + str(np.average(deltas_3)) + ',' + str(np.max(deltas_3)) + ',' + str(np.average(deltas_4)) + ',' + str(np.max(deltas_4)) + ',' + str(np.average(deltas_5)) + ',' + str(np.max(deltas_5)) +'\n')
 
 target.close()
-'''
 
-temp = np.load('D:/TPM_Data/Ice/Diffusion/full_model/temperatures_3650.0.npy')
+sort_csv_ice('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Thesis/Changing_albedo_and_sinter_temp_' + mode + '.csv', True, 'C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Thesis/Changing_albedo_and_sinter_temp_' + mode + '_sorted.csv')
+
+'''temp = np.load('D:/TPM_Data/Ice/Diffusion/full_model/water_masses_3650.0.npy')
 print(temp[0:const.n_z, const.n_y//2, const.n_x//2])
+print(temp[1, 0:const.n_y, const.n_x//2])'''
