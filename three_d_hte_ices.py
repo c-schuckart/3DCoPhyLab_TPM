@@ -281,7 +281,7 @@ for albedo in albedo_arr:
 
         sinter_time_reducer = sinter_temp_reduce
         #sinter_time_reducer = 80
-        name_string = 'Final_Granular_ice_L_albedo_' + str(albedo) + '_sinter_reduction_factor_' + str(sinter_temp_reduce) + '_side_res_max.json'
+        name_string = 'Final_Granular_ice_L_albedo_' + str(albedo) + '_sinter_reduction_factor_' + str(sinter_temp_reduce) + '_rt.json'
 
 
         for j in tqdm(range(0, const.k)):
@@ -310,7 +310,7 @@ for albedo in albedo_arr:
                 #np.save('D:/TPM_Data/Luwex/sublimation_test/WATERsublimation_test' + str(j * const.dt) + '.npy', uniform_water_masses)
                 #np.save('D:/TPM_Data/Luwex/sublimation_and_diffusion/GASsublimation_and_diffusion' + str(j * const.dt) + '.npy', gas_density * dx * dy * dz)
             #temperature_previous = temperature[0:const.n_z, 0:const.n_y, 0:const.n_x]
-            #save_mean_temps_light_spot(const.n_x, const.n_y, const.n_z, temperature, 'D:/TPM_Data/Ice/a_0.85_srf_0.0001_std_0.90_walls_lamp_temps.csv')
+            save_mean_temps_light_spot(const.n_x, const.n_y, const.n_z, temperature, 'D:/TPM_Data/Ice/a_0.85_srf_0.0001_std_rt.csv')
             #sensors_right, sensors_rear = save_sensors_L_sample_holder(const.n_x, const.n_y, const.n_z, temperature, sensors_right, sensors_rear, j)
             sensors_right, sensors_rear = save_sensors_L_sample_holder_high_res(const.n_x, const.n_y, const.n_z, temperature, sensors_right, sensors_rear, j, height_list_sensors, sf=4)
             if sett.enable_ray_tracing and len(surface_topography_polygons) != 0:
@@ -356,10 +356,10 @@ for albedo in albedo_arr:
                     print('Finished')
             max_temps[j] = np.max(temperature)
             sublimated_mass_mid[j] = np.sum(sublimated_mass[0:const.n_z, const.n_y//2, const.n_x//2])
-            #if j == 2646:
-                #np.save('D:/TPM_Data/Ice/a_0.85_srf_0.0001_0.90_walls_13th_cycle', temperature)
+            if j == 2646:
+                np.save('D:/TPM_Data/Ice/a_0.85_srf_0.0001_rt_13th_cycle', temperature)
             #print(temperature[0:const.n_z - 2, const.n_y // 2 - 4:const.n_y // 2 + 5, const.n_x // 2 - 4:const.n_x // 2 + 5])
-            temperature = artificial_crater_heating(const.n_x, const.n_y, const.n_z, temperature, surface_reduced, 0.90)
+            #temperature = artificial_crater_heating(const.n_x, const.n_y, const.n_z, temperature, surface_reduced, 0.90)
             #print(np.sum(sublimated_mass))
             #if np.max(np.abs(temperature - temperature_previous)) < 50E-6:
                 #break

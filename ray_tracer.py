@@ -177,3 +177,57 @@ def trace_rays_MC_partial_shadowing(polygon_list, iterations):
                 view_factor_matrix[i][j] = np.sum(view_factor_points)/iterations
                 view_factor_matrix[j][i] = view_factor_matrix[i][j] * np.linalg.norm(polygon_list[i][1]) / np.linalg.norm(polygon_list[j][1])
     return view_factor_matrix
+
+
+@njit
+def analytical_viewfactors_rect_to_rect(x, y, eta, xi):
+    A_1 = (x[1] - x[0]) * (y[1] - y[0])
+    F = 0
+    for l in range(0, 2):
+        for k in range(0, 2):
+            for j in range(0, 2):
+                for i in range(0, 2):
+                    C = np.sqrt(x[i]**2 + xi[l]**2)
+                    D = (y[j] - eta[k]) / C
+                    F += 1/(2 * np.pi * A_1) * (-1) ** (i + j + k + l) * (y[j] - eta[k]) * C * np.arctan(D) - C**2/4 * (1 - D**2) * np.log(C**2 * (1 + D**2))
+    return F
+
+
+@njit
+def trace_rays_with_analytical_solution(polygon_list, iterations):
+    view_factor_matrix = np.zeros((len(polygon_list), len(polygon_list)), dtype=np.float64)
+    for i in range(0, len(polygon_list)):
+        ray_origin = polygon_list[i][0] + 1/2 * np.sign(polygon_list[i][1])
+        for j in range(i+1, len(polygon_list)):
+            distances = np.full((len(polygon_list)), np.infty, dtype=np.float64)
+            ray_direction = ((polygon_list[j][0] + 1/2 * np.sign(polygon_list[j][1])) - (polygon_list[i][0] + 1/2 * np.sign(polygon_list[i][1]))) / np.linalg.norm((polygon_list[i][0] + 1/2 * np.sign(polygon_list[i][1])) - (polygon_list[j][0] + 1/2 * np.sign(polygon_list[j][1]))) #Normalized ray direction
+            if np.dot(ray_direction, polygon_list[i][1]) < 0:
+                pass
+            else:
+                for a in range(0, len(polygon_list)):
+                    plane_point = polygon_list[a][0] + 1/2 * np.sign(polygon_list[a][1])
+                    plane_normal = polygon_list[a][1]
+                    d = intersect_plane(ray_origin, ray_direction, plane_point, plane_normal)
+                    if d == 0:
+                        pass
+                    else:
+                        distances[a] = d
+            if round(np.min(distances), 8) == round(np.linalg.norm((polygon_list[i][0] + 1/2 * np.sign(polygon_list[i][1])) - (polygon_list[j][0] + 1/2 * np.sign(polygon_list[j][1]))), 8):
+                for val in range(0, 3):
+                    if polygon_list[i][1][val] != 0:
+                        x_1 = polygon_list[i][0][val + 1 % 3] + 1/2
+                        x_2 = polygon_list[i][0][val + 1 % 3] - 1/2
+                        y_1 = polygon_list[i][0][val + 2 % 3] + 1/2
+                        y_2 = polygon_list[i][0][val + 2 % 3] - 1/2
+                    if polygon_list[j][1][val] != 0:
+                        xi_1 = polygon_list[j][0][val + 1 % 3] + 1/2
+                        xi_2 = polygon_list[j][0][val + 1 % 3] - 1 / 2
+                        eta_1 = polygon_list[j][0][val + 2 % 3] + 1 / 2
+                        eta_2 = polygon_list[j][0][val + 2 % 3] - 1 / 2
+                view_factor_matrix[i][j] = analytical_viewfactors_rect_to_rect([x_1, x_2], [y_1, y_2], [eta_1, eta_2], [xi_1, xi_2])
+                #print(np.dot(polygon_list[i][1], ray_direction)/(np.linalg.norm(polygon_list[i][1]) * np.linalg.norm(ray_direction)), np.abs(np.dot(polygon_list[j][1], ray_direction)/(np.linalg.norm(polygon_list[j][1]) * np.linalg.norm(ray_direction))), np.linalg.norm((polygon_list[i][0] + 1/2 * polygon_list[i][1]) - (polygon_list[j][0] + 1/2 * polygon_list[j][1])), np.linalg.norm(polygon_list[j][1]))
+                view_factor_matrix[j][i] = view_factor_matrix[i][j]
+            else:
+                view_factor_matrix[i][j] = 0
+                view_factor_matrix[j][i] = view_factor_matrix[i][j]
+    return view_factor_matrix
