@@ -280,7 +280,7 @@ for each in filenames:
     #target.write(each + ',' + str(np.max(Surface_temperatures_cur)) + ',' + str(np.mean(Surface_temperatures_cur)) + ',' + str(np.median(Surface_temperatures_cur)) + '\n')
 target.close()'''
 
-fig, ax = plt.subplots(1, 1)
+'''fig, ax = plt.subplots(1, 1)
 file = '2023_12_07_00h_28m_21s'
 im = np.array(PIL.Image.open(path + file + '.png').convert('L'))
 ggT = GCD(const.n_x, width)
@@ -303,4 +303,4 @@ ax.set_ylabel('Pixel')
 ax.set_title('13. Tag-Nacht-Zyklus')
 plt.colorbar(sls, cmap='viridis')
 plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Thesis/crater_temp_13th_cycle_all.png', dpi=600)
-plt.show()
+plt.show()'''

@@ -281,7 +281,7 @@ for albedo in albedo_arr:
 
         sinter_time_reducer = sinter_temp_reduce
         #sinter_time_reducer = 80
-        name_string = 'Final_Granular_ice_L_albedo_' + str(albedo) + '_sinter_reduction_factor_' + str(sinter_temp_reduce) + '_rt.json'
+        name_string = 'Final_Granular_ice_L_albedo_' + str(albedo) + '_sinter_reduction_factor_' + str(sinter_temp_reduce) + '_ultra_res_full.json'
 
 
         for j in tqdm(range(0, const.k)):
@@ -310,11 +310,11 @@ for albedo in albedo_arr:
                 #np.save('D:/TPM_Data/Luwex/sublimation_test/WATERsublimation_test' + str(j * const.dt) + '.npy', uniform_water_masses)
                 #np.save('D:/TPM_Data/Luwex/sublimation_and_diffusion/GASsublimation_and_diffusion' + str(j * const.dt) + '.npy', gas_density * dx * dy * dz)
             #temperature_previous = temperature[0:const.n_z, 0:const.n_y, 0:const.n_x]
-            save_mean_temps_light_spot(const.n_x, const.n_y, const.n_z, temperature, 'D:/TPM_Data/Ice/a_0.85_srf_0.0001_std_rt.csv')
+            #save_mean_temps_light_spot(const.n_x, const.n_y, const.n_z, temperature, 'D:/TPM_Data/Ice/a_0.85_srf_0.0001_std_rt.csv')
             #sensors_right, sensors_rear = save_sensors_L_sample_holder(const.n_x, const.n_y, const.n_z, temperature, sensors_right, sensors_rear, j)
-            sensors_right, sensors_rear = save_sensors_L_sample_holder_high_res(const.n_x, const.n_y, const.n_z, temperature, sensors_right, sensors_rear, j, height_list_sensors, sf=4)
+            sensors_right, sensors_rear = save_sensors_L_sample_holder_high_res(const.n_x, const.n_y, const.n_z, temperature, sensors_right, sensors_rear, j, height_list_sensors, sf=1)
             if sett.enable_ray_tracing and len(surface_topography_polygons) != 0:
-                reradiated_heat = get_temperature_vector(const.n_x, const.n_y, const.n_z, temperature, surface, surface_reduced, len(surface_topography_polygons), view_factor_matrix, const.sigma, const.epsilon, albedo, lamp_power)[0]
+                reradiated_heat = get_temperature_vector(const.n_x, const.n_y, const.n_z, temperature, surface, surface_reduced, len(surface_topography_polygons), view_factor_matrix, const.sigma, const.epsilon, albedo, lamp_power_dn, dx, dy, dz)[0]
             lamp_power_dn, S_c_deeper, activity_factor = day_night_cycle(lamp_power, S_c_deeper, 3 * 3600, j * const.dt, const.activity_threshold, const.activity_split)
             #density, VFF, water_ice_grain_density = calculate_bulk_density_and_VFF(temperature, VFF, uniform_dust_masses, uniform_water_masses, const.density_TUBS_M, dx, dy, dz)
             density = calculate_density(temperature, VFF)[1]
@@ -345,7 +345,7 @@ for albedo in albedo_arr:
             uniform_water_masses = np.maximum(uniform_water_masses, np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64))
             outgassing_rate[j] = np.sum(sublimated_mass)/const.dt
             #print(temperature[1, const.n_y // 2, const.n_x // 2], uniform_water_masses[1, const.n_y // 2, const.n_x // 2], sublimated_mass[1, const.n_y // 2, const.n_x // 2], empty_voxels, density[1, const.n_y // 2, const.n_x // 2], VFF[1, const.n_y // 2, const.n_x // 2])
-            if len(empty_voxels) != 0:
+            if len(empty_voxels) != 0 or j == 0:
                 #surface, surface_reduced, temperature, r_n, r_mono_water = update_surface_arrays_slow(empty_voxels, surface, surface_reduced, temperature, const.n_x, const.n_y, const.n_z, a, a_rad, b, b_rad, False, r_n, r_mono_water)
                 #print(np.isnan(temperature).any())
                 surface, surface_reduced = update_surface_arrays(empty_voxels, surface, surface_reduced, temperature, const.n_x, const.n_y, const.n_z, a, a_rad, b, b_rad, False)
@@ -356,8 +356,14 @@ for albedo in albedo_arr:
                     print('Finished')
             max_temps[j] = np.max(temperature)
             sublimated_mass_mid[j] = np.sum(sublimated_mass[0:const.n_z, const.n_y//2, const.n_x//2])
-            if j == 2646:
-                np.save('D:/TPM_Data/Ice/a_0.85_srf_0.0001_rt_13th_cycle', temperature)
+            #if j == 2646:
+                #np.save('D:/TPM_Data/Ice/a_0.85_srf_0.0001_rt_13th_cycle', temperature)
+            #if (j + 162) % 216 == 0:
+                #np.save('D:/TPM_Data/Ice/no_rt_cycle' + str((j + 162)//216), temperature)
+            if j >= 50 and j <= 59:
+                np.save('D:/TPM_Data/Ice/rt_j_' + str(j), temperature)
+            if j >= 260:
+                np.save('D:/TPM_Data/Ice/rt_j_' + str(j), temperature)
             #print(temperature[0:const.n_z - 2, const.n_y // 2 - 4:const.n_y // 2 + 5, const.n_x // 2 - 4:const.n_x // 2 + 5])
             #temperature = artificial_crater_heating(const.n_x, const.n_y, const.n_z, temperature, surface_reduced, 0.90)
             #print(np.sum(sublimated_mass))

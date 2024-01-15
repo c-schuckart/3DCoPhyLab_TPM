@@ -20,8 +20,8 @@ n_y = 25
 n_z = 25'''
 n = np.array([n_x, n_y, n_z])
 #k = 36288 * 5                      # Number of Timesteps                    [-]'''
-#k = int(3601 * 1)                    # Number of Timesteps                    [-]
-k = 1000
+k = int(3601 * 1)                    # Number of Timesteps                    [-]
+#k = 270
 #Definition of Physical Parameters
 #Material Properties
 lambda_constant = 0.01            # Thermal Conductivity                   [W/(K m)]

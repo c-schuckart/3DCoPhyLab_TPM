@@ -10,42 +10,61 @@ def generate_topography(surface, reduced_surface, dx, dy, dz):
     counter = 0
     for each in reduced_surface:
         if surface[each[2]][each[1]][each[0]][0] == 1:
-            polygon_list[counter][0], polygon_list[counter][1] = np.array([each[0], each[1], each[2]], dtype=np.float64), np.array([0, 0, dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]]], dtype=np.float64) #middle point of plane and normal vector
+            #polygon_list[counter][0], polygon_list[counter][1] = np.array([each[0], each[1], each[2]], dtype=np.float64), np.array([0, 0, dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]]], dtype=np.float64) #middle point of plane and normal vector
+            polygon_list[counter][0], polygon_list[counter][1] = np.array([each[0], each[1], each[2]], dtype=np.float64), np.array([0, 0, 1], dtype=np.float64)
             counter += 1
         if surface[each[2]][each[1]][each[0]][1] == 1:
-            polygon_list[counter][0], polygon_list[counter][1] = np.array([each[0], each[1], each[2]], dtype=np.float64), np.array([0, 0, - dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]]], dtype=np.float64) #middle point of plane and normal vector
+            #polygon_list[counter][0], polygon_list[counter][1] = np.array([each[0], each[1], each[2]], dtype=np.float64), np.array([0, 0, - dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]]], dtype=np.float64) #middle point of plane and normal vector
+            polygon_list[counter][0], polygon_list[counter][1] = np.array([each[0], each[1], each[2]], dtype=np.float64), np.array([0, 0, - 1], dtype=np.float64)
             counter += 1
         if surface[each[2]][each[1]][each[0]][2] == 1:
-            polygon_list[counter][0], polygon_list[counter][1] = np.array([each[0], each[1], each[2]], dtype=np.float64), np.array([0, dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]], 0], dtype=np.float64) #middle point of plane and normal vector
+            #polygon_list[counter][0], polygon_list[counter][1] = np.array([each[0], each[1], each[2]], dtype=np.float64), np.array([0, dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]], 0], dtype=np.float64) #middle point of plane and normal vector
+            polygon_list[counter][0], polygon_list[counter][1] = np.array([each[0], each[1], each[2]], dtype=np.float64), np.array([0, 1, 0], dtype=np.float64)
             counter += 1
         if surface[each[2]][each[1]][each[0]][3] == 1:
-            polygon_list[counter][0], polygon_list[counter][1] = np.array([each[0], each[1], each[2]], dtype=np.float64), np.array([0, - dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]], 0], dtype=np.float64) #middle point of plane and normal vector
+            #polygon_list[counter][0], polygon_list[counter][1] = np.array([each[0], each[1], each[2]], dtype=np.float64), np.array([0, - dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]], 0], dtype=np.float64) #middle point of plane and normal vector
+            polygon_list[counter][0], polygon_list[counter][1] = np.array([each[0], each[1], each[2]], dtype=np.float64), np.array([0, - 1, 0], dtype=np.float64)
             counter += 1
         if surface[each[2]][each[1]][each[0]][4] == 1:
-            polygon_list[counter][0], polygon_list[counter][1] = np.array([each[0], each[1], each[2]], dtype=np.float64), np.array([dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]], 0, 0], dtype=np.float64) #middle point of plane and normal vector
+            #polygon_list[counter][0], polygon_list[counter][1] = np.array([each[0], each[1], each[2]], dtype=np.float64), np.array([dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]], 0, 0], dtype=np.float64) #middle point of plane and normal vector
+            polygon_list[counter][0], polygon_list[counter][1] = np.array([each[0], each[1], each[2]], dtype=np.float64), np.array([1, 0, 0], dtype=np.float64)
             counter += 1
         if surface[each[2]][each[1]][each[0]][5] == 1:
-            polygon_list[counter][0], polygon_list[counter][1] = np.array([each[0], each[1], each[2]], dtype=np.float64), np.array([- dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]], 0, 0], dtype=np.float64) #middle point of plane and normal vector
+            #polygon_list[counter][0], polygon_list[counter][1] = np.array([each[0], each[1], each[2]], dtype=np.float64), np.array([- dy[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]], 0, 0], dtype=np.float64) #middle point of plane and normal vector
+            polygon_list[counter][0], polygon_list[counter][1] = np.array([each[0], each[1], each[2]], dtype=np.float64), np.array([- 1, 0, 0], dtype=np.float64)
             counter += 1
     return polygon_list
 
 
 @njit
-def get_temperature_vector(n_x, n_y, n_z, temperature, surface, surface_reduced, length, view_factor_matrix, sigma, epsilon, albedo, lamp_power):
+def get_temperature_vector(n_x, n_y, n_z, temperature, surface, surface_reduced, length, view_factor_matrix, sigma, epsilon, albedo, lamp_power, dx, dy, dz):
     surface_temperature_vector = np.zeros(length, dtype=np.float64)
     lamp_power_vector = np.zeros(length, dtype=np.float64)
     thermal_heating_energy = np.zeros((n_z, n_y, n_x), dtype=np.float64)
     counter_polygons = 0
+    areas = np.zeros(length, dtype=np.float64)
+    for each in surface_reduced:
+        for i in range(0, 6):
+            if surface[each[2]][each[1]][each[0]][i] != 0 and (i == 0 or i == 1):
+                areas[counter_polygons] = dx[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]]
+                counter_polygons += 1
+            elif surface[each[2]][each[1]][each[0]][i] != 0 and (i == 2 or i == 3):
+                areas[counter_polygons] = dx[each[2]][each[1]][each[0]] * dz[each[2]][each[1]][each[0]]
+                counter_polygons += 1
+            elif surface[each[2]][each[1]][each[0]][i] != 0 and (i == 4 or i == 5):
+                areas[counter_polygons] = dz[each[2]][each[1]][each[0]] * dy[each[2]][each[1]][each[0]]
+                counter_polygons += 1
+    counter_polygons = 0
     for each in surface_reduced:
         for i in range(0, np.sum(surface[each[2]][each[1]][each[0]])):
-            surface_temperature_vector[counter_polygons] = temperature[each[2]][each[1]][each[0]]
+            surface_temperature_vector[counter_polygons] = temperature[each[2]][each[1]][each[0]]**4
             if np.sum(temperature[0:each[2], each[1], each[0]]) == 0:
                 lamp_power_vector[counter_polygons] = lamp_power[each[2]][each[1]][each[0]]
             counter_polygons += 1
     counter_polygons = 0
     for each in surface_reduced:
         for i in range(0, np.sum(surface[each[2]][each[1]][each[0]])):
-            thermal_heating_energy[each[2]][each[1]][each[0]] += (1 - albedo) * (sigma * epsilon * (np.sum(view_factor_matrix[counter_polygons] * surface_temperature_vector) - view_factor_matrix[counter_polygons][counter_polygons] * surface_temperature_vector[counter_polygons]) + (albedo) * (np.sum(view_factor_matrix[counter_polygons] * lamp_power_vector) - view_factor_matrix[counter_polygons][counter_polygons] * lamp_power_vector[counter_polygons]))
+            thermal_heating_energy[each[2]][each[1]][each[0]] += (1 - albedo) * (sigma * epsilon * areas[counter_polygons] * (np.sum(view_factor_matrix[counter_polygons] * surface_temperature_vector) - view_factor_matrix[counter_polygons][counter_polygons] * surface_temperature_vector[counter_polygons]) + (albedo) * (np.sum(view_factor_matrix[counter_polygons] * lamp_power_vector) - view_factor_matrix[counter_polygons][counter_polygons] * lamp_power_vector[counter_polygons]))
             counter_polygons += 1
     return thermal_heating_energy, surface_temperature_vector
 

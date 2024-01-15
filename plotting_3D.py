@@ -78,6 +78,9 @@ sample = plot_3D(temperature)'''
 temp = np.array(jdata['Temperature'])
 #sample = plot_3D(temp)
 sample = plot_3D(np.load('D:/TPM_Data/Ice/a_0.85_srf_0.0001_13th_cycle.npy'))'''
+#sample = plot_3D(np.load('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Thesis/a_0.85_srf_0.0001_rt_2_cycle.npy'))
+#sample = plot_3D(np.load('D:/TPM_Data/Ice/no_rt_cycle6.npy'))
+#print(np.load('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Thesis/a_0.85_srf_0.0001_rt_3_cycle.npy')[0:const.n_z, const.n_y//2, const.n_x//2])
 '''temperature_array = np.zeros((1008, const.n_z, const.n_y, const.n_x), dtype=np.float64)
 time_vals = [i * 600 for i in range(0, 1008)]
 for i in time_vals:
@@ -384,7 +387,9 @@ for i in range(0, const.n_y):
 fig = plt.figure(figsize=(10,7))
 cmap = cm.get_cmap('viridis')
 print(cmap(0.1))
-data = np.load('D:/TPM_Data/Ice/a_0.85_srf_0.0001_13th_cycle.npy')
+#data = np.load('D:/TPM_Data/Ice/rt_j_54.npy')
+#data = np.load('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Thesis/a_0.85_srf_0.0001_rt_3_cycle.npy')
+data = np.load('D:/TPM_Data/Ice/no_rt_cycle3.npy')
 #max = np.max(data)
 max = 200
 min = 165
@@ -394,12 +399,15 @@ voxels = np.full(dims, False)
 for i in range(0, dims[0]):
     for j in range(0, dims[1]):
         for k in range(0, dims[2]):
-            if data[i][j][k] > 0 and not np.isnan(inverse_mask_lamp_spot[j][k]):
+            #if data[i][j][k] > 0 and not np.isnan(inverse_mask_lamp_spot[j][k]):
+                #voxels[i][j][k] = True
+                #color[i][j][k] = np.array(cmap((data[i][j][k] - min)/(max - min)))
+            if data[i][j][k] > 0:
                 voxels[i][j][k] = True
                 color[i][j][k] = np.array(cmap((data[i][j][k] - min)/(max - min)))
 
 x, y, z = np.indices(np.array(dims) + 1, dtype=np.float64)
-x *= 0.1
+#x *= 0.1
 #x = np.swapaxes(x, 0, 2)
 #y = np.swapaxes(y, 0, 2)
 #z = np.swapaxes(z, 0, 2)
@@ -424,5 +432,6 @@ norm = colors.Normalize(vmin=min, vmax=max)
 #ax.colorbar(colorbar.ColorbarBase(ax, cmap=cmap, norm=norm))
 fig.colorbar(cm.ScalarMappable(norm=norm, cmap=cmap), cax=ax2, label='Temperatur', shrink=1, aspect=1, fraction=0.05)
 #fig.colorbar(vx)
-plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Thesis/sim_0.85_0.0001_13th_cycle_only_mid_same_temps.png', dpi=600)
+#plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Thesis/sim_0.85_0.0001_13th_cycle_only_mid_same_temps.png', dpi=600)
+plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Thesis/sim_0.85_0.0001_3max_no_rt.png', dpi=600)
 plt.show()

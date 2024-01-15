@@ -590,7 +590,7 @@ ger_labels=['5mm','10mm','15mm','15mm_a','20mm','25mm','30mm','40mm','50mm','75m
 
 
 time_sim = [i * const.dt for i in range(0, const.k)]
-with open('D:/TPM_Data/Ice/Final_Granular_ice_L_albedo_0.85_sinter_reduction_factor_0.0001_high_res_0.90_walls.json') as json_file:
+with open('D:/TPM_Data/Ice/Final_Granular_ice_L_albedo_0.85_sinter_reduction_factor_0.0001_high_res.json') as json_file:
     jdata = json.load(json_file)
 
 NUM_COLORS = 20
@@ -614,13 +614,15 @@ axes = [ax1, ax2, ax3, ax4, ax5, ax6, ax7, ax8, ax9, ax10, ax11, ax12]
 axes[0].set_prop_cycle(color=[cm(1. * i / NUM_COLORS) for i in range(NUM_COLORS)])
 count = 0
 label_pos = []
-line_style_arr = ['-', '--', '-.', ':']
+line_style_arr = ['--', '--', '--', '--']
 for label in labels:
     axes[0].plot(time[0:19230], ((data[label]+shift).apply(f) + 273.15)[45770:65000], label=ger_labels[count])
     if label[0:5] == 'Right':
         axes[0].plot(time_sim, np.array(jdata['Right'])[0:const.k, count], label=ger_labels[count] + ' SIM', ls=line_style_arr[count % 4])
-
-        axes[count+1].plot(time[0:19230], ((data[label]+shift).apply(f) + 273.15)[45770:65000], color=cm(1. * count*2 / NUM_COLORS))
+        if count == 10:
+            axes[count + 1].plot(time[0:19230], ((data[label] + shift).apply(f) + 273.15)[45770:65000], color=cm(1. * 0 * 2 / NUM_COLORS))
+        else:
+            axes[count+1].plot(time[0:19230], ((data[label]+shift).apply(f) + 273.15)[45770:65000], color=cm(1. * count*2 / NUM_COLORS))
         axes[count+1].plot(time_sim, np.array(jdata['Right'])[0:const.k, count], ls='--', color='black')
         '''cur_pos = np.average(np.array(jdata['Right'])[const.k-216:const.k, count])
         for positions in label_pos:
@@ -630,9 +632,11 @@ for label in labels:
         label_pos.append(cur_pos)'''
     else:
         axes[0].plot(time_sim, np.array(jdata['Rear'])[0:const.k, count], label=ger_labels[count] + ' SIM', ls=line_style_arr[count % 4])
-
-        axes[count+1].plot(time[0:19230], ((data[label]+shift).apply(f) + 273.15)[45770:65000], color=cm(1. * (count % 11)*2 / NUM_COLORS))
-        axes[count+1].plot(time_sim, np.array(jdata['Right'])[0:const.k, count], ls='--', color='black')
+        if count == 10:
+            axes[count + 1].plot(time[0:19230], ((data[label] + shift).apply(f) + 273.15)[45770:65000], color=cm(1. * (0) * 2 / NUM_COLORS))
+        else:
+            axes[count+1].plot(time[0:19230], ((data[label]+shift).apply(f) + 273.15)[45770:65000], color=cm(1. * (count % 11)*2 / NUM_COLORS))
+        axes[count+1].plot(time_sim, np.array(jdata['Rear'])[0:const.k, count], ls='--', color='black')
         '''cur_pos = np.average(np.array(jdata['Rear'])[const.k - 216:const.k, count])
         for positions in label_pos:
             if abs(cur_pos - positions) < 0.01:
@@ -645,7 +649,7 @@ for label in labels:
 with open('D:/TPM_Data/Ice/Final_Granular_ice_L_albedo_0.85_sinter_reduction_factor_0.0001.json') as json_file:
     jdata = json.load(json_file)
 
-with open('D:/TPM_Data/Ice/Final_Granular_ice_L_albedo_0.85_sinter_reduction_factor_0.0001_high_res.json') as json_file:
+with open('D:/TPM_Data/Ice/Final_Granular_ice_L_albedo_0.85_sinter_reduction_factor_0.0001_side_res.json') as json_file:
     jdata2 = json.load(json_file)
 
 NUM_COLORS = 20
@@ -659,28 +663,53 @@ for label in labels:
     if label[0:5] == 'Right':
         ax.plot(time_sim, np.array(jdata['Right'])[0:const.k, count] - np.array(jdata2['Right'])[0:const.k, count], label=ger_labels[count] + ' SIM')
         cur_pos = np.average(np.array(jdata['Right'])[const.k-216:const.k, count] - np.array(jdata2['Right'])[const.k-216:const.k, count])
-        for positions in label_pos:
-            if abs(cur_pos - positions) < 0.01:
-                cur_pos -= 0.025
+       #for positions in label_pos:
+            #if abs(cur_pos - positions) < 0.025:
+                #cur_pos -= np.sign(- cur_pos + positions) * 0.025
+        k = 0
+        reset = False
+        while k < len(label_pos):
+            if not reset:
+                direction = np.sign(- cur_pos + label_pos[k])
+                if label == 'Right_30':
+                    direction = 1
+            #print(cur_pos, label_pos, k)
+            if abs(cur_pos - label_pos[k]) < 0.02:
+                #print(cur_pos, label_pos, k)
+                cur_pos -= direction * 0.02
+                k = 0
+                reset = True
+            else:
+                k += 1
         ax.text(190000, cur_pos, ger_labels[count], fontsize='xx-small')
         label_pos.append(cur_pos)
     else:
         ax.plot(time_sim, np.array(jdata['Rear'])[0:const.k, count] - np.array(jdata2['Rear'])[0:const.k, count], label=ger_labels[count] + ' SIM')
         cur_pos = np.average(np.array(jdata['Rear'])[const.k - 216:const.k, count] - np.array(jdata2['Rear'])[const.k - 216:const.k, count])
-        for positions in label_pos:
-            if abs(cur_pos - positions) < 0.01:
-                cur_pos -= np.sign(- cur_pos + positions) * 0.025
+        k = 0
+        reset = False
+        while k < len(label_pos):
+            if not reset:
+                direction = np.sign(- cur_pos + label_pos[k])
+            # print(cur_pos, label_pos, k)
+            if abs(cur_pos - label_pos[k]) < 0.015:
+                # print(cur_pos, label_pos, k)
+                cur_pos -= direction * 0.015
+                k = 0
+                reset = True
+            else:
+                k += 1
         ax.text(190000, cur_pos, ger_labels[count], fontsize='xx-small')
         label_pos.append(cur_pos)
     count += 1'''
 
 
-#ax.set_xlim(data['Time'][36000], data['Time'][66000])
+'''#ax.set_xlim(data['Time'][36000], data['Time'][66000])
 #ax.set_ylim(142, 182)
 #ax.add_artist(mlines.Line2D([data['Time'][45000], data['Time'][45000]], [140, 190], ls='--', color='black'))
 #ax.add_artist(mlines.Line2D([data['Time'][65000], data['Time'][65000]], [140, 190], ls='--', color='black'))
-fig.legend(loc=2, ncol=6, fontsize='medium')
-
+#fig.legend(loc=2, ncol=6, fontsize='medium')
+fig.legend(loc='upper left', bbox_to_anchor=(0.1, 1.0), ncol=6, fontsize='medium')
 fig.suptitle('Rechte Sensoren')
 
 for i in range(len(axes)):
@@ -694,8 +723,19 @@ for i in range(len(axes)):
     axes[i].set_ylim(140, 180)
 
 #fig.tight_layout()
-plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Thesis/wall_0.90_best_fit_crater_right_all.png', dpi=600)
-plt.show()
+plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Thesis/best_fit_crater_right_all.png', dpi=600)
+plt.show()'''
+
+'''fig.legend(loc=9, ncol=6, fontsize='xx-small')
+
+ax.tick_params(axis='both', which='both', direction='in', top=True, right=True, bottom=True, left=True, labeltop=False, labelright=False, labelbottom=True, labelleft=True)
+ax.set_xlabel('Zeit (s)')
+ax.set_ylabel('Temperatur (K)')
+ax.set_title('dx/dy Auflösung: 5mm - 1,25mm; Hintere Sensoren')
+
+#fig.tight_layout()
+plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Thesis/comparison_side_resolution_rear.png', dpi=600)
+plt.show()'''
 
 '''NUM_COLORS = 20
 cm = plt.get_cmap('tab20')
@@ -738,12 +778,12 @@ ax.set_ylabel('Temperatur (K)')
 plt.legend()
 plt.show()'''
 
-''''#files = ['Final_Granular_ice_L_albedo_0.9_sinter_reduction_factor_0.0001_high_res', 'Final_Granular_ice_L_albedo_0.9_sinter_reduction_factor_0.0001_mid_res', 'Final_Granular_ice_L_albedo_0.9_sinter_reduction_factor_0.0001']
+'''files = ['Final_Granular_ice_L_albedo_0.85_sinter_reduction_factor_0.0001_ultra_res_full', 'Final_Granular_ice_L_albedo_0.85_sinter_reduction_factor_0.0001_high_res', 'Final_Granular_ice_L_albedo_0.85_sinter_reduction_factor_0.0001_mid_res', 'Final_Granular_ice_L_albedo_0.85_sinter_reduction_factor_0.0001']
 #files = ['Final_Granular_ice_L_albedo_0.9_sinter_reduction_factor_1_high_res', 'Final_Granular_ice_L_albedo_0.9_sinter_reduction_factor_1']
-files = ['Final_Granular_ice_L_albedo_0.85_sinter_reduction_factor_0.0001']
-dz = [0.0005, 0.001, 0.005]
+#files = ['Final_Granular_ice_L_albedo_0.85_sinter_reduction_factor_0.0001']
+dz = np.array([0.00025, 0.0005, 0.001, 0.005]) * 1E3
 height = []
-for i in range(0, 1):
+for i in range(0, 4):
     with open('D:/TPM_Data/Ice/' + files[i] + '.json') as json_file:
         jdata = json.load(json_file)
     temp = jdata['Temperature']
@@ -754,9 +794,20 @@ for i in range(0, 1):
             height.append((a-2)*dz[i] + dz[i]/2)
             break
 
-print(height)'''
+print(height)
 
-'''#labels=['Right_5','Right_10','Right_15','Right_15_side','Right_20','Right_25','Right_30','Right_40','Right_50','Right_75','Right_100_side']
+fig, ax = plt.subplots(1, 1)
+ax.plot(dz, np.array(height)/10, marker='x')
+ax.set_xlabel('Ortsschritt dz (mm)')
+ax.set_ylabel('Kratertiefe (cm)')
+ax.set_xscale('log')
+#ax.set_title('Einfluss des Ortsschrittes auf die Kratertiefe')
+ax.set_xticks(dz, labels=[0.25, 0.5, 1, 5])
+
+plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Thesis/crater_depths.png', dpi=600)
+plt.show()'''
+
+#labels=['Right_5','Right_10','Right_15','Right_15_side','Right_20','Right_25','Right_30','Right_40','Right_50','Right_75','Right_100_side']
 #ger_labels=['5mm','10mm','15mm','15mm_a','20mm','25mm','30mm','40mm','50mm','75mm','100mm_a']
 labels=['Rear_5','Rear_10','Rear_10_side','Rear_15','Rear_20','Rear_25','Rear_30','Rear_40','Rear_50','Rear_75','Rear_100']
 ger_labels=['5mm','10mm','10mm_a','15mm','20mm','25mm','30mm','40mm','50mm','75mm','100mm']
@@ -764,7 +815,7 @@ ger_labels=['5mm','10mm','10mm_a','15mm','20mm','25mm','30mm','40mm','50mm','75m
 
 
 time_sim = [i * const.dt for i in range(0, const.k)]
-with open('D:/TPM_Data/Ice/Final_Granular_ice_L_albedo_0.85_sinter_reduction_factor_0.0001_high_res.json') as json_file:
+with open('D:/TPM_Data/Ice/Final_Granular_ice_L_albedo_0.85_sinter_reduction_factor_0.0001_high_res_0.90_walls.json') as json_file:
     jdata = json.load(json_file)
 
 NUM_COLORS = 20
@@ -777,9 +828,11 @@ axes[1].set_prop_cycle(color=[cm(1. * i / NUM_COLORS) for i in range(NUM_COLORS)
 count = 0
 label_pos = []
 label_pos_2 = []
-line_style_arr = ['-', '--', '-.']
-plot_only = [2, 4, 5, 6, 9, -1]
+line_style_arr = ['--', '--', '--']
+plot_only = [2, 4, 5, 6, 9, -1]    #rear
+#plot_only = [2, 4, 6, 8, 9, -1]     #right
 colors = ['tab:orange', 'tab:red', 'tab:purple', 'tab:brown', 'tab:olive']
+#colors = ['tab:orange', 'tab:red', 'tab:grey', 'tab:brown', 'tab:olive']
 ind = 0
 for label in labels:
     if label[0:5] == 'Right' and count == plot_only[ind]-1:
@@ -787,9 +840,20 @@ for label in labels:
         axes[1].plot(time_sim, np.array(jdata['Right'])[0:const.k, count], label=ger_labels[count] + ' SIM', ls=line_style_arr[ind % 3], color=colors[ind])
         ind += 1
         cur_pos = np.average(np.array(jdata['Right'])[const.k-216:const.k, count])
-        for positions in label_pos:
+        '''for positions in label_pos:
             if abs(cur_pos - positions) < 1.5:
-                cur_pos -= 2.5
+                cur_pos -= 2.5'''
+        k = 0
+        reset = False
+        while k < len(label_pos):
+            if not reset:
+                direction = np.sign(- cur_pos + label_pos[k])
+            if abs(cur_pos - label_pos[k]) < 1.0:
+                cur_pos -= direction * 0.5
+                k = 0
+                reset = True
+            else:
+                k += 1
         axes[1].text(195000, cur_pos, ger_labels[count], fontsize='xx-small')
         label_pos.append(cur_pos)
         cur_pos = np.average(((data[label] + shift).apply(f) + 273.15)[64000:65000])
@@ -803,9 +867,20 @@ for label in labels:
         axes[1].plot(time_sim, np.array(jdata['Rear'])[0:const.k, count], label=ger_labels[count] + ' SIM', ls=line_style_arr[ind % 3], color=colors[ind])
         ind += 1
         cur_pos = np.average(np.array(jdata['Rear'])[const.k - 216:const.k, count])
-        for positions in label_pos:
+        '''for positions in label_pos:
             if abs(cur_pos - positions) < 1.5:
-                cur_pos -= np.sign(- cur_pos + positions) * 2.5
+                cur_pos -= np.sign(- cur_pos + positions) * 2.5'''
+        k = 0
+        reset = False
+        while k < len(label_pos):
+            if not reset:
+                direction = np.sign(- cur_pos + label_pos[k])
+            if abs(cur_pos - label_pos[k]) < 1.0:
+                cur_pos -= direction * 0.5
+                k = 0
+                reset = True
+            else:
+                k += 1
         axes[1].text(195000, cur_pos, ger_labels[count], fontsize='xx-small')
         label_pos.append(cur_pos)
         cur_pos = np.average(((data[label] + shift).apply(f) + 273.15)[64000:65000])
@@ -821,7 +896,7 @@ for label in labels:
 #ax.set_ylim(142, 182)
 #ax.add_artist(mlines.Line2D([data['Time'][45000], data['Time'][45000]], [140, 190], ls='--', color='black'))
 #ax.add_artist(mlines.Line2D([data['Time'][65000], data['Time'][65000]], [140, 190], ls='--', color='black'))
-fig.legend(loc=2, ncol=6, fontsize='x-small')
+fig.legend(loc='upper left', bbox_to_anchor=(0.1, 1.0), ncol=4, fontsize='x-small')
 
 fig.suptitle('Hintere Sensoren')
 
@@ -831,5 +906,5 @@ for ax in axes:
     ax.set_ylim(140, 180)
 
 #fig.tight_layout()
-#plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Thesis/best_fit_crater_rear_focus.png', dpi=600)
-plt.show()'''
+plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Thesis/wall_0.90_best_fit_crater_rear_focus.png', dpi=600)
+plt.show()
