@@ -17,13 +17,13 @@ from utility_functions import thermal_reservoir, prescribe_temp_profile_from_dat
 lambda_arr = [0.002, 0.003, 0.0074, 0.015, 0.2, 0.27]
 absorption_depth_arr = [0.5E-3, 1E-3, 2E-3, 3E-3]'''
 print('here')
-albedo_arr = [0.95]
-lambda_arr = [0.003]
-absorption_depth_arr = [0.9E-3]
+albedo_arr = [0.85]
+lambda_arr = [0.015, 0.2, 0.27]
+absorption_depth_arr = [0.001, 0.002, 0.003]
 ambient_temperature_arr = [840]
-ambient_temperature = 308
-epsilon_arr = [0.9]
-epsilon_ambient_arr = [0.9]
+ambient_temperature = 300
+epsilon_arr = [0.95]
+epsilon_ambient_arr = [0.95]
 #abs_depth = absorption_depth_arr[0]
 heat_capacity_sand = ambient_temperature_arr[0]
 for albedo in albedo_arr:
@@ -86,10 +86,10 @@ for albedo in albedo_arr:
                             lamp_power = calculate_L_chamber_lamp_bd(24, 'L', const.n_x, const.n_y, const.n_z, const.min_dx, const.min_dy, const.min_dz, True, abs_depth)
                             S_p = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
                             S_c = calculate_deeper_layer_source(const.n_x, const.n_y, const.n_z, lamp_power, const.r_H, albedo, surface, dx, dy, dz)
-                            #data_save_file = 'C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/Sand_sim_thesis_' + str(albedo) + '_Absdepth_' + str(abs_depth) + '_Lambda_' + str(lambda_sand_c) +'.json'
+                            data_save_file = 'C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/MV_Sand_sim_thesis_' + str(albedo) + '_Absdepth_' + str(abs_depth) + '_Lambda_' + str(lambda_sand_c) +'.json'
                             #data_save_file = 'D:/TPM_Data/Big_sand/Thesis_run/Periodic_sand_sim_thesis_' + str(albedo) + '_Absdepth_' + str(abs_depth) + '_Lambda_' + str(lambda_sand_c) +'.json'
                             #data_save_file = 'D:/TPM_Data/Big_sand/Thesis_run/varying_epsilon' + str(epsilon) + '_ambient_epsilon' + str(epsilon_ambient) + '_test_308K.json'
-                            data_save_file = 'D:/TPM_Data/Big_sand/Thesis_run/varying_epsilon_0.9_ambient_0.9_absdepth_0.9.json'
+                            #data_save_file = 'D:/TPM_Data/Big_sand/Thesis_run/varying_epsilon_0.9_ambient_0.9_absdepth_0.9.json'
                             #data_save_file_2 = 'D:/TPM_data/Big_sand/Sand_sim_thesis_' + str(albedo) + '_Absdepth_' + str(abs_depth) + '_Lambda_' + str(lambda_sand_c) + '.json'
                             #data_save_file_2 = 'D:/TPM_Data/Big_sand/Thesis_run/Periodic_surface_sand_sim_thesis_' + str(albedo) + '_Absdepth_' + str(abs_depth) + '_Lambda_' + str(lambda_sand_c) +'.json'
                             data_save_file_2 = 'D:/TPM_Data/Big_sand/Thesis_run/varying_epsilon_surface_0.9_ambient_0.9_absdepth_0.9.json'
@@ -159,11 +159,11 @@ for albedo in albedo_arr:
                             #print(np.max(Max_Fourier_number))
                             #print('done')
             
-                            data_dict_2 = {'Temperature': middle_slices.tolist(), 'Temperature Surface': temp_surface.tolist()}
+                            '''data_dict_2 = {'Temperature': middle_slices.tolist(), 'Temperature Surface': temp_surface.tolist()}
                             with open(data_save_file_2, 'w') as outfile:
                                 json.dump(data_dict_2, outfile)
                             # print(np.max(Max_Fourier_number))
-                            print('done')
+                            print('done')'''
             
                             print(temperature[0:const.n_z, const.n_y//2, const.n_x//2])
                         '''data_dict = {'Temp Const': temp_max_const.tolist(), 'Temp DN': temp_max_daynight.tolist()}

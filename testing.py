@@ -190,7 +190,7 @@ else:
     ax.plot(time_sim_surface, surface_sim, label='Höchste Oberflächentemperatur SIM', color='tab:blue')
     ax.plot(timestamps_surface, surface_measured, label='Höchste Oberflächentemperatur', color='tab:orange', ls='--')'''
 
-ax.plot(timestamps, sen_1, label='1. ' + string_sens, color='tab:blue')
+'''ax.plot(timestamps, sen_1, label='1. ' + string_sens, color='tab:blue')
 ax.plot(timestamps, sen_2, label='2. ' + string_sens, color='tab:orange')
 ax.plot(timestamps, sen_3, label='3. ' + string_sens, color='tab:green')
 ax.plot(timestamps, sen_4, label='4. ' + string_sens, color='tab:red')
@@ -277,7 +277,7 @@ plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/Pl
 plt.show()
 #plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/Plots/CORROuter_sensors_sand_L_chamber_A_0.95_Absdepth_0.001_Lambda_0.003.png', dpi=600)
 ax.clear()
-fig.clear()
+fig.clear()'''
 
 '''with open('D:/TPM_data/Big_sand/sand_L_chamber_test_quick.json') as json_file:
     data_q = json.load(json_file)
@@ -324,7 +324,7 @@ writer = Writer
 anim.save('D:/TPM_Data/Big_sand/test.mp4', writer=writer, dpi=600)
 Video('D:/TPM_Data/Big_sand/test.mp4')'''
 
-'''timestamps = []
+timestamps = []
 sen_1 = []
 sen_2 = []
 sen_3 = []
@@ -332,7 +332,7 @@ sen_4 = []
 sen_5 = []
 sen_6 = []
 
-with open('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/temps_sandy_randy.txt') as csvdatei:
+with open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/temps_sandy_randy.txt') as csvdatei:
     dat = csv.reader(csvdatei)
     b = True
     start = False
@@ -367,12 +367,15 @@ for i in range(len(timestamps)-1):
         sen_5s.append(sen_5[i])
         counter += 1
 
-files = listdir('D:/TPM_Data/Big_sand/Thesis_run/')
-target = open('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/Day_night_thesis_csv.csv', 'w')
+#files = listdir('D:/TPM_Data/Big_sand/Thesis_run/')
+files = listdir('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/')
+target = open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/MV_thesis_csv.csv', 'a')
 for each in files:
-    if each[0:8] == 'Periodic':
-        with open('D:/TPM_Data/Big_sand/Thesis_run/' + each) as json_file:
+    if each[0:3] == 'MV_':
+        #with open('D:/TPM_Data/Big_sand/Thesis_run/' + each) as json_file:
+        with open('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/' + each) as json_file:
             jdata = json.load(json_file)
+        print(each)
         sen_1_sim = []
         sen_2_sim = []
         sen_3_sim = []
@@ -394,7 +397,7 @@ for each in files:
         #target.write(str(each[:-5]) + ',' + str(np.average(deltas_1)) + ',' + str(np.max(deltas_1)) + ',' + str(np.average(deltas_2)) + ',' + str(np.max(deltas_2)) + ',' + str(np.average(deltas_3)) + ',' + str(np.max(deltas_3)) + ',' + str(np.average(deltas_4)) + ',' + str(np.max(deltas_4)) + ',' + str(np.average(deltas_5)) + ',' + str(np.max(deltas_5)) +'\n')
         target.write(str(each[:-5]) + ',' + str(0.0) + ',' + str(0.0) + ',' + str(np.average(deltas_2)) + ',' + str(np.max(deltas_2)) + ',' + str(np.average(deltas_3)) + ',' + str(np.max(deltas_3)) + ',' + str(np.average(deltas_4)) + ',' + str(np.max(deltas_4)) + ',' + str(np.average(deltas_5)) + ',' + str(np.max(deltas_5)) +'\n')
 
-target.close()'''
+target.close()
 
 #sort_csv('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/Day_night_thesis_csv.csv', True, 'C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/Day_night_thesis_csv_sorted.csv')
 
