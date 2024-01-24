@@ -689,7 +689,7 @@ ax.set_title(r'Heiße Schicht in 25 $\mu$m Tiefe')
 #plt.savefig('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Intervoxel_outgassing_first_layer_particle_radius_corr_de.png', dpi=600)
 plt.show()'''
 
-mode = 'rear'
+'''mode = 'rear'
 
 timestamps = []
 sen_1 = []
@@ -812,7 +812,9 @@ for each in files:
 target.close()
 
 sort_csv_ice('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Thesis/Changing_albedo_and_sinter_temp_' + mode + '.csv', True, 'C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Thesis/Changing_albedo_and_sinter_temp_' + mode + '_sorted.csv')
-
+'''
 '''temp = np.load('D:/TPM_Data/Ice/Diffusion/full_model/water_masses_3650.0.npy')
 print(temp[0:const.n_z, const.n_y//2, const.n_x//2])
 print(temp[1, 0:const.n_y, const.n_x//2])'''
+
+

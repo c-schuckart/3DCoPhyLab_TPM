@@ -318,7 +318,7 @@ def calculate_latent_heat(temperature, b_1, c_1, d_1, R_gas, m_mol):
 
 @njit
 def calculate_density(temperature, VFF):
-	density_grain = 918 - 0.13783 * temperature - 2.53451E-4 * temperature**2
+	density_grain = 916.7 - 0.175 * (temperature - 273.15) - 5.0E-4 * (temperature - 273.15) ** 2
 	return density_grain, density_grain * VFF
 
 
@@ -343,7 +343,7 @@ def calculate_water_grain_radius(n_x, n_y, n_z, uniform_water_masses, water_ice_
 	return r_mono_water
 @njit
 def thermal_functions(temperature, b_1, c_1, d_1, R_gas, m_mol, VFF):
-	density_grain = 918 - 0.13783 * temperature - 2.53451E-4 * temperature ** 2
+	density_grain = 918 - 0.175 * (temperature - 273.15) - 5.0E-4 * (temperature - 273.15) ** 2
 	return (7.5 * temperature + 90), ((-b_1[0] * np.log(10) + (c_1[0] - 1) * temperature + d_1[0] * np.log(10) * temperature**2) * R_gas / (m_mol[0])), density_grain, density_grain * VFF
 
 @njit(parallel=True)

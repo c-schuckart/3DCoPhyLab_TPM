@@ -389,10 +389,10 @@ cmap = cm.get_cmap('viridis')
 print(cmap(0.1))
 #data = np.load('D:/TPM_Data/Ice/rt_j_54.npy')
 #data = np.load('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Thesis/a_0.85_srf_0.0001_rt_3_cycle.npy')
-data = np.load('D:/TPM_Data/Ice/no_rt_cycle3.npy')
+data = np.load('D:/TPM_Data/Ice/a_0.85_srf_0.0001_13th_cycle.npy')
 #max = np.max(data)
-max = 200
-min = 165
+max = 205
+min = 140
 dims = np.shape(data)
 color = np.zeros((dims[0], dims[1], dims[2], 4), dtype=np.float64)
 voxels = np.full(dims, False)
@@ -407,7 +407,7 @@ for i in range(0, dims[0]):
                 color[i][j][k] = np.array(cmap((data[i][j][k] - min)/(max - min)))
 
 x, y, z = np.indices(np.array(dims) + 1, dtype=np.float64)
-#x *= 0.1
+x *= 0.1
 #x = np.swapaxes(x, 0, 2)
 #y = np.swapaxes(y, 0, 2)
 #z = np.swapaxes(z, 0, 2)
@@ -433,5 +433,5 @@ norm = colors.Normalize(vmin=min, vmax=max)
 fig.colorbar(cm.ScalarMappable(norm=norm, cmap=cmap), cax=ax2, label='Temperatur', shrink=1, aspect=1, fraction=0.05)
 #fig.colorbar(vx)
 #plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Thesis/sim_0.85_0.0001_13th_cycle_only_mid_same_temps.png', dpi=600)
-plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Thesis/sim_0.85_0.0001_3max_no_rt.png', dpi=600)
+plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Thesis/13_period_cam.png', dpi=600)
 plt.show()

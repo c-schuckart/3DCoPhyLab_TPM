@@ -2,6 +2,7 @@ import numpy as np
 import csv
 import PIL.Image
 import matplotlib.pyplot as plt
+from matplotlib import cm, colors, colorbar
 import constants as const
 from numba import njit
 from tqdm import tqdm
@@ -293,7 +294,9 @@ OS_cur = (im_cur / 255) * 50
 Surface_temperatures_cur = calibration_low(OS_cur)
 Surface_lamp_spot = Surface_temperatures_cur + mask_inverse_lamp_spot
 #sls = ax.imshow(Surface_lamp_spot[200:430, 205:435])
-sls = ax.imshow(Surface_temperatures_cur)
+min = 140
+max = 205
+sls = ax.imshow(Surface_temperatures_cur, vmin=min, vmax=max)
 ax.scatter(270, 100, marker='x', color='black', s=6)
 ax.scatter(312, 275, marker='x', color='black', s=6)
 ax.set_yticks([648, 548, 448, 348, 248, 148, 48], [0, 100, 200, 300, 400, 500, 600])
@@ -302,5 +305,6 @@ ax.set_xlabel('Pixel')
 ax.set_ylabel('Pixel')
 ax.set_title('13. Tag-Nacht-Zyklus')
 plt.colorbar(sls, cmap='viridis')
+#plt.colorbar(cm.ScalarMappable(norm=norm, cmap='viridis'), cax=ax)
 plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Thesis/crater_temp_13th_cycle_all.png', dpi=600)
 plt.show()'''

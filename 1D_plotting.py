@@ -590,15 +590,15 @@ ger_labels=['5mm','10mm','15mm','15mm_a','20mm','25mm','30mm','40mm','50mm','75m
 
 
 time_sim = [i * const.dt for i in range(0, const.k)]
-with open('D:/TPM_Data/Ice/Final_Granular_ice_L_albedo_0.85_sinter_reduction_factor_0.0001_high_res.json') as json_file:
+with open('D:/TPM_Data/Ice/CD_Final_Granular_ice_L_albedo_0.85_sinter_reduction_factor_0.0001_wall_0.90_.json') as json_file:
     jdata = json.load(json_file)
 
 NUM_COLORS = 20
 cm = plt.get_cmap('tab20')
 fig = plt.figure()
-fig.set_figheight(12)
-fig.set_figwidth(24)
-ax1 = plt.subplot2grid(shape=(3, 5), loc=(0, 0), colspan=2, rowspan=2)
+fig.set_figheight(15)
+fig.set_figwidth(20)
+'''ax1 = plt.subplot2grid(shape=(3, 5), loc=(0, 0), colspan=2, rowspan=2)
 ax2 = plt.subplot2grid(shape=(3, 5), loc=(0, 2), colspan=1, rowspan=1)
 ax3 = plt.subplot2grid(shape=(3, 5), loc=(0, 3), colspan=1, rowspan=1)
 ax4 = plt.subplot2grid(shape=(3, 5), loc=(0, 4), colspan=1, rowspan=1)
@@ -609,7 +609,19 @@ ax8 = plt.subplot2grid(shape=(3, 5), loc=(2, 0), colspan=1, rowspan=1)
 ax9 = plt.subplot2grid(shape=(3, 5), loc=(2, 1), colspan=1, rowspan=1)
 ax10 = plt.subplot2grid(shape=(3, 5), loc=(2, 2), colspan=1, rowspan=1)
 ax11 = plt.subplot2grid(shape=(3, 5), loc=(2, 3), colspan=1, rowspan=1)
-ax12 = plt.subplot2grid(shape=(3, 5), loc=(2, 4), colspan=1, rowspan=1)
+ax12 = plt.subplot2grid(shape=(3, 5), loc=(2, 4), colspan=1, rowspan=1)'''
+ax1 = plt.subplot2grid(shape=(4, 4), loc=(0, 0), colspan=2, rowspan=2)
+ax2 = plt.subplot2grid(shape=(4, 4), loc=(0, 2), colspan=1, rowspan=1)
+ax3 = plt.subplot2grid(shape=(4, 4), loc=(0, 3), colspan=1, rowspan=1)
+ax4 = plt.subplot2grid(shape=(4, 4), loc=(1, 2), colspan=1, rowspan=1)
+ax5 = plt.subplot2grid(shape=(4, 4), loc=(1, 3), colspan=1, rowspan=1)
+ax6 = plt.subplot2grid(shape=(4, 4), loc=(2, 0), colspan=1, rowspan=1)
+ax7 = plt.subplot2grid(shape=(4, 4), loc=(2, 1), colspan=1, rowspan=1)
+ax8 = plt.subplot2grid(shape=(4, 4), loc=(2, 2), colspan=1, rowspan=1)
+ax9 = plt.subplot2grid(shape=(4, 4), loc=(2, 3), colspan=1, rowspan=1)
+ax10 = plt.subplot2grid(shape=(4, 4), loc=(3, 0), colspan=1, rowspan=1)
+ax11 = plt.subplot2grid(shape=(4, 4), loc=(3, 1), colspan=1, rowspan=1)
+ax12 = plt.subplot2grid(shape=(4, 4), loc=(3, 2), colspan=1, rowspan=1)
 axes = [ax1, ax2, ax3, ax4, ax5, ax6, ax7, ax8, ax9, ax10, ax11, ax12]
 axes[0].set_prop_cycle(color=[cm(1. * i / NUM_COLORS) for i in range(NUM_COLORS)])
 count = 0
@@ -704,27 +716,28 @@ for label in labels:
     count += 1'''
 
 
-'''#ax.set_xlim(data['Time'][36000], data['Time'][66000])
+#ax.set_xlim(data['Time'][36000], data['Time'][66000])
 #ax.set_ylim(142, 182)
 #ax.add_artist(mlines.Line2D([data['Time'][45000], data['Time'][45000]], [140, 190], ls='--', color='black'))
 #ax.add_artist(mlines.Line2D([data['Time'][65000], data['Time'][65000]], [140, 190], ls='--', color='black'))
 #fig.legend(loc=2, ncol=6, fontsize='medium')
-fig.legend(loc='upper left', bbox_to_anchor=(0.1, 1.0), ncol=6, fontsize='medium')
+#fig.legend(loc='upper left', bbox_to_anchor=(0.1, 1.0), ncol=6, fontsize='medium')
+fig.legend(loc='upper left', bbox_to_anchor=(0.03, 1.0), ncol=6, fontsize='small')
 fig.suptitle('Rechte Sensoren')
 
 for i in range(len(axes)):
     axes[i].tick_params(axis='both', which='both', direction='in', top=True, right=True, bottom=True, left=True, labeltop=False, labelright=False, labelbottom=True, labelleft=True)
-    if i > 6:
-        axes[i].set_xlabel('Zeit (s)')
+    #if i > 6:
+    axes[i].set_xlabel('Zeit (s)')
     axes[i].set_ylabel('Temperatur (K)')
     if i > 0:
         axes[i].set_title(ger_labels[i-1])
     #ax.set_title('dz Auflösung: 5mm - 0,5mm; Hintere Sensoren')
     axes[i].set_ylim(140, 180)
 
-#fig.tight_layout()
-plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Thesis/best_fit_crater_right_all.png', dpi=600)
-plt.show()'''
+fig.tight_layout()
+plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Thesis/PDF_CD_wall_0.90_best_fit_crater_right_all_4_3.pdf', dpi=600)
+plt.show()
 
 '''fig.legend(loc=9, ncol=6, fontsize='xx-small')
 
@@ -807,15 +820,15 @@ ax.set_xticks(dz, labels=[0.25, 0.5, 1, 5])
 plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Thesis/crater_depths.png', dpi=600)
 plt.show()'''
 
-#labels=['Right_5','Right_10','Right_15','Right_15_side','Right_20','Right_25','Right_30','Right_40','Right_50','Right_75','Right_100_side']
-#ger_labels=['5mm','10mm','15mm','15mm_a','20mm','25mm','30mm','40mm','50mm','75mm','100mm_a']
-labels=['Rear_5','Rear_10','Rear_10_side','Rear_15','Rear_20','Rear_25','Rear_30','Rear_40','Rear_50','Rear_75','Rear_100']
-ger_labels=['5mm','10mm','10mm_a','15mm','20mm','25mm','30mm','40mm','50mm','75mm','100mm']
+'''labels=['Right_5','Right_10','Right_15','Right_15_side','Right_20','Right_25','Right_30','Right_40','Right_50','Right_75','Right_100_side']
+ger_labels=['5mm','10mm','15mm','15mm_a','20mm','25mm','30mm','40mm','50mm','75mm','100mm_a']
+#labels=['Rear_5','Rear_10','Rear_10_side','Rear_15','Rear_20','Rear_25','Rear_30','Rear_40','Rear_50','Rear_75','Rear_100']
+#ger_labels=['5mm','10mm','10mm_a','15mm','20mm','25mm','30mm','40mm','50mm','75mm','100mm']
 #labels = ['Sidewall_55','Sidewall_25','Copperplate', 'Sidewall_85']
 
 
 time_sim = [i * const.dt for i in range(0, const.k)]
-with open('D:/TPM_Data/Ice/Final_Granular_ice_L_albedo_0.85_sinter_reduction_factor_0.0001_high_res_0.90_walls.json') as json_file:
+with open('D:/TPM_Data/Ice/CD_Final_Granular_ice_L_albedo_0.85_sinter_reduction_factor_0.0001.json') as json_file:
     jdata = json.load(json_file)
 
 NUM_COLORS = 20
@@ -829,10 +842,10 @@ count = 0
 label_pos = []
 label_pos_2 = []
 line_style_arr = ['--', '--', '--']
-plot_only = [2, 4, 5, 6, 9, -1]    #rear
-#plot_only = [2, 4, 6, 8, 9, -1]     #right
-colors = ['tab:orange', 'tab:red', 'tab:purple', 'tab:brown', 'tab:olive']
-#colors = ['tab:orange', 'tab:red', 'tab:grey', 'tab:brown', 'tab:olive']
+#plot_only = [2, 4, 5, 6, 9, -1]    #rear
+plot_only = [2, 4, 6, 8, 9, -1]     #right
+#colors = ['tab:orange', 'tab:red', 'tab:purple', 'tab:brown', 'tab:olive']
+colors = ['tab:orange', 'tab:red', 'tab:grey', 'tab:brown', 'tab:olive']
 ind = 0
 for label in labels:
     if label[0:5] == 'Right' and count == plot_only[ind]-1:
@@ -840,9 +853,9 @@ for label in labels:
         axes[1].plot(time_sim, np.array(jdata['Right'])[0:const.k, count], label=ger_labels[count] + ' SIM', ls=line_style_arr[ind % 3], color=colors[ind])
         ind += 1
         cur_pos = np.average(np.array(jdata['Right'])[const.k-216:const.k, count])
-        '''for positions in label_pos:
-            if abs(cur_pos - positions) < 1.5:
-                cur_pos -= 2.5'''
+        #for positions in label_pos:
+            #if abs(cur_pos - positions) < 1.5:
+                #cur_pos -= 2.5
         k = 0
         reset = False
         while k < len(label_pos):
@@ -867,9 +880,9 @@ for label in labels:
         axes[1].plot(time_sim, np.array(jdata['Rear'])[0:const.k, count], label=ger_labels[count] + ' SIM', ls=line_style_arr[ind % 3], color=colors[ind])
         ind += 1
         cur_pos = np.average(np.array(jdata['Rear'])[const.k - 216:const.k, count])
-        '''for positions in label_pos:
-            if abs(cur_pos - positions) < 1.5:
-                cur_pos -= np.sign(- cur_pos + positions) * 2.5'''
+        #for positions in label_pos:
+            #if abs(cur_pos - positions) < 1.5:
+                #cur_pos -= np.sign(- cur_pos + positions) * 2.5
         k = 0
         reset = False
         while k < len(label_pos):
@@ -898,13 +911,13 @@ for label in labels:
 #ax.add_artist(mlines.Line2D([data['Time'][65000], data['Time'][65000]], [140, 190], ls='--', color='black'))
 fig.legend(loc='upper left', bbox_to_anchor=(0.1, 1.0), ncol=4, fontsize='x-small')
 
-fig.suptitle('Hintere Sensoren')
+fig.suptitle('Rechte Sensoren')
 
 for ax in axes:
     ax.set_xlabel('Zeit (s)')
     ax.set_ylabel('Temperatur (K)')
     ax.set_ylim(140, 180)
 
-#fig.tight_layout()
-plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Thesis/wall_0.90_best_fit_crater_rear_focus.png', dpi=600)
-plt.show()
+fig.tight_layout()
+plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Thesis/PDF_CD_best_fit_crater_right_focus.pdf', dpi=600)
+plt.show()'''
