@@ -361,6 +361,65 @@ def hte_implicit_DGADI(n_x, n_y, n_z, surface_reduced, r_H, albedo, dt, input_en
 
 @njit
 def hte_implicit_DGADI_zfirst(n_x, n_y, n_z, surface_reduced, r_H, albedo, dt, input_energy, sigma, epsilon, temperature, Lambda, Dr, heat_capacity, density, dx, dy, dz, surface, S_c, S_p, sample_holder, ambient_temperature, reradiated_heat):
+    '''
+    Solving of the heat transfer equation via the ADI method proposed by Douglas 1962.
+    The function calls within each set parts of the needed matrix to calculate the temperatures.
+
+    Input parameters:
+		n_x : float
+			number of numerical layers in x-direction
+		n_y : float
+			number of numerical layers in y-direction
+		n_z : float
+			number of numerical layers in x-direction
+        surface_reduced : ndarray
+            Array containing the coordinates of all surface elements of dimension s * 3, s = #surface voxels
+        r_H : float
+            to be removed
+        albedo : float
+            Bolometric albedo of the material
+        dt : float
+            Time step
+        input_energy : ndarray
+            Incoming lamp energy per voxel in watt of dimension n_z * n_y * n_x
+        sigma : float
+            Stefan-Boltzmann constant
+        epsilon : float
+            Emissivity of the material
+        temperature : ndarray
+			Temperature of the system before the current time step of dimension n_z * n_y * n_x
+        Lambda : ndarray
+            Heat conductivity of the bulk material of dimension n_z * n_y * n_x * 6
+        Dr : ndarray
+			Array containing the distances between the mid-points of the numerical layers of dimension n_z * n_y * n_x * 6
+        heat_capacity : ndarray
+            Specific heat capacity of the bulk material of dimension n_z * n_y * n_x
+        density : ndarray
+            Bulk density of the material of dimension n_z * n_y * n_x
+        dx : ndarray
+			Array containing the thickness of the numerical layers in x-direction of dimension n_z * n_y * n_x
+		dy : ndarray
+			Array containing the thickness of the numerical layers in y-direction of dimension n_z * n_y * n_x
+		dz : ndarray
+			Array containing the thickness of the numerical layers in z-direction of dimension n_z * n_y * n_x
+        surface : ndarray
+            Array marking if a face of a voxel is on the surface of the geometry or not of dimension n_z * n_y * n_x
+        S_c : ndarray
+            0th order terms for the Taylor series expansion of the temperature dependent source and sink terms of dimension n_z * n_y * n_x
+        S_p : ndarray
+            1st order terms for the Taylor series expansion of the temperature dependent source and sink terms of dimension n_z * n_y * n_x
+        sample_holder : ndarray
+			Array marking if a voxel belongs to the sample holder or not of dimension n_z * n_y * n_x
+        ambient_temperature : ndarray
+            An artificial reduction of radiated heat loss within the surface balance equation to account for surrounding radiative heat transfer of dimension 6
+        reradiated_heat : ndarray
+            Energy transfered by reradiated heat and single scattered light of dimension n_z * n_y * n_x
+
+    Returns:
+		next_step_temperature : ndarray
+			Array containing the temperature calculated during this time step of dimension n_z * n_y * n_x
+    '''
+
     next_step_temperature = np.zeros((n_z, n_y, n_x), dtype=np.float64)
     z_sweep_temperature = np.zeros((n_z, n_y, n_x), dtype=np.float64)
     y_sweep_temperature = np.zeros((n_z, n_y, n_x), dtype=np.float64)
@@ -372,6 +431,7 @@ def hte_implicit_DGADI_zfirst(n_x, n_y, n_z, surface_reduced, r_H, albedo, dt, i
             rhs = np.zeros(n_z, dtype=np.float64)
             surface_elements_in_line = np.zeros(np.shape(surface_reduced), dtype=np.int32)
             counter = 0
+            # Designate all surface elements as such for treatment of boundary conditions
             for each in surface_reduced:
                 if each[1] == j and each[0] == k:
                     surface_elements_in_line[counter] = np.array([each[0], each[1], each[2]], dtype=np.float64)
@@ -380,12 +440,6 @@ def hte_implicit_DGADI_zfirst(n_x, n_y, n_z, surface_reduced, r_H, albedo, dt, i
             sub_alpha, diag, sub_gamma = set_matrices_lhs_z_sweep(n_z, j, k, sub_alpha, diag, sub_gamma, Lambda, dx, dy, dz, Dr, density, heat_capacity, dt, S_p, temperature, surface, sample_holder)
             rhs = set_matrices_rhs_z_sweep_zfirst(n_z, j, k, rhs, temperature, surface, sample_holder, dx, dy, dz, Dr, Lambda, density, heat_capacity, dt, S_c)
             z_sweep_temperature[0:n_z, j, k] = tridiagonal_matrix_solver(n_z, diag, sub_gamma, sub_alpha, rhs)
-            '''if j == n_y//2 and k == n_x//2:
-                print(sub_gamma)
-                print(diag)
-                print(sub_alpha)
-                print(j, k, rhs)
-                print(z_sweep_temperature[0:n_z, j, k])'''
     for i in range(1, n_z-1):
         for k in range(1, n_x-1):
             sub_alpha = np.zeros(n_y, dtype=np.float64)
@@ -394,6 +448,7 @@ def hte_implicit_DGADI_zfirst(n_x, n_y, n_z, surface_reduced, r_H, albedo, dt, i
             rhs = np.zeros(n_y, dtype=np.float64)
             surface_elements_in_line = np.zeros(np.shape(surface_reduced), dtype=np.int32)
             counter = 0
+            # Designate all surface elements as such for treatment of boundary conditions
             for each in surface_reduced:
                 if each[2] == i and each[0] == k:
                     surface_elements_in_line[counter] = np.array([each[0], each[1], each[2]], dtype=np.float64)
@@ -402,12 +457,6 @@ def hte_implicit_DGADI_zfirst(n_x, n_y, n_z, surface_reduced, r_H, albedo, dt, i
             sub_alpha, diag, sub_gamma = set_matrices_lhs_y_sweep(n_y, i, k, sub_alpha, diag, sub_gamma, Lambda, dx, dy, dz, Dr, density, heat_capacity, dt, S_p, temperature, surface, sample_holder)
             rhs = set_matrices_rhs_y_sweep_zfirst(n_y, i, k, rhs, temperature, z_sweep_temperature, surface, sample_holder, dx, dy, dz, Dr, Lambda, density, heat_capacity, dt, S_c)
             y_sweep_temperature[i, 0:n_y, k] = tridiagonal_matrix_solver(n_y, diag, sub_gamma, sub_alpha, rhs)
-            '''if k == n_x//2:
-                print(sub_gamma)
-                print(diag)
-                print(sub_alpha)
-                print(i, k, rhs)
-                print(y_sweep_temperature[i, 0:n_y, k])'''
     for i in range(1, n_z-1):
         for j in range(1, n_y-1):
             sub_alpha = np.zeros(n_x, dtype=np.float64)
@@ -416,6 +465,7 @@ def hte_implicit_DGADI_zfirst(n_x, n_y, n_z, surface_reduced, r_H, albedo, dt, i
             rhs = np.zeros(n_x, dtype=np.float64)
             surface_elements_in_line = np.zeros(np.shape(surface_reduced), dtype=np.int32)
             counter = 0
+            # Designate all surface elements as such for treatment of boundary conditions
             for each in surface_reduced:
                 if each[2] == i and each[1] == j:
                     surface_elements_in_line[counter] = np.array([each[0], each[1], each[2]], dtype=np.float64)

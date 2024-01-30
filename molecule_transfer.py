@@ -743,7 +743,84 @@ def sinter_neck_calculation(r_n, dt, temperature, a_1, b_1, c_1, d_1, omega, sur
 
 
 @njit
-def sinter_neck_calculation_time_dependent(r_n, r_p, dt, temperature, a_1, b_1, c_1, d_1, omega, surface_energy, R_gas, r_grain, alpha, m_mol, density, pressure, m_H2O, k_B, k_factor, water_particle_number, blocked_voxels, n_x, n_y, n_z, sample_holder, dx, dy, dz, surface, sinter_reduction_factor):
+def sinter_neck_calculation_time_dependent(r_n, r_p, dt, temperature, a_1, b_1, c_1, d_1, omega, activation_energy, R_gas, r_grain, alpha, m_mol, density, pressure, m_H2O, k_B, k_factor, water_particle_number, blocked_voxels, n_x, n_y, n_z, sample_holder, dx, dy, dz, surface, sinter_reduction_factor):
+
+    '''
+    Calculation of sintering progression.
+    Adaptation of the Gundlach et al. 2018 sintering model for time dependent codes.
+
+    Input parameters:
+        r_n : ndarray
+            Array containing the sinter neck radii within each voxel of dimension n_z * n_y * n_x
+        r_p : ndarray
+            Array containing the particle radii within each voxel of dimension n_z * n_y * n_x
+        dt : float
+            Time step
+        temperature : ndarray
+			Temperature of the system before the current time step of dimension n_z * n_y * n_x
+        a_1 : ndarray
+            Array containing values to calculate the sublimation pressure of H2O [0], CO2 [1], CO [2] (Hoeffner et al. 2006)
+        b_1 : ndarray
+            Array containing values to calculate the sublimation pressure of H2O [0], CO2 [1], CO [2] (Hoeffner et al. 2006)
+        c_1 : ndarray
+            Array containing values to calculate the sublimation pressure of H2O [0], CO2 [1], CO [2] (Hoeffner et al. 2006)
+        d_1 : ndarray
+            Array containing values to calculate the sublimation pressure of H2O [0], CO2 [1], CO [2] (Hoeffner et al. 2006)
+        omega : float
+            Molecular volume of H2O
+        activation_energy : float
+			Parameter needed to calculate the surface energy of water (Jabaud et al. 2023)
+        R_gas : float
+			Universal gas constant
+        r_grain : ndarray
+            To be deleted
+        alpha : float
+            Geometry factor
+        m_mol : float
+            Molar mass of H2O
+        density : ndarray
+            Bulk density of the material of dimension n_z * n_y * n_x
+        pressure : ndarray
+            Current pressure in each voxel of dimension n_z * n_y * n_x
+        m_H2O : float
+            Mass of a water molecule
+        k_B : float
+            Boltzmann constant
+        k_factor : float
+            Factor within the sinter model to tweak the amplification of outgassing due to curvature effects
+        water_particle_number : ndarray
+            Array containing the number of water particles within each voxel of dimension n_z * n_y * n_x
+        blocked_voxels : ndarray
+            Array marking if voxels are completely sintered or a completely sintered voxel lies in a line above n_z * n_y * n_x
+        n_x : float
+			number of numerical layers in x-direction
+		n_y : float
+			number of numerical layers in y-direction
+		n_z : float
+			number of numerical layers in x-direction
+        sample_holder : ndarray
+			Array marking if a voxel belongs to the sample holder or not of dimension n_z * n_y * n_x
+        dx : ndarray
+			Array containing the thickness of the numerical layers in x-direction of dimension n_z * n_y * n_x
+		dy : ndarray
+			Array containing the thickness of the numerical layers in y-direction of dimension n_z * n_y * n_x
+		dz : ndarray
+			Array containing the thickness of the numerical layers in z-direction of dimension n_z * n_y * n_x
+        surface : ndarray
+            Array marking if a face of a voxel is on the surface of the geometry or not of dimension n_z * n_y * n_x
+        sinter_reduction_factor : float
+            Factor reducing effect of the sintering (growth of r_n, shrinkage of r_p)
+    Returns:
+		r_n : ndarray
+			Updated sinter neck radii of dimension n_z * n_y * n_x
+		r_p : ndarray
+		    Updated particle neck radii of dimension n_z * n_y * n_x
+		sublimated_mass : ndarray
+		    Sublimated mass during this time step of dimension n_z * n_y * n_x
+		pressure : ndarray
+		    Updated pressure within each voxel of dimension n_z * n_y * n_x
+    '''
+
     p_sub = np.zeros((n_z, n_y, n_x), dtype=np.float64)
     sublimated_mass = np.zeros((n_z, n_y, n_x), dtype=np.float64)
     for i in range(1, n_z-1):
@@ -763,6 +840,7 @@ def sinter_neck_calculation_time_dependent(r_n, r_p, dt, temperature, a_1, b_1, 
                         pressure[i][j][k] = 0
                     Z = (p_sub[i][j][k] - pressure[i][j][k]) * np.sqrt(m_H2O/(2 * np.pi * k_B * temperature[i][j][k]))
                     Z_sinterneck = (p_sub[i][j][k] - pressure[i][j][k]) * np.sqrt(m_H2O/(2 * np.pi * k_B * (temperature[i][j][k])))
+                    surface_energy = 0.17 * np.exp(- activation_energy / (R_gas * temperature[i][j][k]))
                     r_c = 2 * m_mol * surface_energy / (density[i][j][k] * R_gas * temperature[i][j][k])
                     r_p[i][j][k] = r_p[i][j][k] - Z_sinterneck * np.exp(r_c/r_p[i][j][k]) * dt / density[i][j][k] * sinter_reduction_factor
                     #r_p = r_grain - (r_grain / (r_grain - r_c)) * Z * time*dt / density

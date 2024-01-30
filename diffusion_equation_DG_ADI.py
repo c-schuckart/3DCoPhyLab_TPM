@@ -414,6 +414,53 @@ def de_implicit_DGADI(n_x, n_y, n_z, surface_reduced, dt, gas_mass, Diffusion_co
 
 @njit
 def de_implicit_DGADI_zfirst(n_x, n_y, n_z, surface_reduced, dt, gas_mass, Diffusion_coefficient, Dr, dx, dy, dz, surface, S_c, S_p, sh_adjacent_voxels, top_layer_zero, temperature, simulate_region):
+
+    '''
+    Solving of the gas diffusion equation (Fick's second law) via the ADI method proposed by Douglas 1962.
+    The function calls within each set parts of the needed matrix to calculate the gas densities.
+
+    n_x : float
+			number of numerical layers in x-direction
+		n_y : float
+			number of numerical layers in y-direction
+		n_z : float
+			number of numerical layers in x-direction
+        surface_reduced : ndarray
+            Array containing the coordinates of all surface elements of dimension s * 3, s = #surface voxels
+        dt : float
+            Time step
+        gas_mass : ndarray
+            Gas density of the system at the current time step of dimension n_z * n_y * n_x
+        Diffusion_coefficient : ndarray
+            Diffusion coefficients between the faces of each voxel of dimension n_z * n_y * n_x * 6
+        Dr : ndarray
+			Array containing the distances between the mid-points of the numerical layers of dimension n_z * n_y * n_x * 6
+        dx : ndarray
+			Array containing the thickness of the numerical layers in x-direction of dimension n_z * n_y * n_x
+		dy : ndarray
+			Array containing the thickness of the numerical layers in y-direction of dimension n_z * n_y * n_x
+		dz : ndarray
+			Array containing the thickness of the numerical layers in z-direction of dimension n_z * n_y * n_x
+        surface : ndarray
+            Array marking if a face of a voxel is on the surface of the geometry or not of dimension n_z * n_y * n_x
+        S_c : ndarray
+            0th order terms for the Taylor series expansion of the temperature dependent source and sink terms of dimension n_z * n_y * n_x
+        S_p : ndarray
+            1st order terms for the Taylor series expansion of the temperature dependent source and sink terms of dimension n_z * n_y * n_x
+        sh_adjacent_voxels : ndarray
+            To be deleted
+        top_layer_zero : bool
+            To be deleted
+        temperature : ndarray
+			Temperature of the system at the current time step of dimension n_z * n_y * n_x
+        simulate_region : ndarray
+            To be deleted
+
+    Returns:
+		next_step_gas_mass : ndarray
+			Array containing the gas densities calculated during this time step of dimension n_z * n_y * n_x
+    '''
+
     next_step_gas_mass = np.zeros((n_z, n_y, n_x), dtype=np.float64)
     z_sweep_gas_mass = np.zeros((n_z, n_y, n_x), dtype=np.float64)
     y_sweep_gas_mass = np.zeros((n_z, n_y, n_x), dtype=np.float64)
