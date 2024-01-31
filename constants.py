@@ -14,12 +14,12 @@ min_dy = 5E-3                      # Layer Thickness of the smallest layer in y 
 min_dz = 0.5E-3                      # Layer Thickness of the smallest layer in z direction, Numerical Resolution  [m]
 #dt = 1E-2                           # Timestep                               [s]
 dt = 5E1
-n_x = 54                           # Number of Layers                       [-]
-n_y = 54
+n_x = 52                           # Number of Layers                       [-]
+n_y = 52
 n_z = 42
 n = np.array([n_x, n_y, n_z])
 #k = 36288 * 5                      # Number of Timesteps                    [-]'''
-k = int(3000)                    # Number of Timesteps                    [-]
+k = int(20736)                    # Number of Timesteps                    [-]
 #k = 100 * 50
 #Definition of Physical Parameters
 #Material Properties
@@ -75,7 +75,7 @@ x_0 = 5E-2                        # Length scaling factor used to calculate the 
 gravitational_pressure = 0        #Placeholder! [Pa]
 surface_reduction_factor = 1
 #Thermal Properties
-temperature_ini = 301             # Start Temperature                      [K]
+temperature_ini = 295             # Start Temperature                      [K]
 #temperature_ini = 77
 sample_holder_starting_temp = 77  # Starting temperature of the sample holder [K]
 Input_Intensity = 6500             # Intensity of the Light Source (Sun)    [W/m^2]

@@ -4,11 +4,15 @@ from matplotlib.ticker import AutoMinorLocator
 import matplotlib.animation as animation
 from matplotlib import rcParams
 from matplotlib.gridspec import GridSpec
+import matplotlib.dates as mdates
 from matplotlib.ticker import (AutoLocator, AutoMinorLocator, MultipleLocator, LogLocator, LogFormatterMathtext)
 import matplotlib.lines as mlines
 import json
 import csv
 import constants as const
+import pandas as pd
+from scipy.interpolate import interp1d
+from datetime import timedelta
 from scipy import interpolate
 from data_input import read_temperature_data, getPath
 from IPython.display import Video
@@ -431,13 +435,13 @@ writer = Writer
 
 anim.save('D:/TPM_Data/mixing_sqrt10mm_per_50s.mp4', writer=writer, dpi=600)
 Video('D:/TPM_Data/mixing_sqrt10mm_per_50s.mp4')'''
-paths = ['D:/TPM_Data/Luwex/only_temps_mixing_sqrt50mm_per_100s/WATERmixing_sqrt50mm_per_100sec', 'D:/TPM_Data/Luwex/only_temps_mixing_sqrt50mm_per_50s/WATERmixing_sqrt100mm_per_50sec', 'D:/TPM_Data/Luwex/only_temps_mixing_sqrt200mm_per_50s/WATERmixing_sqrt10mm_per_50sec', 'D:/TPM_Data/Luwex/only_temps_mixing_sqrt450mm_per_50s/WATERmixing_sqrt450mm_per_50sec']
+'''paths = ['D:/TPM_Data/Luwex/only_temps_mixing_sqrt50mm_per_100s/WATERmixing_sqrt50mm_per_100sec', 'D:/TPM_Data/Luwex/only_temps_mixing_sqrt50mm_per_50s/WATERmixing_sqrt100mm_per_50sec', 'D:/TPM_Data/Luwex/only_temps_mixing_sqrt200mm_per_50s/WATERmixing_sqrt10mm_per_50sec', 'D:/TPM_Data/Luwex/only_temps_mixing_sqrt450mm_per_50s/WATERmixing_sqrt450mm_per_50sec']
 water_array = []
 time = np.array([i * 3600 for i in range(0, 241)], dtype=np.float64)
-'''water_mass_one = np.sum(np.load('D:/TPM_Data/Luwex/only_temps_mixing_sqrt200mm_per_50s/WATERmixing_sqrt10mm_per_50sec' + str(float(0)) + '.npy'))
-water_content_over_time = np.zeros(len(time), dtype=np.float64)
-for t in time:
-    water_content_over_time[int(t//3600)] = np.sum(np.load('D:/TPM_Data/Luwex/only_temps_mixing_sqrt200mm_per_50s/WATERmixing_sqrt10mm_per_50sec' + str(float(t)) + '.npy')) / water_mass_one'''
+#water_mass_one = np.sum(np.load('D:/TPM_Data/Luwex/only_temps_mixing_sqrt200mm_per_50s/WATERmixing_sqrt10mm_per_50sec' + str(float(0)) + '.npy'))
+#water_content_over_time = np.zeros(len(time), dtype=np.float64)
+#for t in time:
+    #water_content_over_time[int(t//3600)] = np.sum(np.load('D:/TPM_Data/Luwex/only_temps_mixing_sqrt200mm_per_50s/WATERmixing_sqrt10mm_per_50sec' + str(float(t)) + '.npy')) / water_mass_one
 for path in paths:
     #water_mass_one = np.sum(np.load('D:/TPM_Data/Luwex/only_temps_mixing/WATERmixing_sqrt10mm_per_50sec' + str(float(0)) + '.npy'))
     water_mass_one = np.sum(np.load(path + str(float(0)) + '.npy'))
@@ -464,7 +468,7 @@ ax.yaxis.set_minor_locator(AutoMinorLocator(2))
 ax.set_ylim(-0.05, 1.05)
 plt.legend()
 #plt.show()
-plt.savefig('D:/TPM_Data/Luwex/Instant_outgassing_mixing.png', dpi=600)
+plt.savefig('D:/TPM_Data/Luwex/Instant_outgassing_mixing.png', dpi=600)'''
 
 '''with open('test.json') as json_file:
     data = json.load(json_file)
@@ -496,3 +500,171 @@ writer = Writer
 
 anim.save('D:/TPM_Data/Testing data/radial_mixing_test_long.mp4', writer=writer, dpi=600)
 Video('D:/TPM_Data/Testing data/radial_mixing_test_long.mp4')'''
+
+InputPath = 'C:/Users/Christian Schuckart/OneDrive/Work/Paper - sand/Agilent_L_chamber_27_12_2023_19_34_43.txt'
+
+data = pd.read_csv(InputPath,
+                   names=['Time', 'pen1', 'pen2', 'pen3', 'MOT1', 'MOT2','Right_25', 'Rear_25', 'Right_20',
+                              'Rear_20', 'Right_15', 'Rear_15', 'Right_10', 'Rear_10_side', 'Right_15_side',
+                              'Rear_5', 'Right_5', 'Rear_10', 'Sidewall_55','Sidewall_25','Copperplate', 'Sidewall_85',
+                              'Blackbody',
+                              'Right_30', 'Rear_30', 'Rear_40', 'Right_40', 'Right_50', 'Rear_50',
+                              'Rear_75', 'Right_75', 'Right_100_side', 'Rear_100', 'CP_tube',
+                              'CS_left_top', 'CS_rear_top', 'CS_right_top', 'CS_top_plate', 'CS_left_bot', 'CS_rear_bot',
+                              'CS_right_bot'],sep=',',skiprows=1)
+
+data['Time'] = pd.to_datetime(data['Time'], format='%d_%m_%Y_%H:%M:%S')
+h_fmt = mdates.DateFormatter('%d_%m_%H:%M:%S')
+start = np.datetime64('2023-12-27 19:34:43')
+print(np.datetime64(data['Time'][65000], 's') - np.datetime64(data['Time'][45770], 's'))
+time = np.zeros(len(data['Time']), np.int32)
+for i in range(0, len(data['Time'])):
+    time[i] = (np.datetime64(data['Time'][i], 's') - start).astype(int)
+
+shift = -28
+
+coef = [3.9083e-3, -5.775e-7, -4.183e-12]
+trange = np.linspace(60, 550, 500) - 273.15
+R = (1 + coef[0] * trange + coef[1] * trange ** 2 + coef[2] * (trange - 100) * trange ** 3) * 1000
+f = interp1d(R, trange, bounds_error=False, fill_value=np.nan)
+
+coef2 = [3.9083e-3, -5.775e-7, -4.183e-12]
+trange2 = np.linspace(60, 550, 500) - 273.15
+R2 = (1 + coef2[0] * trange2 + coef2[1] * trange2 ** 2 + coef2[2] * (trange2 - 100) * trange2 ** 3) * 100
+h = interp1d(R2, trange2, bounds_error=False, fill_value=np.nan)
+
+timetogoback = timedelta(minutes=2)
+
+names=['pen1', 'pen2', 'pen3', 'MOT1', 'MOT2','Right_25', 'Rear_25', 'Right_20',
+                              'Rear_20', 'Right_15', 'Rear_15', 'Right_10', 'Rear_10_side', 'Right_15_side',
+                              'Rear_5', 'Right_5', 'Rear_10', 'Sidewall_55','Sidewall_25','Copperplate', 'Sidewall_85',
+                              'Blackbody',
+                              'Right_30', 'Rear_30', 'Rear_40', 'Right_40', 'Right_50', 'Rear_50',
+                              'Rear_75', 'Right_75', 'Right_100_side', 'Rear_100', 'CP_tube',
+                              'CS_left_top', 'CS_rear_top', 'CS_right_top', 'CS_top_plate', 'CS_left_bot', 'CS_rear_bot',
+                              'CS_right_bot']
+'''for name in names:
+    data[name] = ((data[name]+shift).apply(f) + 273.15)'''
+
+#labels=['Rear_5','Rear_10','Rear_10_side','Rear_15','Rear_20','Rear_25','Rear_30','Rear_40','Rear_50','Rear_75','Rear_100', 'Right_5','Right_10','Right_15','Right_15_side','Right_20','Right_25','Right_30','Right_40','Right_50','Right_75','Right_100_side']
+labels = ['Sidewall_25','Sidewall_55','Sidewall_85','Copperplate']
+'''#target = open('D:/Laboratory_data/nicer_icer_3000.txt', 'w')
+target = open('C:/Users/Christian Schuckart/OneDrive/Work/Paper - sand/SultansOfSand_Boundary.txt', 'w')
+#target.write('Time,Rear_5,Rear_10,Rear_10_side,Rear_15,Rear_20,Rear_25,Rear_30,Rear_40,Rear_50,Rear_75,Rear_100,Right_5,Right_10,Right_15,Right_15_side,Right_20,Right_25,Right_30,Right_40,Right_50,Right_75,Right_100_side \n')
+target.write('Time,Sidewall_25,Sidewall_55,Sidewall_85,Copperplate \n')
+for i in range(len(data['Time'])):
+    file_string = ''
+    file_string += str(data['Time'][i]) + ','
+    for each in labels:
+        file_string += str(data[each][i]) + ','
+    target.write(file_string[0:len(file_string)-1] + '\n')
+target.close()
+#((data[label]+shift).apply(f) + 273.15)[45770:len(data['Time'])]'''
+
+'''labels = ['Rear_5','Rear_10','Rear_10_side','Rear_15','Rear_20','Rear_25','Rear_30','Rear_40','Rear_50','Rear_75','Rear_100']
+#labels = ['Sidewall_55','Sidewall_25','Copperplate', 'Sidewall_85']
+
+NUM_COLORS = 20
+cm = plt.get_cmap('tab20')
+fig, ax = plt.subplots(figsize=(16, 9))
+ax.set_prop_cycle(color=[cm(1. * i / NUM_COLORS) for i in range(NUM_COLORS)])
+for label in labels:
+    ax.plot(data['Time'], ((data[label]+shift).apply(f) + 273.15), label=label)
+ax.xaxis.set_major_formatter(h_fmt)
+#ax.set_xlim(data['Time'][36000], data['Time'][66000])
+#ax.set_ylim(142, 192)
+#ax.add_artist(mlines.Line2D([data['Time'][45000], data['Time'][45000]], [140, 210], ls='--', color='black'))
+#ax.add_artist(mlines.Line2D([data['Time'][65000], data['Time'][65000]], [140, 210], ls='--', color='black'))
+fig.autofmt_xdate()
+fig.legend(loc=9, ncol=6)
+ax.set_xlabel('Time')
+ax.set_ylabel('Temperature (K)')
+plt.show()
+'''
+
+labels=['Right_5','Right_10','Right_15','Right_15_side','Right_20','Right_25','Right_30','Right_40','Right_50','Right_75','Right_100_side']
+ger_labels=['5mm','10mm','15mm','15mm_a','20mm','25mm','30mm','40mm','50mm','75mm','100mm_a']
+#labels=['Rear_5','Rear_10','Rear_10_side','Rear_15','Rear_20','Rear_25','Rear_30','Rear_40','Rear_50','Rear_75','Rear_100']
+#ger_labels=['5mm','10mm','10mm_a','15mm','20mm','25mm','30mm','40mm','50mm','75mm','100mm']
+#labels = ['Sidewall_55','Sidewall_25','Copperplate', 'Sidewall_85']
+
+
+time_sim = [i * const.dt for i in range(0, const.k)]
+with open('D:/TPM_Data/Big_sand/Paper/Paper_new_sample_0.95_Absdepth_0.001_Lambda_0.003.json') as json_file:
+    jdata = json.load(json_file)
+
+NUM_COLORS = 20
+cm = plt.get_cmap('tab20')
+fig = plt.figure()
+fig.set_figheight(15)
+fig.set_figwidth(20)
+ax1 = plt.subplot2grid(shape=(4, 4), loc=(0, 0), colspan=2, rowspan=2)
+ax2 = plt.subplot2grid(shape=(4, 4), loc=(0, 2), colspan=1, rowspan=1)
+ax3 = plt.subplot2grid(shape=(4, 4), loc=(0, 3), colspan=1, rowspan=1)
+ax4 = plt.subplot2grid(shape=(4, 4), loc=(1, 2), colspan=1, rowspan=1)
+ax5 = plt.subplot2grid(shape=(4, 4), loc=(1, 3), colspan=1, rowspan=1)
+ax6 = plt.subplot2grid(shape=(4, 4), loc=(2, 0), colspan=1, rowspan=1)
+ax7 = plt.subplot2grid(shape=(4, 4), loc=(2, 1), colspan=1, rowspan=1)
+ax8 = plt.subplot2grid(shape=(4, 4), loc=(2, 2), colspan=1, rowspan=1)
+ax9 = plt.subplot2grid(shape=(4, 4), loc=(2, 3), colspan=1, rowspan=1)
+ax10 = plt.subplot2grid(shape=(4, 4), loc=(3, 0), colspan=1, rowspan=1)
+ax11 = plt.subplot2grid(shape=(4, 4), loc=(3, 1), colspan=1, rowspan=1)
+ax12 = plt.subplot2grid(shape=(4, 4), loc=(3, 2), colspan=1, rowspan=1)
+axes = [ax1, ax2, ax3, ax4, ax5, ax6, ax7, ax8, ax9, ax10, ax11, ax12]
+axes[0].set_prop_cycle(color=[cm(1. * i / NUM_COLORS) for i in range(NUM_COLORS)])
+count = 0
+label_pos = []
+line_style_arr = ['--', '--', '--', '--']
+for label in labels:
+    axes[0].plot(time, ((data[label]+shift).apply(f) + 273.15), label=ger_labels[count])
+    if label[0:5] == 'Right':
+        axes[0].plot(time_sim, np.array(jdata['Right'])[0:const.k, count], label=ger_labels[count] + ' SIM', ls=line_style_arr[count % 4])
+        if count == 10:
+            axes[count + 1].plot(time, ((data[label] + shift).apply(f) + 273.15), color=cm(1. * 0 * 2 / NUM_COLORS))
+        else:
+            axes[count+1].plot(time, ((data[label]+shift).apply(f) + 273.15), color=cm(1. * count*2 / NUM_COLORS))
+        axes[count+1].plot(time_sim, np.array(jdata['Right'])[0:const.k, count], ls='--', color='black')
+        cur_pos = np.average(np.array(jdata['Right'])[const.k-216:const.k, count])
+        for positions in label_pos:
+            if abs(cur_pos - positions) < 0.01:
+                cur_pos -= 0.025
+        axes[0].text(195000, cur_pos, ger_labels[count], fontsize='xx-small')
+        label_pos.append(cur_pos)
+    else:
+        axes[0].plot(time_sim, np.array(jdata['Rear'])[0:const.k, count], label=ger_labels[count] + ' SIM', ls=line_style_arr[count % 4])
+        if count == 10:
+            axes[count + 1].plot(time, ((data[label] + shift).apply(f) + 273.15), color=cm(1. * (0) * 2 / NUM_COLORS))
+        else:
+            axes[count+1].plot(time, ((data[label]+shift).apply(f) + 273.15), color=cm(1. * (count % 11)*2 / NUM_COLORS))
+        axes[count+1].plot(time_sim, np.array(jdata['Rear'])[0:const.k, count], ls='--', color='black')
+        cur_pos = np.average(np.array(jdata['Rear'])[const.k - 216:const.k, count])
+        for positions in label_pos:
+            if abs(cur_pos - positions) < 0.01:
+                cur_pos -= np.sign(- cur_pos + positions) * 0.025
+        axes[0].text(195000, cur_pos, ger_labels[count], fontsize='xx-small')
+        label_pos.append(cur_pos)
+    count += 1
+
+
+#ax.set_xlim(data['Time'][36000], data['Time'][66000])
+#ax.set_ylim(142, 182)
+#ax.add_artist(mlines.Line2D([data['Time'][45000], data['Time'][45000]], [140, 190], ls='--', color='black'))
+#ax.add_artist(mlines.Line2D([data['Time'][65000], data['Time'][65000]], [140, 190], ls='--', color='black'))
+#fig.legend(loc=2, ncol=6, fontsize='medium')
+#fig.legend(loc='upper left', bbox_to_anchor=(0.1, 1.0), ncol=6, fontsize='medium')
+fig.legend(loc='upper left', bbox_to_anchor=(0.03, 1.0), ncol=6, fontsize='small')
+fig.suptitle('Rechte Sensoren')
+
+for i in range(len(axes)):
+    axes[i].tick_params(axis='both', which='both', direction='in', top=True, right=True, bottom=True, left=True, labeltop=False, labelright=False, labelbottom=True, labelleft=True)
+    #if i > 6:
+    axes[i].set_xlabel('Zeit (s)')
+    axes[i].set_ylabel('Temperatur (K)')
+    if i > 0:
+        axes[i].set_title(ger_labels[i-1])
+    #ax.set_title('dz Auflösung: 5mm - 0,5mm; Hintere Sensoren')
+    axes[i].set_ylim(290, 320)
+
+fig.tight_layout()
+#plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Thesis/PDF_CD_wall_0.90_best_fit_crater_right_all_4_3.pdf', dpi=600)
+plt.show()

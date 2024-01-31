@@ -214,3 +214,50 @@ def prescribe_temp_profile_from_data(n_x, n_y, n_z, temperature, surface_temp, b
     #plt.plot(np.arange(1, n_z), profile[1:n_z])
     #plt.show()
     return temperature
+
+
+@njit
+def save_sensors_L_sample_holder_high_res(n_x, n_y, n_z, temperature, sensors_right, sensors_rear, time, hl, sf=1):
+    sensors_rear[time][0] = (temperature[hl[0]][n_y//2-2*sf][n_x//2-15*sf] * 3/5 + temperature[hl[0]][n_y//2-2*sf][n_x//2-16*sf] * 2/5)       # rear 5mm
+    sensors_rear[time][1] = ((temperature[hl[1]][n_y//2] [n_x//2-13*sf] * 1/5 + temperature[hl[1]][n_y//2+1*sf] [n_x//2-13*sf] * 4/5) * 4/5 + (temperature[hl[1]][n_y//2] [n_x//2-12*sf] * 1/5 + temperature[hl[1]][n_y//2+1*sf] [n_x//2-12*sf] * 4/5) * 1/5)      # rear 10mm
+    sensors_rear[time][2] = (temperature[hl[1]][n_y//2-12*sf] [n_x//2-13*sf] * 4/5 + temperature[hl[1]][n_y//2-12*sf] [n_x//2-12*sf] * 1/5)       # rear 10mm side
+    sensors_rear[time][3] = temperature[hl[2]][n_y//2-1*sf][n_x//2-17*sf]        # rear 15mm
+    sensors_rear[time][4] = (temperature[hl[3]][n_y//2+3*sf][n_x//2-15*sf] * 1/5 + temperature[hl[3]][n_y//2+3*sf][n_x//2-14*sf] * 4/5)      # rear 20mm
+    sensors_rear[time][5] = ((temperature[hl[4]][n_y//2+1*sf] [n_x//2-13*sf] * 4/5 + temperature[hl[4]][n_y//2+1*sf] [n_x//2-12*sf] * 1/5) * 3/5 + (temperature[hl[4]][n_y//2+2*sf] [n_x//2-13*sf] * 4/5 + temperature[hl[4]][n_y//2+2*sf] [n_x//2-12*sf] * 1/5) * 2/5)       # rear 25mm
+    sensors_rear[time][6] = ((temperature[hl[5]][n_y//2+3*sf][n_x//2-17*sf] * 4/5 + temperature[hl[5]][n_y//2+2*sf][n_x//2-17*sf] * 1/5) * 4/5 + (temperature[hl[5]][n_y//2+3*sf][n_x//2-16*sf] * 4/5 + temperature[hl[5]][n_y//2+2*sf][n_x//2-16*sf] * 1/5) * 1/5)     # rear 30mm
+    sensors_rear[time][7] = (temperature[hl[6]][n_y//2][n_x//2-14*sf] * 2/5 + temperature[hl[6]][n_y//2][n_x//2-13*sf] * 3/5)         # rear 40mm
+    sensors_rear[time][8] = ((temperature[hl[7]][n_y//2] [n_x//2-13*sf] * 1/5 + temperature[hl[7]][n_y//2+1*sf] [n_x//2-13*sf] * 4/5) * 4/5 + (temperature[hl[7]][n_y//2][n_x//2-12*sf] * 1/5 + temperature[hl[7]][n_y//2+1*sf] [n_x//2-12*sf] * 4/5) * 1/5)       # rear 50mm
+    sensors_rear[time][9] = (temperature[hl[8]][n_y//2-2*sf][n_x//2-15*sf] * 3/5 + temperature[hl[8]][n_y//2-2*sf][n_x//2-16*sf] * 2/5)       # rear 75mm
+    sensors_rear[time][10] = ((temperature[hl[9]][n_y//2][n_x//2-13*sf] * 3/5 + temperature[hl[9]][n_y//2-1*sf][n_x//2-13*sf] * 2/5) * 4/5 + (temperature[hl[9]][n_y//2][n_x//2-12*sf] * 3/5 + temperature[hl[9]][n_y//2-1*sf][n_x//2-12*sf] * 2/5) * 1/5)     # rear 100mm (20, because 21 is already sample holder)
+    sensors_right[time][0] = (temperature[hl[0]][n_y//2+14*sf][n_x//2] * 3/5 + temperature[hl[0]][n_y//2+14*sf][n_x//2-1*sf] * 2/5)   # right 5mm
+    sensors_right[time][1] = temperature[hl[1]][n_y//2+12*sf][n_x//2-4*sf]  # right 10mm
+    sensors_right[time][2] = ((temperature[hl[2]][n_y//2+15*sf][n_x//2+1*sf] * 4/5 + temperature[hl[2]][n_y//2+15*sf][n_x//2+2*sf] * 1/5) * 4/5 + (temperature[hl[2]][n_y//2+16*sf][n_x//2+1*sf] * 4/5 + temperature[hl[2]][n_y//2+16*sf][n_x//2+2*sf] * 1/5) * 1/5) # right 15mm
+    sensors_right[time][3] = ((temperature[hl[2]][n_y//2+15*sf][n_x//2+10*sf] * 4/5 + temperature[hl[2]][n_y//2+16*sf][n_x//2+10*sf] * 1/5) * 4/5 + (temperature[hl[2]][n_y//2+15*sf][n_x//2+9*sf] * 4/5 + temperature[hl[2]][n_y//2+16*sf][n_x//2+9*sf] * 1/5) * 1/5)  # right 15mm side
+    sensors_right[time][4] = (temperature[hl[3]][n_y//2+15*sf][n_x//2-3*sf] * 3/5 + temperature[hl[3]][n_y//2+14*sf][n_x//2-3*sf] * 2/5)  # right 20mm
+    sensors_right[time][5] = (temperature[hl[4]][n_y//2+13*sf][n_x//2] * 3/5 + temperature[hl[4]][n_y//2+12*sf][n_x//2] * 2/5)  # right 25mm
+    sensors_right[time][6] = ((temperature[hl[5]][n_y//2+16*sf][n_x//2-1*sf] * 2/5 + temperature[hl[5]][n_y//2+15*sf][n_x//2-1*sf] * 3/5) * 3/5 + (temperature[hl[5]][n_y//2+16*sf][n_x//2-2*sf] * 2/5 + temperature[hl[5]][n_y//2+15*sf][n_x//2-2*sf] * 3/5) * 2/5)  # right 30mm
+    sensors_right[time][7] = ((temperature[hl[6]][n_y//2+13*sf][n_x//2+1*sf] * 3/5 + temperature[hl[6]][n_y//2+13*sf][n_x//2+2*sf] * 2/5) * 3/5 + (temperature[hl[6]][n_y//2+12*sf][n_x//2+1*sf] * 3/5 + temperature[hl[6]][n_y//2+12*sf][n_x//2+2*sf] * 2/5) * 2/5) # right 40mm
+    sensors_right[time][8] = (temperature[hl[7]][n_y//2+15*sf][n_x//2-1*sf] * 3/5 + temperature[hl[7]][n_y//2+14*sf][n_x//2-1*sf] * 2/5)  # right 50mm
+    sensors_right[time][9] = ((temperature[hl[8]][n_y//2+16*sf][n_x//2-2*sf] * 4/5 + temperature[hl[8]][n_y//2+16*sf][n_x//2-3*sf] * 1/5) * 2/5 + (temperature[hl[8]][n_y//2+15*sf][n_x//2-2*sf] * 4/5 + temperature[hl[8]][n_y//2+15*sf][n_x//2-3*sf] * 1/5) * 3/5) # right 75mm
+    sensors_right[time][10] = ((temperature[hl[9]][n_y//2+14*sf][n_x//2+15*sf] * 1/5 + temperature[hl[9]][n_y//2+13*sf][n_x//2+15*sf] * 4/5) * 3/5 + (temperature[hl[9]][n_y//2+14*sf][n_x//2+16*sf] * 1/5 + temperature[hl[9] ][n_y//2+13*sf][n_x//2+16*sf] * 4/5) * 2/5)  # right 100mm side (20, because 21 is already sample holder)
+    return sensors_right, sensors_rear
+
+
+def sort_csv_big(path, sort_avrg, outpath):
+    csvdf = pd.read_csv(path, names=['Name', 'S1_avrg', 'S1_max', 'S2_avrg', 'S2_max', 'S3_avrg', 'S3_max', 'S4_avrg', 'S4_max', 'S5_avrg', 'S5_max', 'S6_avrg', 'S6_max', 'S7_avrg', 'S7_max', 'S8_avrg', 'S8_max', 'S9_avrg', 'S9_max', 'S10_avrg', 'S10_max', 'S11_avrg', 'S11_max'])
+    csvdf_mirror = csvdf.copy()
+    s1 = csvdf['Name']
+    s2 = csvdf['S1_avrg'] + csvdf['S2_avrg'] + csvdf['S3_avrg'] + csvdf['S4_avrg'] + csvdf['S5_avrg'] + csvdf['S6_avrg'] + csvdf['S7_avrg'] + csvdf['S8_avrg'] + csvdf['S9_avrg'] + csvdf['S10_avrg'] + csvdf['S11_avrg']
+    s3 = csvdf['S1_max'] + csvdf['S2_max'] + csvdf['S3_max'] + csvdf['S4_max'] + csvdf['S5_max'] + csvdf['S6_max'] + csvdf['S7_max'] + csvdf['S8_max'] + csvdf['S9_max'] + csvdf['S10_max'] + csvdf['S11_max']
+    content_arr = pd.DataFrame({'A': s1, 'B': s2, 'C': s3})
+    if sort_avrg:
+        content_arr.sort_values(by='B', inplace=True)
+    else:
+        content_arr.sort_values(by='C', inplace=True)
+    #print(content_arr)
+    #print(csvdf_mirror)
+    for i in range(len(csvdf)):
+        #print(csvdf.iloc[content_arr.iloc[[i]].index[0]][1])
+        csvdf_mirror.iloc[i] = csvdf.iloc[content_arr.iloc[[i]].index[0]][0], csvdf.iloc[content_arr.iloc[[i]].index[0]][1], csvdf.iloc[content_arr.iloc[[i]].index[0]][2], csvdf.iloc[content_arr.iloc[[i]].index[0]][3], csvdf.iloc[content_arr.iloc[[i]].index[0]][4], csvdf.iloc[content_arr.iloc[[i]].index[0]][5], csvdf.iloc[content_arr.iloc[[i]].index[0]][6], csvdf.iloc[content_arr.iloc[[i]].index[0]][7], csvdf.iloc[content_arr.iloc[[i]].index[0]][8], csvdf.iloc[content_arr.iloc[[i]].index[0]][9], csvdf.iloc[content_arr.iloc[[i]].index[0]][10], csvdf.iloc[content_arr.iloc[[i]].index[0]][11], csvdf.iloc[content_arr.iloc[[i]].index[0]][12], csvdf.iloc[content_arr.iloc[[i]].index[0]][13], csvdf.iloc[content_arr.iloc[[i]].index[0]][14], csvdf.iloc[content_arr.iloc[[i]].index[0]][15], csvdf.iloc[content_arr.iloc[[i]].index[0]][16], csvdf.iloc[content_arr.iloc[[i]].index[0]][17], csvdf.iloc[content_arr.iloc[[i]].index[0]][18], csvdf.iloc[content_arr.iloc[[i]].index[0]][19], csvdf.iloc[content_arr.iloc[[i]].index[0]][20], csvdf.iloc[content_arr.iloc[[i]].index[0]][21], csvdf.iloc[content_arr.iloc[[i]].index[0]][22]
+    #print(csvdf_mirror)
+    csvdf_mirror.to_csv(outpath)

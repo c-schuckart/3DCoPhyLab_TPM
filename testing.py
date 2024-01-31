@@ -8,7 +8,7 @@ import matplotlib.animation as animation
 from IPython.display import Video
 import csv
 from data_input import read_temperature_data, getPath
-from utility_functions import sort_csv
+from utility_functions import sort_csv, sort_csv_big
 from os import listdir
 
 rcParams['animation.ffmpeg_path'] = r'C:\\ffmpeg\\bin\\ffmpeg.exe'
@@ -23,6 +23,134 @@ dz_arr = np.full((const.n_z, const.n_y, const.n_x), const.min_dz, dtype=np.float
 def temperature(x, t):
     return np.sin(np.pi * x / np.sum(dy_arr[const.n_z//2][1:const.n_y-1][const.n_x//2])) * np.exp(- const.lambda_constant/(const.density_water_ice * const.heat_capacity_water_ice) * np.pi**2/(np.sum(dy_arr[const.n_z//2][1:const.n_y-1][const.n_x//2]))**2 * t)
 
+
+def compare_sand(mode):
+    timestamps = []
+    sen_1 = []
+    sen_2 = []
+    sen_3 = []
+    sen_4 = []
+    sen_5 = []
+    sen_6 = []
+    sen_7 = []
+    sen_8 = []
+    sen_9 = []
+    sen_10 = []
+    sen_11 = []
+
+    with open('C:/Users/Christian Schuckart/OneDrive/Work/Paper - sand/SultansOfSand.txt') as csvdatei:
+        dat = csv.reader(csvdatei)
+        b = True
+        start = False
+        for each in dat:
+            if each[0] == '2023-12-27 19:34:43' or start:
+                if b:
+                    start_time = np.datetime64(each[0])
+                    b = False
+                    start = True
+                timestamps.append(np.datetime64(each[0]) - start_time)
+                if mode == 'rear':
+                    index_shift = 0
+                else:
+                    index_shift = 11
+                sen_1.append(float(each[1 + index_shift]))
+                sen_2.append(float(each[2 + index_shift]))
+                sen_3.append(float(each[3 + index_shift]))
+                sen_4.append(float(each[4 + index_shift]))
+                sen_5.append(float(each[5 + index_shift]))
+                sen_6.append(float(each[6 + index_shift]))
+                sen_7.append(float(each[7 + index_shift]))
+                sen_8.append(float(each[8 + index_shift]))
+                sen_9.append(float(each[9 + index_shift]))
+                sen_10.append(float(each[10 + index_shift]))
+                sen_11.append(float(each[11 + index_shift]))
+                if timestamps[len(timestamps) - 1] > 20736 * 50:
+                    break
+
+    sen_1s = []
+    sen_2s = []
+    sen_3s = []
+    sen_4s = []
+    sen_5s = []
+    sen_6s = []
+    sen_7s = []
+    sen_8s = []
+    sen_9s = []
+    sen_10s = []
+    sen_11s = []
+    counter = 0
+    for i in range(len(timestamps) - 1):
+        if timestamps[i] // 50 == counter:
+            sen_1s.append(sen_1[i])
+            sen_2s.append(sen_2[i])
+            sen_3s.append(sen_3[i])
+            sen_4s.append(sen_4[i])
+            sen_5s.append(sen_5[i])
+            sen_6s.append(sen_6[i])
+            sen_7s.append(sen_7[i])
+            sen_8s.append(sen_8[i])
+            sen_9s.append(sen_9[i])
+            sen_10s.append(sen_10[i])
+            sen_11s.append(sen_11[i])
+            counter += 1
+
+    files = listdir('D:/TPM_Data/Big_sand/Paper/')
+    target = open('C:/Users/Christian Schuckart/OneDrive/Work/Paper - sand/Parameter_study_sensors_' + mode + '.csv', 'w')
+    for each in files:
+        if each[0:5] == 'Paper':
+            with open('D:/TPM_Data/Big_sand/Paper/' + each) as json_file:
+                jdata = json.load(json_file)
+            sen_1_sim = []
+            sen_2_sim = []
+            sen_3_sim = []
+            sen_4_sim = []
+            sen_5_sim = []
+            sen_6_sim = []
+            sen_7_sim = []
+            sen_8_sim = []
+            sen_9_sim = []
+            sen_10_sim = []
+            sen_11_sim = []
+            if mode == 'rear':
+                sensor_group = 'Rear'
+            else:
+                sensor_group = 'Right'
+            for i in range(0, const.k):
+                sen_1_sim.append(jdata[sensor_group][i][0])
+                sen_2_sim.append(jdata[sensor_group][i][1])
+                sen_3_sim.append(jdata[sensor_group][i][2])
+                sen_4_sim.append(jdata[sensor_group][i][3])
+                sen_5_sim.append(jdata[sensor_group][i][4])
+                sen_6_sim.append(jdata[sensor_group][i][5])
+                sen_7_sim.append(jdata[sensor_group][i][6])
+                sen_8_sim.append(jdata[sensor_group][i][7])
+                sen_9_sim.append(jdata[sensor_group][i][8])
+                sen_10_sim.append(jdata[sensor_group][i][9])
+                sen_11_sim.append(jdata[sensor_group][i][10])
+            json_file.close()
+            deltas_1 = np.abs(np.array(sen_1s, dtype=np.float64) - np.array(sen_1_sim, dtype=np.float64))
+            deltas_2 = np.abs(np.array(sen_2s, dtype=np.float64) - np.array(sen_2_sim, dtype=np.float64))
+            deltas_3 = np.abs(np.array(sen_3s, dtype=np.float64) - np.array(sen_3_sim, dtype=np.float64))
+            deltas_4 = np.abs(np.array(sen_4s, dtype=np.float64) - np.array(sen_4_sim, dtype=np.float64))
+            deltas_5 = np.abs(np.array(sen_5s, dtype=np.float64) - np.array(sen_5_sim, dtype=np.float64))
+            deltas_6 = np.abs(np.array(sen_6s, dtype=np.float64) - np.array(sen_6_sim, dtype=np.float64))
+            deltas_7 = np.abs(np.array(sen_7s, dtype=np.float64) - np.array(sen_7_sim, dtype=np.float64))
+            deltas_8 = np.abs(np.array(sen_8s, dtype=np.float64) - np.array(sen_8_sim, dtype=np.float64))
+            deltas_9 = np.abs(np.array(sen_9s, dtype=np.float64) - np.array(sen_9_sim, dtype=np.float64))
+            deltas_10 = np.abs(np.array(sen_10s, dtype=np.float64) - np.array(sen_10_sim, dtype=np.float64))
+            deltas_11 = np.abs(np.array(sen_11s, dtype=np.float64) - np.array(sen_11_sim, dtype=np.float64))
+            # target.write(str(each[:-4]) + '\t' + str(np.average(deltas_1)) + ',' + str(np.max(deltas_1)) + '\t' + str(np.average(deltas_2)) + ',' + str(np.max(deltas_2)) + '\t' + str(np.average(deltas_3)) + ',' + str(np.max(deltas_3)) + '\t' + str(np.average(deltas_4)) + ',' + str(np.max(deltas_4)) + '\t' + str(np.average(deltas_5)) + ',' + str(np.max(deltas_5)) +'\n')
+            target.write(str(each[:-5]) + ',' + str(np.nanmean(deltas_1)) + ',' + str(np.nanmax(deltas_1)) + ',' + str(
+                np.nanmean(deltas_2)) + ',' + str(np.nanmax(deltas_2)) + ',' + str(np.nanmean(deltas_3)) + ',' + str(
+                np.nanmax(deltas_3)) + ',' + str(np.nanmean(deltas_4)) + ',' + str(np.nanmax(deltas_4)) + ',' + str(
+                np.nanmean(deltas_5)) + ',' + str(np.nanmax(deltas_5)) + ',' + str(np.nanmean(deltas_6)) + ',' + str(
+                np.nanmax(deltas_6)) + ',' + str(np.nanmean(deltas_7)) + ',' + str(np.nanmax(deltas_7)) + ',' + str(
+                np.nanmean(deltas_8)) + ',' + str(np.nanmax(deltas_8)) + ',' + str(np.nanmean(deltas_9)) + ',' + str(
+                np.nanmax(deltas_9)) + ',' + str(np.nanmean(deltas_10)) + ',' + str(np.nanmax(deltas_10)) + ',' + str(
+                np.nanmean(deltas_11)) + ',' + str(np.nanmax(deltas_11)) + '\n')
+            # target.write(str(each[:-5]) + ',' + str(0.0) + ',' + str(0.0) + ',' + str(np.average(deltas_2)) + ',' + str(np.max(deltas_2)) + ',' + str(np.average(deltas_3)) + ',' + str(np.max(deltas_3)) + ',' + str(np.average(deltas_4)) + ',' + str(np.max(deltas_4)) + ',' + str(np.average(deltas_5)) + ',' + str(np.max(deltas_5)) +'\n')
+
+    target.close()
 '''temp_begin = []
 temp_end = []
 for i in range(1, const.n_z-1):
@@ -81,7 +209,7 @@ for i in range(0, 16):
     D = D_arr[i]
     L = L_arr[i]
 '''
-fig, ax = plt.subplots(1, 1)
+'''fig, ax = plt.subplots(1, 1)
 A, D, L = '0.95', '0.001', '0.003'
 epsilon, epsilon_ambient = 0.95, 0.8
 config = 'inner'
@@ -188,7 +316,7 @@ if string == 'eng':
     ax.plot(timestamps_surface, surface_measured, label='surface hottest temperature', color='tab:orange', ls='--')
 else:
     ax.plot(time_sim_surface, surface_sim, label='Höchste Oberflächentemperatur SIM', color='tab:blue')
-    ax.plot(timestamps_surface, surface_measured, label='Höchste Oberflächentemperatur', color='tab:orange', ls='--')
+    ax.plot(timestamps_surface, surface_measured, label='Höchste Oberflächentemperatur', color='tab:orange', ls='--')'''
 
 '''ax.plot(timestamps, sen_1, label='1. ' + string_sens, color='tab:blue')
 ax.plot(timestamps, sen_2, label='2. ' + string_sens, color='tab:orange')
@@ -256,7 +384,7 @@ print(np.average(sen_4[len(sen_4)-50:len(sen_4)]))
 print()
 print(np.average(sen_5[len(sen_5)-50:len(sen_5)]))'''
 
-ax.set_ylim(290, 420)
+'''ax.set_ylim(290, 420)
 #ax.set_ylim(290, 320)
 ax.set_xlim(-5000, 120000)
 plt.tick_params(axis='x', which='both', direction='in', top=True, labeltop=False)
@@ -274,7 +402,7 @@ plt.savefig('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/B
 plt.show()
 #plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/Plots/CORROuter_sensors_sand_L_chamber_A_0.95_Absdepth_0.001_Lambda_0.003.png', dpi=600)
 ax.clear()
-fig.clear()
+fig.clear()'''
 
 '''with open('D:/TPM_data/Big_sand/sand_L_chamber_test_quick.json') as json_file:
     data_q = json.load(json_file)
@@ -462,3 +590,7 @@ for each in files:
         target.write(str(each[:-9]) + ',' + str(np.average(deltas_1)) + ',' + str(np.max(deltas_1))  +'\n')
 
 target.close()'''
+
+mode = 'right'
+compare_sand(mode)
+sort_csv_big('C:/Users/Christian Schuckart/OneDrive/Work/Paper - sand/Parameter_study_sensors_' + mode + '.csv', True, 'C:/Users/Christian Schuckart/OneDrive/Work/Paper - sand/Parameter_study_sensors_' + mode + '_sorted.csv')

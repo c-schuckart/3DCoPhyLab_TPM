@@ -96,7 +96,67 @@ def get_surface_temperatures_csv(n_x, n_y, directory, file_list, current_file, t
     next_segment_time += (time_next.astype(int) - time_cur.astype(int))
     return surface_temperature_section, current_file, time_next, next_surface_temp_scaled, next_segment_time
 
+def get_lamp_spot_pixel(image, boundary_value):
+    y_min = np.shape(image)[1] + 1
+    y_max = -1
+    x_min = np.shape(image)[0] + 1
+    x_max = -1
+    for i in range(np.shape(image)[0]):
+        for j in range(np.shape(image)[1]):
+            if image[i][j] >= boundary_value:
+                if j < y_min:
+                    y_min = j
+                if j > y_max:
+                    y_max = j
+                if i < x_min:
+                    x_min = i
+                if i > x_max:
+                    x_max = i
+    return np.array([x_min, x_max], np.int32), np.array([y_min, y_max], np.int32)
+def image_to_scale(path):
+    im = np.array(PIL.Image.open(path).convert('L'))
+    x_coords, y_coords = get_lamp_spot_pixel(im, np.max(im)/5)
+    center_x = x_coords[0] + (x_coords[1] - x_coords[0])//2
+    center_y = y_coords[0] + (y_coords[1] - y_coords[0])//2
+    max = np.mean(im[center_x-15:center_x+15, center_y-15:center_y+15])
+    #print(np.max(im))
+    #max = np.max(im)
+    im_scaled = im/max
+    max_allowed = np.ones(np.shape(im_scaled))
+    #print(np.max(im_scaled))
+    im_scaled = np.where(im_scaled < max_allowed, im_scaled, max_allowed)
+    #print(np.max(im_scaled))
+    x_coords, y_coords = get_lamp_spot_pixel(im_scaled, 0.3)
+    if x_coords[1] - x_coords[0] != y_coords[1] - y_coords[0]:
+        if (x_coords[1] - x_coords[0]) & 2 != 0:
+            x_coords[1] += 1
+        if (y_coords[1] - y_coords[0]) & 2 != 0:
+            y_coords[1] += 1
+        delta = (x_coords[1] - x_coords[0]) - (y_coords[1] - y_coords[0])
+        if delta > 0:
+            y_coords[0] -= delta//2
+            y_coords[1] += delta//2
+        elif delta < 0:
+            x_coords[0] += delta//2
+            x_coords[1] -= delta//2
+    lamp_spot = im_scaled[x_coords[0]:x_coords[1], y_coords[0]:y_coords[1]]
+    lamp_to_scale = np.zeros((int(np.ceil((x_coords[1] - x_coords[0]) * 25/7)), int(np.ceil((y_coords[1] - y_coords[0]) * 25/7))), dtype=np.float64)
+    x_start = int(np.ceil((x_coords[1] - x_coords[0]) * 9/7))
+    y_start = int(np.ceil((y_coords[1] - y_coords[0]) * 9/7))
+    lamp_to_scale[x_start:x_start+(x_coords[1] - x_coords[0]), y_start:y_start+(y_coords[1] - y_coords[0])] = lamp_spot
+    #print(np.shape(lamp_to_scale))
+    #print(x_coords[1]-x_coords[0], y_coords[1]-y_coords[0])
+    #plot = plt.imshow(lamp_to_scale)
+    #plt.colorbar(plot)
+    #plt.show()
+    return lamp_to_scale
 
+
+
+
+
+#path = 'C:/Users/Christian Schuckart/OneDrive/Work/Paper - sand/2023-12-28_11_42_11_875.bmp'
+#image_to_scale(path)
 '''#im = np.array(PIL.Image.open('D:/Laboratoy_data/IR/screenshots/2023_04_02_00h_55m_33s.png').convert('L'))
 im = np.array(PIL.Image.open('D:/Masterarbeit_data/IR/ice_block/2023_02_22_11h_35m_12s.png').convert('L'))
 images = ImageSequence('D:/Masterarbeit_data/IR/ice_block/2023_02_*.png')

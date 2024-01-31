@@ -4,7 +4,9 @@ from scipy import integrate
 import variables_and_arrays as var
 import constants as const
 import settings as sett
-from read_images import GCD, convolve
+import csv
+from read_images import GCD, convolve, image_to_scale
+import matplotlib.pyplot as plt
 
 
 '''
@@ -353,4 +355,40 @@ def calculate_L_chamber_lamp_bd(Volt, sample_holder, n_x, n_y, n_z, min_dx, min_
 				lamp_energy[i] = lamp_energy[i] * 0
 	return lamp_energy
 
+
+def calculate_L_chamber_lamp_from_image(Volt, sample_holder, n_x, n_y, n_z, min_dx, min_dy, min_dz, depth_absorption, absorption_scale_length, image_path):
+	lamp_profile_img = image_to_scale(image_path)
+	Surface_powers = lamp_profile_img * np.max(get_L_chamber_lamp_power(sample_holder)) * (min_dx * min_dy) * S_chamber_cal_curve(Volt)/S_chamber_cal_curve(24)
+	ggT = GCD(len(Surface_powers[0]), const.n_x)
+	length = len(Surface_powers[0])//ggT
+	convolved = convolve(Surface_powers, length, const.n_x, len(Surface_powers[0]), n_x, n_y)[0]
+	for i in range(2, n_y-2):
+		convolved[i] = convolved[i+1]
+	lamp_energy = np.zeros((n_z, n_y, n_x), dtype=np.float64)
+	lamp_energy[:] = convolved
+	if depth_absorption:
+		for i in range(0, n_z):
+			lamp_energy[i] = - lamp_energy[i] * (np.exp(- (i+1)*min_dz/absorption_scale_length) - np.exp(- i*min_dz/absorption_scale_length))
+			if i * min_dz > 5*absorption_scale_length:
+				lamp_energy[i] = lamp_energy[i] * 0
+	np.save('C:/Users/Christian Schuckart/OneDrive/Work/Paper - sand/lamp_powers', lamp_energy)
+	plt.imshow(lamp_energy[0])
+	plt.show()
+	return lamp_energy
+
+
+def get_sample_holder_temp_array(path, start_time, dt, k):
+	sample_holder_temp = np.zeros(k, dtype=np.float64)
+	counter = 0
+	with open(path) as csvdatei:
+		dat = csv.reader(csvdatei)
+		for each in dat:
+			if each[0] != 'Time':
+				current_time = (np.datetime64(each[0]) - start_time).astype(int)
+				if counter * dt <= current_time:
+					sample_holder_temp[counter] = float(each[2])
+					counter += 1
+				if counter >= k:
+					break
+	return sample_holder_temp
 
