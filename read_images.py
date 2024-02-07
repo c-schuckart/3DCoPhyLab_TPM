@@ -300,8 +300,55 @@ plt.colorbar(im_one, ax=ax, shrink=1.0)
 plt.show()'''
 
 
-'''path = 'D:/Laboratory_data/Big_sand/sand_daten2/screenshots/'
+'''path = 'D:/Laboratory_data/Big_sand_2/Christian2/screenshots/'
 filenames = listdir(path)
+last_400_os = '2023_12_28_11h_46m_28s.png'
+last_600_os = '2023_12_28_11h_50m_41s.png'
+min_os = 120
+max_os = 400
+
+for each in filenames[232:233]:
+    im = np.array(PIL.Image.open(path + each).convert('L'))
+    width = (929 - 655) * 2 + 100
+    height = (929 - 655) * 2 + 100
+    x = 578
+    y = 655
+    ggT = GCD(const.n_x, width)
+    length = width // ggT
+    #Surface_temperatures_cam = np.zeros((const.k, const.n_x, const.n_y), dtype=np.float64)
+    im_cur = im[int(y - height / 2):int(y + height / 2), int(x - width / 2):int(x + width / 2)]
+    OS_cur = (im_cur / 255) * (max_os - min_os) + min_os
+    #OS_cur = (im_cur / 255) * 50
+    # Surface_temperatures_cur = np.rot90(calibration_high(OS_cur), 3)
+    Surface_temperatures_cur = calibration_high(OS_cur)
+    x_coords, y_coords = get_lamp_spot_pixel(Surface_temperatures_cur, 320)
+    if x_coords[1] - x_coords[0] != y_coords[1] - y_coords[0]:
+        if (x_coords[1] - x_coords[0]) & 2 != 0:
+            x_coords[1] += 1
+        if (y_coords[1] - y_coords[0]) & 2 != 0:
+            y_coords[1] += 1
+        delta = (x_coords[1] - x_coords[0]) - (y_coords[1] - y_coords[0])
+        if delta > 0:
+            y_coords[0] -= delta // 2
+            y_coords[1] += delta // 2
+        elif delta < 0:
+            x_coords[0] += delta // 2
+            x_coords[1] -= delta // 2
+    center_x = x_coords[0] + (x_coords[1] - x_coords[0]) // 2
+    center_y = y_coords[0] + (y_coords[1] - y_coords[0]) // 2
+    print(x_coords, y_coords)
+    lamp_mask = np.ones(np.shape(Surface_temperatures_cur), dtype=np.float64)
+    inverse_lamp_mask = np.ones(np.shape(Surface_temperatures_cur), dtype=np.float64)
+    for i in range(0, np.shape(Surface_temperatures_cur)[0]):
+        for j in range(0, np.shape(Surface_temperatures_cur)[1]):
+            if ((i - center_x) / ((x_coords[1] - x_coords[0]) // 2)) ** 2 + ((j - center_y) / ((y_coords[1] - y_coords[0]) // 2)) ** 2 <= 1:
+                lamp_mask[i][j] = np.nan
+            else:
+                inverse_lamp_mask[i][j] = np.nan
+            if not ((i - center_x) / (height - center_x)) ** 2 + ((j - center_y) / (height - center_x)) ** 2 <= 1:
+                lamp_mask[i][j] = np.nan
+target = open('C:/Users/Christian Schuckart/OneDrive/Work/Paper - sand/sand_surface_temperatures_2023_12_27_to_2024_01_09.csv', 'a')
+target.write('Datetime, Max_lamp_spot, Mean_lamp_spot, Median_lamp_spot, Mean_outer_region, Median_outer_region \n')
 
 for each in filenames:
     im = np.array(PIL.Image.open(path + each).convert('L'))
@@ -313,17 +360,22 @@ for each in filenames:
     length = width // ggT
     #Surface_temperatures_cam = np.zeros((const.k, const.n_x, const.n_y), dtype=np.float64)
     im_cur = im[int(y - height / 2):int(y + height / 2), int(x - width / 2):int(x + width / 2)]
-    OS_cur = (im_cur / 255) * 255 + 145
+    OS_cur = (im_cur / 255) * (max_os - min_os) + min_os
     #OS_cur = (im_cur / 255) * 50
     # Surface_temperatures_cur = np.rot90(calibration_high(OS_cur), 3)
     Surface_temperatures_cur = calibration_high(OS_cur)
-    convolved_cur = convolve(Surface_temperatures_cur, length, const.n_x, len(Surface_temperatures_cur[0]), const.n_x, const.n_y)[0]
-    Con_shifted = np.full(np.shape(Surface_temperatures_cur), np.nan)
-    Con_shifted[0:const.n_y - 5 - 1, 0:const.n_x - 1 - 1] = convolved_cur[5:const.n_y - 1, 1:const.n_x - 1]
-    target = open('C:/Users/Christian Schuckart/OneDrive/Uni/Master/3 - Masterarbeit/BIG_sand/sand_surface_temperatures_mid.csv', 'a')
-    target.write(each + ',' + str(Con_shifted[const.n_y//2][const.n_x//2]) + ',' + str(Con_shifted[const.n_y//2-8][const.n_x//2-8] * 3/4 + Con_shifted[const.n_y//2-7][const.n_x//2-7] * 1/4) + ',' + str(np.mean(Surface_temperatures_cur)) + ',' + str(np.median(Surface_temperatures_cur)) + '\n')
-    #target.write(each + ',' + str(np.max(Surface_temperatures_cur)) + ',' + str(np.mean(Surface_temperatures_cur)) + ',' + str(np.median(Surface_temperatures_cur)) + '\n')
-    target.close()'''
+    lamp_region = Surface_temperatures_cur * inverse_lamp_mask
+    outer_region = Surface_temperatures_cur * lamp_mask
+    date_string = (each[0:4] + '-' + each[5:7] + '-' + each[8:10] + 'T' + each[11:13] + ':' + each[15:17] + ':' + each[19:21])
+    target = open('C:/Users/Christian Schuckart/OneDrive/Work/Paper - sand/sand_surface_temperatures_2023_12_27_to_2024_01_09.csv', 'a')
+    target.write(date_string + ',' + str(np.nanmax(lamp_region)) + ',' + str(np.nanmean(lamp_region)) + ',' + str(np.nanmedian(lamp_region)) + ',' + str(np.nanmean(outer_region)) + ',' + str(np.nanmedian(outer_region)) + '\n')
+    target.close()
+    if each == last_400_os:
+        print('change os: 400->600')
+        max_os = 600
+    if each == last_600_os:
+        print('change os: 600->550')
+        max_os = 550'''
 
 '''with open('D:/TPM_data/Big_sand/TSand_sim_thesis_heat_cap_840_ambient_300K.json') as json_file:
     jdata = json.load(json_file)

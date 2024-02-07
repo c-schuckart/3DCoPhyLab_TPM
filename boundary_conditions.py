@@ -356,9 +356,9 @@ def calculate_L_chamber_lamp_bd(Volt, sample_holder, n_x, n_y, n_z, min_dx, min_
 	return lamp_energy
 
 
-def calculate_L_chamber_lamp_from_image(Volt, sample_holder, n_x, n_y, n_z, min_dx, min_dy, min_dz, depth_absorption, absorption_scale_length, image_path):
+def calculate_L_chamber_lamp_from_image(Volt, sample_holder, n_x, n_y, n_z, min_dx, min_dy, min_dz, depth_absorption, absorption_scale_length, image_path, lamp_correction_factor):
 	lamp_profile_img = image_to_scale(image_path)
-	Surface_powers = lamp_profile_img * np.max(get_L_chamber_lamp_power(sample_holder)) * (min_dx * min_dy) * S_chamber_cal_curve(Volt)/S_chamber_cal_curve(24)
+	Surface_powers = lamp_profile_img * np.max(get_L_chamber_lamp_power(sample_holder)) * (min_dx * min_dy) * S_chamber_cal_curve(Volt)/S_chamber_cal_curve(24) * lamp_correction_factor
 	ggT = GCD(len(Surface_powers[0]), const.n_x)
 	length = len(Surface_powers[0])//ggT
 	convolved = convolve(Surface_powers, length, const.n_x, len(Surface_powers[0]), n_x, n_y)[0]

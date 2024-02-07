@@ -10,7 +10,7 @@ from boundary_conditions import energy_input, test, energy_input_data, sample_ho
 from heat_transfer_equation_DG_ADI import hte_implicit_DGADI
 from data_input import getPath, read_temperature_data, transform_temperature_data
 from save_and_load import data_store, data_store_sensors, data_save_sensors
-from utility_functions import thermal_reservoir, prescribe_temp_profile_from_data, save_sensors_L_sample_holder_high_res
+from utility_functions import thermal_reservoir, prescribe_temp_profile_from_data, save_sensors_L_sample_holder_high_res, ambient_temperature_from_data
 
 '''
 --> Const illum:    0-9864 its
@@ -19,18 +19,18 @@ from utility_functions import thermal_reservoir, prescribe_temp_profile_from_dat
 '''
 
 
-albedo_arr = [0.95, 0.85, 0.75]
-lambda_arr = [0.002, 0.003, 0.0074, 0.015, 0.2]
-absorption_depth_arr = [0.5E-3, 1E-3, 2E-3, 3E-3]
+albedo_arr = [0.3, 0.2]
+lambda_arr = [0.003, 0.005, 0.0074, 0.015, 0.03]
+absorption_depth_arr = [0.5E-3, 1E-3]
 
 
 #print('here')
 #albedo_arr = [0.95]
 #lambda_arr = [0.003]
 #absorption_depth_arr = [0.5E-3, 1E-3]
-ambient_temperature = 304
+ambient_temperature = 300
 #abs_depth = absorption_depth_arr[0]
-heat_capacity_sand = 746        #Eschner 2018
+heat_capacity_sand = 857        #Eschner 2018
 for albedo in albedo_arr:
     for lambda_sand_c in lambda_arr:
         for abs_depth in absorption_depth_arr:
@@ -88,14 +88,15 @@ for albedo in albedo_arr:
                 #np.savetxt("D:/Masterarbeit_data/surface_temp.csv", surface_temp, delimiter=",")
                 #np.savetxt("D:/Masterarbeit_data/sample_holder_temp.csv", sample_holder_temp, delimiter=",")
                 #lamp_power = calculate_L_chamber_lamp_bd(24, 'L', const.n_x, const.n_y, const.n_z, const.min_dx, const.min_dy, const.min_dz, True, abs_depth)
-                #lamp_power = calculate_L_chamber_lamp_from_image(24, 'L', const.n_x, const.n_y, const.n_z, const.min_dx, const.min_dy, const.min_dz, True, abs_depth, 'C:/Users/Christian Schuckart/OneDrive/Work/Paper - sand/2023-12-28_11_42_11_875.bmp')
+                lamp_correction_factor = 0.419  # The wrong intensity of the lamp has been measured and this factor corrects it to a maximum value of 2.3 solar constants
+                #lamp_power = calculate_L_chamber_lamp_from_image(24, 'L', const.n_x, const.n_y, const.n_z, const.min_dx, const.min_dy, const.min_dz, True, abs_depth, 'C:/Users/Christian Schuckart/OneDrive/Work/Paper - sand/2023-12-28_11_42_11_875.bmp', lamp_correction_factor)
                 lamp_power = np.load('C:/Users/Christian Schuckart/OneDrive/Work/Paper - sand/lamp_powers.npy')
                 S_p = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
                 S_c = calculate_deeper_layer_source(const.n_x, const.n_y, const.n_z, lamp_power, const.r_H, albedo, surface, dx, dy, dz)
                 if lambda_sand_c == 0.003 and abs_depth == 1E-3:
-                    name_string = 'C:/Users/Christian Schuckart/OneDrive/Work/Paper - sand/Paper_new_sample_' + str(albedo) + '_Absdepth_' + str(abs_depth) + '_Lambda_' + str(lambda_sand_c) +'.json'
+                    name_string = 'C:/Users/Christian Schuckart/OneDrive/Work/Paper - sand/Paper_new_sample_' + str(albedo) + '_Absdepth_' + str(abs_depth) + '_Lambda_' + str(lambda_sand_c) +'_amb_295.json'
                 else:
-                    name_string = 'D:/TPM_Data/Big_sand/Paper/Paper_new_sample_' + str(albedo) + '_Absdepth_' + str(abs_depth) + '_Lambda_' + str(lambda_sand_c) + '.json'
+                    name_string = 'D:/TPM_Data/Big_sand/Paper/Paper_new_sample_' + str(albedo) + '_Absdepth_' + str(abs_depth) + '_Lambda_' + str(lambda_sand_c) + '_amb_temp_from_IRcam.json'
                 #data_save_file = 'D:/TPM_Data/Big_sand/Thesis_run/Periodic_sand_sim_thesis_' + str(albedo) + '_Absdepth_' + str(abs_depth) + '_Lambda_' + str(lambda_sand_c) +'.json'
                 #data_save_file = 'D:/TPM_Data/Big_sand/Thesis_run/varying_epsilon' + str(epsilon) + '_ambient_epsilon' + str(epsilon_ambient) + '_test_308K.json'
                 data_save_file = 'D:/TPM_Data/Big_sand/Thesis_run/const_illum_best_fit_am_300K.json'
@@ -121,7 +122,13 @@ for albedo in albedo_arr:
                 height_list_sensors = np.array([11, 21, 22, 23, 24, 25, 27, 29, 34, 39])
                 # height_list_sensors = np.array([11, 21, 31, 41, 51, 61, 81, 101, 151, 200])
                 # height_list_sensors = np.array([6, 11, 16, 21, 26, 31, 41, 51, 76, 100])
+                ambient_temp_times, ambient_temp_arr = ambient_temperature_from_data('C:/Users/Christian Schuckart/OneDrive/Work/Paper - sand/sand_surface_temperatures_2023_12_27_to_2024_01_09.csv')
+                amtemp_counter = 0
                 for j in tqdm(range(0, const.k)):
+                    if j * const.dt >= ambient_temp_times[amtemp_counter]:
+                        while j * const.dt >= ambient_temp_times[amtemp_counter]:
+                            amtemp_counter += 1
+                        ambient_temperature = ambient_temp_arr[amtemp_counter-1]
                     sensors_right, sensors_rear = save_sensors_L_sample_holder_high_res(const.n_x, const.n_y, const.n_z, temperature, sensors_right, sensors_rear, j, height_list_sensors, sf=1)
                     middle_slices[j] = temperature[0:const.n_z, const.n_y//2, const.n_x//2].copy()
                     #sensor_10mm, sensor_20mm, sensor_35mm, sensor_55mm, sensor_90mm = data_store_sensors(j, const.n_x, const.n_y, const.n_z, temperature, sensor_10mm, sensor_20mm, sensor_35mm, sensor_55mm, sensor_90mm, sett.data_reduce)
