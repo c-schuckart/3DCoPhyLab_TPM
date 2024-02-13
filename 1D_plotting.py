@@ -583,22 +583,22 @@ target.close()
 
 
 labels=['Right_5','Right_10','Right_15','Right_15_side','Right_20','Right_25','Right_30','Right_40','Right_50','Right_75','Right_100_side']
-ger_labels=['5mm','10mm','15mm','15mm_a','20mm','25mm','30mm','40mm','50mm','75mm','100mm_a']
+ger_labels=['5mm','10mm','15mm','15mm_o','20mm','25mm','30mm','40mm','50mm','75mm','100mm_o']
 #labels=['Rear_5','Rear_10','Rear_10_side','Rear_15','Rear_20','Rear_25','Rear_30','Rear_40','Rear_50','Rear_75','Rear_100']
-#ger_labels=['5mm','10mm','10mm_a','15mm','20mm','25mm','30mm','40mm','50mm','75mm','100mm']
+#ger_labels=['5mm','10mm','10mm_o','15mm','20mm','25mm','30mm','40mm','50mm','75mm','100mm']
 #labels = ['Sidewall_55','Sidewall_25','Copperplate', 'Sidewall_85']
 
 
 time_sim = [i * const.dt for i in range(0, const.k)]
-with open('D:/TPM_Data/Ice/CD_Final_Granular_ice_L_albedo_0.85_sinter_reduction_factor_0.0001_wall_0.90_.json') as json_file:
+with open('D:/TPM_Data/Ice/ABSFinal_Granular_ice_L_albedo_0.85_sinter_reduction_factor_0.0001.json') as json_file:
     jdata = json.load(json_file)
 
 NUM_COLORS = 20
 cm = plt.get_cmap('tab20')
 fig = plt.figure()
-fig.set_figheight(15)
-fig.set_figwidth(20)
-'''ax1 = plt.subplot2grid(shape=(3, 5), loc=(0, 0), colspan=2, rowspan=2)
+fig.set_figheight(13.5)
+fig.set_figwidth(24)
+ax1 = plt.subplot2grid(shape=(3, 5), loc=(0, 0), colspan=2, rowspan=2)
 ax2 = plt.subplot2grid(shape=(3, 5), loc=(0, 2), colspan=1, rowspan=1)
 ax3 = plt.subplot2grid(shape=(3, 5), loc=(0, 3), colspan=1, rowspan=1)
 ax4 = plt.subplot2grid(shape=(3, 5), loc=(0, 4), colspan=1, rowspan=1)
@@ -609,8 +609,8 @@ ax8 = plt.subplot2grid(shape=(3, 5), loc=(2, 0), colspan=1, rowspan=1)
 ax9 = plt.subplot2grid(shape=(3, 5), loc=(2, 1), colspan=1, rowspan=1)
 ax10 = plt.subplot2grid(shape=(3, 5), loc=(2, 2), colspan=1, rowspan=1)
 ax11 = plt.subplot2grid(shape=(3, 5), loc=(2, 3), colspan=1, rowspan=1)
-ax12 = plt.subplot2grid(shape=(3, 5), loc=(2, 4), colspan=1, rowspan=1)'''
-ax1 = plt.subplot2grid(shape=(4, 4), loc=(0, 0), colspan=2, rowspan=2)
+ax12 = plt.subplot2grid(shape=(3, 5), loc=(2, 4), colspan=1, rowspan=1)
+'''ax1 = plt.subplot2grid(shape=(4, 4), loc=(0, 0), colspan=2, rowspan=2)
 ax2 = plt.subplot2grid(shape=(4, 4), loc=(0, 2), colspan=1, rowspan=1)
 ax3 = plt.subplot2grid(shape=(4, 4), loc=(0, 3), colspan=1, rowspan=1)
 ax4 = plt.subplot2grid(shape=(4, 4), loc=(1, 2), colspan=1, rowspan=1)
@@ -621,7 +621,7 @@ ax8 = plt.subplot2grid(shape=(4, 4), loc=(2, 2), colspan=1, rowspan=1)
 ax9 = plt.subplot2grid(shape=(4, 4), loc=(2, 3), colspan=1, rowspan=1)
 ax10 = plt.subplot2grid(shape=(4, 4), loc=(3, 0), colspan=1, rowspan=1)
 ax11 = plt.subplot2grid(shape=(4, 4), loc=(3, 1), colspan=1, rowspan=1)
-ax12 = plt.subplot2grid(shape=(4, 4), loc=(3, 2), colspan=1, rowspan=1)
+ax12 = plt.subplot2grid(shape=(4, 4), loc=(3, 2), colspan=1, rowspan=1)'''
 axes = [ax1, ax2, ax3, ax4, ax5, ax6, ax7, ax8, ax9, ax10, ax11, ax12]
 axes[0].set_prop_cycle(color=[cm(1. * i / NUM_COLORS) for i in range(NUM_COLORS)])
 count = 0
@@ -716,28 +716,28 @@ for label in labels:
     count += 1'''
 
 
-#ax.set_xlim(data['Time'][36000], data['Time'][66000])
+'''#ax.set_xlim(data['Time'][36000], data['Time'][66000])
 #ax.set_ylim(142, 182)
 #ax.add_artist(mlines.Line2D([data['Time'][45000], data['Time'][45000]], [140, 190], ls='--', color='black'))
 #ax.add_artist(mlines.Line2D([data['Time'][65000], data['Time'][65000]], [140, 190], ls='--', color='black'))
 #fig.legend(loc=2, ncol=6, fontsize='medium')
 #fig.legend(loc='upper left', bbox_to_anchor=(0.1, 1.0), ncol=6, fontsize='medium')
-fig.legend(loc='upper left', bbox_to_anchor=(0.03, 1.0), ncol=6, fontsize='small')
-fig.suptitle('Rechte Sensoren')
+fig.legend(loc='upper left', bbox_to_anchor=(0.03, 1.0), ncol=8, fontsize='small')
+fig.suptitle('Right sensors')
 
 for i in range(len(axes)):
     axes[i].tick_params(axis='both', which='both', direction='in', top=True, right=True, bottom=True, left=True, labeltop=False, labelright=False, labelbottom=True, labelleft=True)
     #if i > 6:
-    axes[i].set_xlabel('Zeit (s)')
-    axes[i].set_ylabel('Temperatur (K)')
+    axes[i].set_xlabel('Time (s)')
+    axes[i].set_ylabel('Temperature (K)')
     if i > 0:
         axes[i].set_title(ger_labels[i-1])
     #ax.set_title('dz Auflösung: 5mm - 0,5mm; Hintere Sensoren')
     axes[i].set_ylim(140, 180)
 
 fig.tight_layout()
-plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Thesis/PDF_CD_wall_0.90_best_fit_crater_right_all_4_3.pdf', dpi=600)
-plt.show()
+plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Presentation_plots/PDF_CD_best_fit_crater_right_all_eng.png', dpi=600)
+plt.show()'''
 
 '''fig.legend(loc=9, ncol=6, fontsize='xx-small')
 

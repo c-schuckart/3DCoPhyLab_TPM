@@ -16,8 +16,8 @@ from utility_functions import save_sensors_L_sample_holder, save_sensors_L_sampl
 
 #albedo_arr = [0.95, 0.8, 0.85, 0.8, 0.75]
 #lambda_arr = [0.16, 0.14, 0.12, 0.1, 0.8]
-albedo_arr = [0.9]
-sinter_temp_reduce_arr = [1E-3, 1E-4]
+albedo_arr = [0.85]
+sinter_temp_reduce_arr = [1E-4]
 for run in range(0, 1):
     for albedo in albedo_arr:
         for sinter_temp_reduce in sinter_temp_reduce_arr:
@@ -139,8 +139,8 @@ for run in range(0, 1):
             sensors_right = np.zeros((const.k, 11), dtype=np.float64)
             sensors_rear = np.zeros((const.k, 11), dtype=np.float64)
             data_file_sensors = 'C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Thesis/Agilent_L_chamber_30_11_2023_14_20_44.txt'
-            height_list_sensors = np.array([2, 3, 4, 5, 6, 7, 9, 11, 16, 20])
-            #height_list_sensors = np.array([11, 21, 31, 41, 51, 61, 81, 101, 151, 200])
+            #height_list_sensors = np.array([2, 3, 4, 5, 6, 7, 9, 11, 16, 20])
+            height_list_sensors = np.array([11, 21, 31, 41, 51, 61, 81, 101, 151, 200])
             #height_list_sensors = np.array([6, 11, 16, 21, 26, 31, 41, 51, 76, 100])
 
             '''latent_heat_water = calculate_latent_heat(temperature, const.lh_b_1, const.lh_c_1, const.lh_d_1, const.R, const.m_mol)

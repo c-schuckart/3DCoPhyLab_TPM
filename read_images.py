@@ -281,7 +281,7 @@ for each in filenames:
     #target.write(each + ',' + str(np.max(Surface_temperatures_cur)) + ',' + str(np.mean(Surface_temperatures_cur)) + ',' + str(np.median(Surface_temperatures_cur)) + '\n')
 target.close()'''
 
-'''fig, ax = plt.subplots(1, 1)
+fig, ax = plt.subplots(1, 1)
 file = '2023_12_07_00h_28m_21s'
 im = np.array(PIL.Image.open(path + file + '.png').convert('L'))
 ggT = GCD(const.n_x, width)
@@ -297,14 +297,14 @@ Surface_lamp_spot = Surface_temperatures_cur + mask_inverse_lamp_spot
 min = 140
 max = 205
 sls = ax.imshow(Surface_temperatures_cur, vmin=min, vmax=max)
-ax.scatter(270, 100, marker='x', color='black', s=6)
-ax.scatter(312, 275, marker='x', color='black', s=6)
+#ax.scatter(270, 100, marker='x', color='black', s=6)
+#ax.scatter(312, 275, marker='x', color='black', s=6)
 ax.set_yticks([648, 548, 448, 348, 248, 148, 48], [0, 100, 200, 300, 400, 500, 600])
 #ax.set_yticks([230, 180, 130, 80, 30], [0, 50, 100, 150, 200])
 ax.set_xlabel('Pixel')
 ax.set_ylabel('Pixel')
-ax.set_title('13. Tag-Nacht-Zyklus')
-plt.colorbar(sls, cmap='viridis')
+ax.set_title('Max. of 13th day-night-cycle')
+plt.colorbar(sls, cmap='viridis', label='Temperature (K)')
 #plt.colorbar(cm.ScalarMappable(norm=norm, cmap='viridis'), cax=ax)
-plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Thesis/crater_temp_13th_cycle_all.png', dpi=600)
-plt.show()'''
+plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Presentation_plots/crater_temp_13th_cycle_all.png', dpi=600)
+plt.show()
