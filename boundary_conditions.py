@@ -247,7 +247,7 @@ def sample_holder_test(n_x, n_y, n_z, sample_holder, temperature):
 def calculate_deeper_layer_source(n_x, n_y, n_z, input_energy, r_H, albedo, surface, dx, dy, dz):
 	S_c = np.zeros((n_z, n_y, n_x), dtype=np.float64)
 	Q = input_energy / r_H ** 2 * (1 - albedo)
-	S_c[2:const.n_z] = Q[2:const.n_z] / (dx[2:const.n_z] * dy[2:const.n_z] * dz[2:const.n_z])
+	S_c[2:const.n_z] = Q[1:const.n_z-1] / (dx[2:const.n_z] * dy[2:const.n_z] * dz[2:const.n_z])
 	return S_c
 
 
@@ -362,10 +362,17 @@ def calculate_L_chamber_lamp_from_image(Volt, sample_holder, n_x, n_y, n_z, min_
 	ggT = GCD(len(Surface_powers[0]), const.n_x)
 	length = len(Surface_powers[0])//ggT
 	convolved = convolve(Surface_powers, length, const.n_x, len(Surface_powers[0]), n_x, n_y)[0]
-	for i in range(2, n_y-2):
-		convolved[i] = convolved[i+1]
+	for j in range(0, n_y):
+		for k in range(0, n_x):
+			if convolved[j][k] == np.max(convolved):
+				center_y = j
+				center_x = k
+	convolved_shift = np.zeros(np.shape(convolved), dtype=np.float64)
+	convolved_shift[0:n_y-(center_y-n_y//2), 0:n_x-(center_x-n_x//2)] = convolved[center_y - n_y//2:n_y, center_x - n_x//2:n_x]
+	'''for i in range(2, n_y-2):
+		convolved[i] = convolved[i+1]'''
 	lamp_energy = np.zeros((n_z, n_y, n_x), dtype=np.float64)
-	lamp_energy[:] = convolved
+	lamp_energy[:] = convolved_shift
 	if depth_absorption:
 		for i in range(0, n_z):
 			lamp_energy[i] = - lamp_energy[i] * (np.exp(- (i+1)*min_dz/absorption_scale_length) - np.exp(- i*min_dz/absorption_scale_length))

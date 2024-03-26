@@ -582,15 +582,18 @@ ax.set_ylabel('Temperature (K)')
 plt.show()'''
 
 
-'''#labels=['Right_5','Right_10','Right_15','Right_15_side','Right_20','Right_25','Right_30','Right_40','Right_50','Right_75','Right_100_side']
-#ger_labels=['5mm','10mm','15mm','15mm_a','20mm','25mm','30mm','40mm','50mm','75mm','100mm_a']
-labels=['Rear_5','Rear_10','Rear_10_side','Rear_15','Rear_20','Rear_25','Rear_30','Rear_40','Rear_50','Rear_75','Rear_100']
-ger_labels=['5mm','10mm','10mm_a','15mm','20mm','25mm','30mm','40mm','50mm','75mm','100mm']
+labels=['Right_5','Right_10','Right_15','Right_15_side','Right_20','Right_25','Right_30','Right_40','Right_50','Right_75','Right_100_side']
+ger_labels=['5mm','10mm','15mm','15mm_side','20mm','25mm','30mm','40mm','50mm','75mm','100mm_a']
+#labels=['Rear_5','Rear_10','Rear_10_side','Rear_15','Rear_20','Rear_25','Rear_30','Rear_40','Rear_50','Rear_75','Rear_100']
+#ger_labels=['5mm','10mm','10mm_side','15mm','20mm','25mm','30mm','40mm','50mm','75mm','100mm']
 #labels = ['Sidewall_55','Sidewall_25','Copperplate', 'Sidewall_85']
+
+name_string = 'Albedo_0.85_absdepth_0.0005_Lambda_0.006_right'
+file_type = '.png'
 
 
 time_sim = [i * const.dt for i in range(0, const.k)]
-with open('D:/TPM_Data/Big_sand/Paper/Paper_new_sample_0.5_Absdepth_0.0005_Lambda_0.0074_amb_295.json') as json_file:
+with open('D:/TPM_Data/Big_sand/Paper/Paper_new_sample_0.85_Absdepth_0.0005_Lambda_0.006_amb_temp_from_IRcam.json') as json_file:
     jdata = json.load(json_file)
 
 NUM_COLORS = 20
@@ -624,12 +627,12 @@ for label in labels:
         else:
             axes[count+1].plot(time, ((data[label]+shift).apply(f) + 273.15), color=cm(1. * count*2 / NUM_COLORS))
         axes[count+1].plot(time_sim, np.array(jdata['Right'])[0:const.k, count], ls='--', color='black')
-        cur_pos = np.average(np.array(jdata['Right'])[const.k-216:const.k, count])
+        '''cur_pos = np.average(np.array(jdata['Right'])[const.k-216:const.k, count])
         for positions in label_pos:
             if abs(cur_pos - positions) < 0.01:
                 cur_pos -= 0.025
         axes[0].text(195000, cur_pos, ger_labels[count], fontsize='xx-small')
-        label_pos.append(cur_pos)
+        label_pos.append(cur_pos)'''
     else:
         axes[0].plot(time_sim, np.array(jdata['Rear'])[0:const.k, count], label=ger_labels[count] + ' SIM', ls=line_style_arr[count % 4])
         if count == 10:
@@ -637,12 +640,12 @@ for label in labels:
         else:
             axes[count+1].plot(time, ((data[label]+shift).apply(f) + 273.15), color=cm(1. * (count % 11)*2 / NUM_COLORS))
         axes[count+1].plot(time_sim, np.array(jdata['Rear'])[0:const.k, count], ls='--', color='black')
-        cur_pos = np.average(np.array(jdata['Rear'])[const.k - 216:const.k, count])
+        '''cur_pos = np.average(np.array(jdata['Rear'])[const.k - 216:const.k, count])
         for positions in label_pos:
             if abs(cur_pos - positions) < 0.01:
                 cur_pos -= np.sign(- cur_pos + positions) * 0.025
         axes[0].text(195000, cur_pos, ger_labels[count], fontsize='xx-small')
-        label_pos.append(cur_pos)
+        label_pos.append(cur_pos)'''
     count += 1
 
 
@@ -653,23 +656,26 @@ for label in labels:
 #fig.legend(loc=2, ncol=6, fontsize='medium')
 #fig.legend(loc='upper left', bbox_to_anchor=(0.1, 1.0), ncol=6, fontsize='medium')
 fig.legend(loc='upper left', bbox_to_anchor=(0.03, 1.0), ncol=6, fontsize='small')
-fig.suptitle('Rechte Sensoren')
+if labels[0][0:5] == 'Right':
+    fig.suptitle('Right sensors')
+else:
+    fig.suptitle('Rear sensors')
 
 for i in range(len(axes)):
     axes[i].tick_params(axis='both', which='both', direction='in', top=True, right=True, bottom=True, left=True, labeltop=False, labelright=False, labelbottom=True, labelleft=True)
     #if i > 6:
-    axes[i].set_xlabel('Zeit (s)')
-    axes[i].set_ylabel('Temperatur (K)')
+    axes[i].set_xlabel('Time (s)')
+    axes[i].set_ylabel('Temperature (K)')
     if i > 0:
         axes[i].set_title(ger_labels[i-1])
     #ax.set_title('dz Auflösung: 5mm - 0,5mm; Hintere Sensoren')
     axes[i].set_ylim(290, 320)
 
 fig.tight_layout()
-#plt.savefig('C:/Users/Christian/OneDrive/Uni/Master/3 - Masterarbeit/Ice/Thesis/PDF_CD_wall_0.90_best_fit_crater_right_all_4_3.pdf', dpi=600)
-plt.show()'''
+plt.savefig('C:/Users/Christian Schuckart/OneDrive/Work/Paper - sand/' + name_string + file_type, dpi=600)
+plt.show()
 
-dates = []
+'''dates = []
 lamp_max = []
 lamp_mean = []
 lamp_median = []
@@ -689,11 +695,11 @@ for count, each in enumerate(dat):
         outer_median.append(float(each[5]))
 
 fig, ax = plt.subplots(figsize=(16, 9))
-ax.plot(dates, lamp_max, label='Max temp lamp spot')
-ax.plot(dates, lamp_mean, label='Mean temp lamp spot')
-ax.plot(dates, lamp_median, label='Median temp lamp spot')
+#ax.plot(dates, lamp_max, label='Max temp lamp spot')
+#ax.plot(dates, lamp_mean, label='Mean temp lamp spot')
+#ax.plot(dates, lamp_median, label='Median temp lamp spot')
 ax.plot(dates, outer_mean, label='Mean temp outer region')
-ax.plot(dates, outer_median, label='Median temp outer region')
+#ax.plot(dates, outer_median, label='Median temp outer region')
 #ax.xaxis.set_major_formatter(h_fmt)
 #ax.set_xlim(data['Time'][36000], data['Time'][66000])
 ax.set_ylim(295, 320)
@@ -703,4 +709,4 @@ fig.autofmt_xdate()
 fig.legend(loc=9, ncol=6)
 ax.set_xlabel('Time')
 ax.set_ylabel('Temperature (K)')
-plt.show()
+plt.show()'''

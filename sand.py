@@ -2,6 +2,7 @@ import numpy as np
 import constants as const
 import variables_and_arrays as var
 import settings as sett
+import matplotlib.pyplot as plt
 from tqdm import tqdm
 import json
 from surface_detection import create_equidistant_mesh, DEBUG_print_3D_arrays, find_surface, create_equidistant_mesh_2_layer
@@ -19,9 +20,9 @@ from utility_functions import thermal_reservoir, prescribe_temp_profile_from_dat
 '''
 
 
-albedo_arr = [0.3, 0.2]
-lambda_arr = [0.003, 0.005, 0.0074, 0.015, 0.03]
-absorption_depth_arr = [0.5E-3, 1E-3]
+albedo_arr = [0.85]
+lambda_arr = [0.002, 0.004, 0.006, 0.008, 0.01, 0.012]
+absorption_depth_arr = [1E-3, 0.5E-3, 2E-3]
 
 
 #print('here')
@@ -91,10 +92,12 @@ for albedo in albedo_arr:
                 lamp_correction_factor = 0.419  # The wrong intensity of the lamp has been measured and this factor corrects it to a maximum value of 2.3 solar constants
                 #lamp_power = calculate_L_chamber_lamp_from_image(24, 'L', const.n_x, const.n_y, const.n_z, const.min_dx, const.min_dy, const.min_dz, True, abs_depth, 'C:/Users/Christian Schuckart/OneDrive/Work/Paper - sand/2023-12-28_11_42_11_875.bmp', lamp_correction_factor)
                 lamp_power = np.load('C:/Users/Christian Schuckart/OneDrive/Work/Paper - sand/lamp_powers.npy')
+                #plt.imshow(lamp_power[0])
+                #plt.show()
                 S_p = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
                 S_c = calculate_deeper_layer_source(const.n_x, const.n_y, const.n_z, lamp_power, const.r_H, albedo, surface, dx, dy, dz)
-                if lambda_sand_c == 0.003 and abs_depth == 1E-3:
-                    name_string = 'C:/Users/Christian Schuckart/OneDrive/Work/Paper - sand/Paper_new_sample_' + str(albedo) + '_Absdepth_' + str(abs_depth) + '_Lambda_' + str(lambda_sand_c) +'_amb_295.json'
+                if lambda_sand_c == 0.0074 and abs_depth == 1E-3 or False:
+                    name_string = 'C:/Users/Christian Schuckart/OneDrive/Work/Paper - sand/Paper_new_sample_' + str(albedo) + '_Absdepth_' + str(abs_depth) + '_Lambda_' + str(lambda_sand_c) +'_amb_temp_from_IRcam.json'
                 else:
                     name_string = 'D:/TPM_Data/Big_sand/Paper/Paper_new_sample_' + str(albedo) + '_Absdepth_' + str(abs_depth) + '_Lambda_' + str(lambda_sand_c) + '_amb_temp_from_IRcam.json'
                 #data_save_file = 'D:/TPM_Data/Big_sand/Thesis_run/Periodic_sand_sim_thesis_' + str(albedo) + '_Absdepth_' + str(abs_depth) + '_Lambda_' + str(lambda_sand_c) +'.json'
@@ -124,11 +127,15 @@ for albedo in albedo_arr:
                 # height_list_sensors = np.array([6, 11, 16, 21, 26, 31, 41, 51, 76, 100])
                 ambient_temp_times, ambient_temp_arr = ambient_temperature_from_data('C:/Users/Christian Schuckart/OneDrive/Work/Paper - sand/sand_surface_temperatures_2023_12_27_to_2024_01_09.csv')
                 amtemp_counter = 0
+                smoothing = 2
                 for j in tqdm(range(0, const.k)):
                     if j * const.dt >= ambient_temp_times[amtemp_counter]:
                         while j * const.dt >= ambient_temp_times[amtemp_counter]:
                             amtemp_counter += 1
-                        ambient_temperature = ambient_temp_arr[amtemp_counter-1]
+                        if np.abs(ambient_temp_arr[amtemp_counter-1] - ambient_temperature) > smoothing:
+                            pass
+                        else:
+                            ambient_temperature = ambient_temp_arr[amtemp_counter-1]
                     sensors_right, sensors_rear = save_sensors_L_sample_holder_high_res(const.n_x, const.n_y, const.n_z, temperature, sensors_right, sensors_rear, j, height_list_sensors, sf=1)
                     middle_slices[j] = temperature[0:const.n_z, const.n_y//2, const.n_x//2].copy()
                     #sensor_10mm, sensor_20mm, sensor_35mm, sensor_55mm, sensor_90mm = data_store_sensors(j, const.n_x, const.n_y, const.n_z, temperature, sensor_10mm, sensor_20mm, sensor_35mm, sensor_55mm, sensor_90mm, sett.data_reduce)
@@ -144,6 +151,7 @@ for albedo in albedo_arr:
                         lamp_power_dn, S_c_dn = day_night_cycle(lamp_power, S_c, 3600*3, j * const.dt)
                         temperature = hte_implicit_DGADI(const.n_x, const.n_y, const.n_z, surface_reduced, const.r_H, albedo, const.dt, lamp_power_dn, const.sigma, epsilon, epsilon_ambient, temperature, Lambda, Dr, heat_capacity, density, dx, dy, dz, surface, S_c_dn, S_p, sample_holder, ambient_temperature)
                     else:
+                        S_c = np.zeros((const.n_z, const.n_y, const.n_x), dtype=np.float64)
                         temperature = hte_implicit_DGADI(const.n_x, const.n_y, const.n_z, surface_reduced, const.r_H, albedo, const.dt, np.zeros(np.shape(lamp_power)), const.sigma, epsilon, epsilon_ambient, temperature, Lambda, Dr, heat_capacity, density, dx, dy, dz, surface, S_c, S_p, sample_holder, ambient_temperature)
                     #print(temperature[1, 0:const.n_y, const.n_x//2])
                     #temperature = hte_implicit_DGADI(const.n_x, const.n_y, const.n_z, surface_reduced, const.r_H, albedo, const.dt, lamp_power, const.sigma, const.epsilon, temperature, Lambda, Dr, heat_capacity, density, dx, dy, dz, surface, S_c, S_p, sample_holder, ambient_temperature)
